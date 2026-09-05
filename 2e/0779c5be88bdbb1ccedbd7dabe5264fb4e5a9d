@@ -1,0 +1,20 @@
+docs/launch/sspai.md
+  s_8f0e745dcf0fa2::t_58edd616270c9d 30-32,34-35
+  s_8f0e745dcf0fa2::t_371f477e1f6ca2 11-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "2e0779c5be88bdbb1ccedbd7dabe5264fb4e5a9d",
+  "prompts": {},
+  "sessions": {
+    "s_8f0e745dcf0fa2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c0b26288-160d-4bcf-a894-d7ff39eb101a",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
