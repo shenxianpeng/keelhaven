@@ -232,7 +232,7 @@ No. Backups are encrypted on your Mac before anything is uploaded, and the repos
 </FaqItem>
 <FaqItem question="Which destinations are supported?">
 
-An external or network drive mounted on your Mac, any S3-compatible bucket (AWS, Backblaze B2, Wasabi, Cloudflare R2, MinIO), and SFTP to your own server or NAS.
+An external or network drive mounted on your Mac, any S3-compatible bucket (AWS, Backblaze B2, Wasabi, Cloudflare R2, MinIO), SFTP to your own server or NAS, and a [restic REST server](https://github.com/restic/rest-server) you host yourself.
 
 </FaqItem>
 <FaqItem question="Do backups grow forever?">

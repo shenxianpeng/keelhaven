@@ -80,5 +80,6 @@ exercises the real binary end-to-end when it's installed.
 File-level browsing inside snapshots (whole-snapshot restore shipped:
 plan actions → Restore… lists snapshots and restores into a fresh subfolder),
 custom retention keep counts (preset retention shipped: Edit Plan →
-Retention), additional backends (rclone family), launchd scheduling,
-sandboxing.
+Retention), additional backends (rclone family), rest-server beyond its
+default mode (`--private-repos`, `--append-only`, self-signed/custom-CA
+TLS — public CA-signed HTTPS works), launchd scheduling, sandboxing.
