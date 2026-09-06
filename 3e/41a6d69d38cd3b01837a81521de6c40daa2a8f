@@ -1,0 +1,20 @@
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerIntegrationTests.swift
+  s_005f310c251a3d::t_a693c3028a7a73 245-252
+  s_005f310c251a3d::t_04c63e5505d98e 219-220
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "3e41a6d69d38cd3b01837a81521de6c40daa2a8f",
+  "prompts": {},
+  "sessions": {
+    "s_005f310c251a3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "896b6cb7-6141-46fb-b683-d104cf6e8dff",
+        "model": "claude-fable-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
