@@ -1,0 +1,25 @@
+Keelhaven/Wizard/DestinationStepView.swift
+  s_005f310c251a3d::t_73c99f279d5e1c 254-256
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticCommandTests.swift
+  s_005f310c251a3d::t_0efde32072aebb 108-117
+KeelhavenCore/Sources/KeelhavenCore/Models/Destination.swift
+  s_005f310c251a3d::t_9098a3218026cc 119-129
+Keelhaven/Wizard/WizardModel.swift
+  s_005f310c251a3d::t_6dcf8b17a0ed96 181-188,193
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "82256fdef557548ecd0202bf800f6b720a3eebf5",
+  "prompts": {},
+  "sessions": {
+    "s_005f310c251a3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "896b6cb7-6141-46fb-b683-d104cf6e8dff",
+        "model": "claude-fable-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
