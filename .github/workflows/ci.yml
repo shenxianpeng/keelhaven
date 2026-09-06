@@ -94,10 +94,13 @@ jobs:
       - name: Start rest-server (REST integration tests)
         run: |
           REST_SERVER_VERSION=0.14.0
+          ARCH=$(uname -m | sed 's/x86_64/amd64/')
           curl -fsSL -o "$RUNNER_TEMP/rest-server.tar.gz" \
-            "https://github.com/restic/rest-server/releases/download/v${REST_SERVER_VERSION}/rest-server_${REST_SERVER_VERSION}_darwin_$(uname -m | sed 's/x86_64/amd64/').tar.gz"
+            "https://github.com/restic/rest-server/releases/download/v${REST_SERVER_VERSION}/rest-server_${REST_SERVER_VERSION}_darwin_${ARCH}.tar.gz"
           tar -xzf "$RUNNER_TEMP/rest-server.tar.gz" -C "$RUNNER_TEMP"
-          "$RUNNER_TEMP/rest-server_${REST_SERVER_VERSION}_darwin_$(uname -m | sed 's/x86_64/amd64/')/rest-server" \
+          REST_SERVER_BIN="$RUNNER_TEMP/rest-server_${REST_SERVER_VERSION}_darwin_${ARCH}/rest-server"
+          chmod +x "$REST_SERVER_BIN"
+          "$REST_SERVER_BIN" \
             --listen 127.0.0.1:8000 --path "$RUNNER_TEMP/rest-server-data" --no-auth \
             > "$RUNNER_TEMP/rest-server.log" 2>&1 &
           for _ in $(seq 1 30); do
