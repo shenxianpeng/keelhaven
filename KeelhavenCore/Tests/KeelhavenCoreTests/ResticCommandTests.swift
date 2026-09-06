@@ -105,6 +105,16 @@ final class ResticCommandTests: XCTestCase {
         XCTAssertEqual(destination.repositoryLocation, "rest:http://nas.local:8000/mac/")
     }
 
+    func testRESTURLEmbedsCredentialsDetection() {
+        // restic's docs teach "rest:https://user:pass@host:8000/" — the wizard
+        // must catch that form before the URL reaches plans.json.
+        XCTAssertTrue(RESTConfig(url: "https://user:pass@host:8000/").urlEmbedsCredentials)
+        XCTAssertTrue(RESTConfig(url: "http://user@host:8000/").urlEmbedsCredentials)
+        XCTAssertFalse(RESTConfig(url: "http://127.0.0.1:8000/").urlEmbedsCredentials)
+        // Unparseable URLs can't be inspected; restic rejects them itself.
+        XCTAssertFalse(RESTConfig(url: "not a url").urlEmbedsCredentials)
+    }
+
     func testEnvironmentContainsSecretsAndCleanBase() {
         let destination = Destination.s3(S3Config(
             endpoint: "s3.amazonaws.com",

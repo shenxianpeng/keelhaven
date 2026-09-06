@@ -178,10 +178,19 @@ final class WizardModel {
         }
     }
 
+    /// A REST URL pasted with restic-docs-style embedded credentials
+    /// ("https://user:pass@host/"). Refused because the URL is persisted to
+    /// plans.json in plain text — the separate fields keep the password in
+    /// the Keychain (see RESTConfig.urlEmbedsCredentials).
+    var restURLEmbedsCredentials: Bool {
+        destinationType == .rest && RESTConfig(url: restURL).urlEmbedsCredentials
+    }
+
     /// The destination conflicts with existing state (all shown as red
     /// inline errors in the destination step).
     var destinationHasConflict: Bool {
         if localDestinationInsideSource { return true }
+        if restURLEmbedsCredentials { return true }
         if adoptExistingRepository { return false }
         if destinationAlreadyUsed { return true }
         return localDestinationHasRepository

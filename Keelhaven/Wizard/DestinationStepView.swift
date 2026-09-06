@@ -251,7 +251,9 @@ struct DestinationStepView: View {
             Text("For a restic REST server (rest-server) using default settings — no TLS, no --private-repos, no --append-only. Leave username and password blank if the server has no authentication set up.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
-            if !model.destinationFieldsComplete {
+            if model.restURLEmbedsCredentials {
+                HintCallout(.error, "Remove the username and password from the server URL — enter them in the fields above instead, so they're stored in the Keychain.")
+            } else if !model.destinationFieldsComplete {
                 Text("Server URL is required.")
                     .font(.callout)
                     .foregroundStyle(.secondary)

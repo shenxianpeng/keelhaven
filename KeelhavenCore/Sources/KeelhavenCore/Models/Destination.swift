@@ -116,6 +116,17 @@ public struct RESTConfig: Codable, Hashable, Sendable {
         "rest:\(url)"
     }
 
+    /// True when the URL itself carries a user or password — e.g. a pasted
+    /// "rest:https://user:pass@host:8000/" from restic's docs. The wizard
+    /// refuses such URLs: the URL is persisted to plans.json in plain text,
+    /// and restic prefers embedded credentials over
+    /// RESTIC_REST_USERNAME/PASSWORD, so a password here would both touch
+    /// disk and silently bypass the Keychain.
+    public var urlEmbedsCredentials: Bool {
+        guard let components = URLComponents(string: url) else { return false }
+        return components.user != nil || components.password != nil
+    }
+
     public var displayName: String {
         guard let components = URLComponents(string: url), let host = components.host else {
             return url
