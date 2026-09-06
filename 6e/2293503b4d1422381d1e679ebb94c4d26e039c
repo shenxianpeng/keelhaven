@@ -1,0 +1,27 @@
+docs/ARCHITECTURE.md
+  s_005f310c251a3d::t_9c4b3aafe1b95d 83-85
+site/index.md
+  s_005f310c251a3d::t_04f6514f4d0a12 235
+CLAUDE.md
+  s_005f310c251a3d::t_689fc0c8bb8167 55
+Keelhaven/Localizable.xcstrings
+  s_005f310c251a3d::t_fd89ba72e4354d 797-806,927-936,1320-1329,1450-1459,1480-1489,1630,1635,1700-1719,1970-1979,2160-2162
+site/zh/index.md
+  s_005f310c251a3d::t_d2459a5cae6dac 257
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "6e2293503b4d1422381d1e679ebb94c4d26e039c",
+  "prompts": {},
+  "sessions": {
+    "s_005f310c251a3d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "896b6cb7-6141-46fb-b683-d104cf6e8dff",
+        "model": "claude-fable-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
