@@ -6,6 +6,7 @@ public enum Destination: Codable, Hashable, Sendable {
     case local(path: String)
     case s3(S3Config)
     case sftp(SFTPConfig)
+    case rest(RESTConfig)
 
     /// The restic repository location string, passed via RESTIC_REPOSITORY.
     public var repositoryLocation: String {
@@ -15,6 +16,8 @@ public enum Destination: Codable, Hashable, Sendable {
         case .s3(let config):
             return config.repositoryLocation
         case .sftp(let config):
+            return config.repositoryLocation
+        case .rest(let config):
             return config.repositoryLocation
         }
     }
@@ -28,6 +31,8 @@ public enum Destination: Codable, Hashable, Sendable {
             return "s3://\(config.bucket)"
         case .sftp(let config):
             return "\(config.user)@\(config.host)"
+        case .rest(let config):
+            return config.displayName
         }
     }
 }
@@ -85,5 +90,50 @@ public struct SFTPConfig: Codable, Hashable, Sendable {
         // restic URL form: sftp://user@host:port/relative or sftp://user@host:port//absolute,
         // so the remote path is always appended after a separating "/".
         return "sftp://\(user)@\(host):\(port)/\(path)"
+    }
+}
+
+/// A restic REST server (https://github.com/restic/rest-server) reached over
+/// plain HTTP or HTTPS. v1 targets the server's default mode: no
+/// `--private-repos` path layout, no `--append-only`, no self-signed TLS
+/// (public CA-signed HTTPS works as-is; a custom CA is not yet supported —
+/// see docs/ARCHITECTURE.md).
+public struct RESTConfig: Codable, Hashable, Sendable {
+    /// Scheme + host + port + optional path, e.g. "http://127.0.0.1:8000/" or
+    /// "https://backups.example.com/mac/". Never contains credentials —
+    /// those are carried separately so they never end up in RESTIC_REPOSITORY.
+    public var url: String
+    /// HTTP basic-auth username for a server run with an .htpasswd file.
+    /// Empty means the server has no authentication (rest-server --no-auth).
+    public var username: String
+
+    public init(url: String, username: String = "") {
+        self.url = url
+        self.username = username
+    }
+
+    public var repositoryLocation: String {
+        "rest:\(url)"
+    }
+
+    /// True when the URL itself carries a user or password — e.g. a pasted
+    /// "rest:https://user:pass@host:8000/" from restic's docs. The wizard
+    /// refuses such URLs: the URL is persisted to plans.json in plain text,
+    /// and restic prefers embedded credentials over
+    /// RESTIC_REST_USERNAME/PASSWORD, so a password here would both touch
+    /// disk and silently bypass the Keychain.
+    public var urlEmbedsCredentials: Bool {
+        guard let components = URLComponents(string: url) else { return false }
+        return components.user != nil || components.password != nil
+    }
+
+    public var displayName: String {
+        guard let components = URLComponents(string: url), let host = components.host else {
+            return url
+        }
+        guard let port = components.port else {
+            return "rest://\(host)"
+        }
+        return "rest://\(host):\(port)"
     }
 }

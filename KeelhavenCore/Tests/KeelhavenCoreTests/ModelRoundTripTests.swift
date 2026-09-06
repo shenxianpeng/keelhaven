@@ -19,6 +19,7 @@ final class ModelRoundTripTests: XCTestCase {
             .local(path: "/Volumes/Backup/repo"),
             .s3(S3Config(endpoint: "s3.amazonaws.com", bucket: "b", pathPrefix: "p", accessKeyID: "AKIA")),
             .sftp(SFTPConfig(user: "u", host: "h.local", port: 2222, path: "/data")),
+            .rest(RESTConfig(url: "http://127.0.0.1:8000/", username: "restic")),
         ]
         for destination in destinations {
             let plan = BackupPlan(

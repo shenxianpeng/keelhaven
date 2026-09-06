@@ -794,6 +794,16 @@
         }
       }
     },
+    "Enter the REST server URL.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "填写 REST 服务器 URL 后继续"
+          }
+        }
+      }
+    },
     "Enter the password of the existing repository. It is checked when you click Next.": {
       "localizations": {
         "zh-Hans": {
@@ -910,6 +920,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "适用于之前创建过的备份仓库——比如其他计划、重装系统前或另一台 Mac 留下的。会先验证您输入的密码，不会新建仓库。"
+          }
+        }
+      }
+    },
+    "For a restic REST server (rest-server) using default settings — no TLS, no --private-repos, no --append-only. Leave username and password blank if the server has no authentication set up.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适用于按默认设置运行的 restic REST server（rest-server）——未启用 TLS、--private-repos 和 --append-only。服务器没有设置认证时，用户名和密码留空即可。"
           }
         }
       }
@@ -1297,6 +1317,16 @@
         }
       }
     },
+    "Password (optional)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密码（可选）"
+          }
+        }
+      }
+    },
     "Password must be at least 8 characters.": {
       "localizations": {
         "zh-Hans": {
@@ -1417,6 +1447,16 @@
         }
       }
     },
+    "REST Server": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "REST 服务器"
+          }
+        }
+      }
+    },
     "Read-only — can't back up here": {
       "localizations": {
         "zh-Hans": {
@@ -1433,6 +1473,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "移除 %@"
+          }
+        }
+      }
+    },
+    "Remove the username and password from the server URL — enter them in the fields above instead, so they're stored in the Keychain.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "请把用户名和密码从服务器 URL 里去掉，改填到上方的字段中——这样它们会保存在钥匙串里。"
           }
         }
       }
@@ -1577,12 +1627,12 @@
         }
       }
     },
-    "S3, SFTP, or an existing repository": {
+    "S3, SFTP, REST server, or an existing repository": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "S3、SFTP 或连接已有仓库"
+            "value": "S3、SFTP、REST 服务器或连接已有仓库"
           }
         }
       }
@@ -1643,6 +1693,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "Secret Access Key"
+          }
+        }
+      }
+    },
+    "Server URL": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器 URL"
+          }
+        }
+      }
+    },
+    "Server URL is required.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "服务器 URL 为必填"
           }
         }
       }
@@ -1897,6 +1967,16 @@
         }
       }
     },
+    "Username (optional)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用户名（可选）"
+          }
+        }
+      }
+    },
     "Uses your existing SSH keys (~/.ssh) or ssh-agent for authentication.": {
       "localizations": {
         "zh-Hans": {
@@ -2076,6 +2156,9 @@
           }
         }
       }
+    },
+    "http://127.0.0.1:8000/": {
+      "shouldTranslate": false
     },
     "nas.local": {
       "shouldTranslate": false

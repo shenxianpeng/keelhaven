@@ -512,6 +512,10 @@ final class AppState {
         if case .s3 = plan.destination {
             s3Secret = try keychain.secret(account: KeychainAccount.s3SecretKey(planID: plan.id))
         }
-        return RepoCredentials(repositoryPassword: password, s3SecretAccessKey: s3Secret)
+        var restSecret: String?
+        if case .rest = plan.destination {
+            restSecret = try keychain.secret(account: KeychainAccount.restPassword(planID: plan.id))
+        }
+        return RepoCredentials(repositoryPassword: password, s3SecretAccessKey: s3Secret, restPassword: restSecret)
     }
 }

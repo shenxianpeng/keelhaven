@@ -18,6 +18,10 @@ public enum KeychainAccount {
     public static func s3SecretKey(planID: UUID) -> String {
         "s3-secret.\(planID.uuidString)"
     }
+
+    public static func restPassword(planID: UUID) -> String {
+        "rest-secret.\(planID.uuidString)"
+    }
 }
 
 public enum KeychainError: Error, Equatable, Sendable {

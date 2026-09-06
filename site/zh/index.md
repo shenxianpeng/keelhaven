@@ -254,7 +254,7 @@ Nice scope — restic plus a menu bar UI is exactly the missing piece, and keepi
 </FaqItem>
 <FaqItem question="支持哪些备份目的地？">
 
-挂在 Mac 上的外置硬盘或网络硬盘；任何兼容 S3 的存储桶（AWS、Backblaze B2、Wasabi、Cloudflare R2、MinIO）；以及用 SFTP 连自己的服务器或 NAS。
+挂在 Mac 上的外置硬盘或网络硬盘；任何兼容 S3 的存储桶（AWS、Backblaze B2、Wasabi、Cloudflare R2、MinIO）；用 SFTP 连自己的服务器或 NAS；以及你自己架设的 [restic REST server](https://github.com/restic/rest-server)。
 
 </FaqItem>
 <FaqItem question="备份会一直涨下去吗？">

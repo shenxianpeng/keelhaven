@@ -158,7 +158,7 @@ struct DestinationStepView: View {
                         .accessibilityHidden(true)
                     VStack(alignment: .leading, spacing: 1) {
                         Text("Advanced options")
-                        Text("S3, SFTP, or an existing repository")
+                        Text("S3, SFTP, REST server, or an existing repository")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                     }
@@ -237,6 +237,24 @@ struct DestinationStepView: View {
                 .foregroundStyle(.secondary)
             if !model.destinationFieldsComplete {
                 Text("All fields are required.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+            }
+        case .rest:
+            Form {
+                TextField("Server URL", text: $model.restURL, prompt: Text("http://127.0.0.1:8000/"))
+                TextField("Username (optional)", text: $model.restUsername)
+                SecureField("Password (optional)", text: $model.restPassword)
+            }
+            .formStyle(.columns)
+            .textFieldStyle(.roundedBorder)
+            Text("For a restic REST server (rest-server) using default settings — no TLS, no --private-repos, no --append-only. Leave username and password blank if the server has no authentication set up.")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+            if model.restURLEmbedsCredentials {
+                HintCallout(.error, "Remove the username and password from the server URL — enter them in the fields above instead, so they're stored in the Keychain.")
+            } else if !model.destinationFieldsComplete {
+                Text("Server URL is required.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
             }
