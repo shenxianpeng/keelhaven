@@ -15,7 +15,7 @@
 
 Privacy-first Mac backup to your own storage. Free and open source (GPLv3) — no subscription, no telemetry.
 
-Keelhaven wraps the battle-tested [restic](https://restic.net) engine in a native SwiftUI menu bar app: pick folders, pick a destination you own (external drive, any S3-compatible bucket, or SFTP/NAS), set a schedule — your files are encrypted on your Mac before they leave it.
+Keelhaven wraps the battle-tested [restic](https://restic.net) engine in a native SwiftUI menu bar app: pick folders, pick a destination you own (external drive, any S3-compatible bucket, SFTP/NAS, or a restic REST server), set a schedule — your files are encrypted on your Mac before they leave it.
 
 **Status: public beta.** The engine, wizard, scheduled backups, whole-snapshot restore, periodic repository verification, and retention presets all work — app and website in English and Simplified Chinese; file-level browsing inside snapshots is next.
 
@@ -55,7 +55,7 @@ for personal builds, and the project layout live in
 
 ## Security model (v1)
 
-- Repository password and S3 secret key live in the macOS Keychain, one entry per plan.
+- Repository password, S3 secret key, and REST server password live in the macOS Keychain, one entry per plan.
 - Secrets reach restic only through the child process environment — never argv, never disk.
 - The restic child gets a minimal clean environment (`PATH`, `HOME`, `TMPDIR`, `SSH_AUTH_SOCK` + credentials), not the app's.
 - Zero telemetry. Nothing leaves your machine except your encrypted backups, to the destination you chose.

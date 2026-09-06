@@ -25,11 +25,11 @@ The app ships with its own copy of restic (universal binary, checksum-verified
 against the official release) in `Contents/MacOS/` — end users never install
 anything. A user-set path override and Homebrew locations remain as fallbacks.
 
-### Backend integration tests (S3 / SFTP)
+### Backend integration tests (S3 / SFTP / REST)
 
 `make test` always exercises restic end-to-end against a local-disk repository.
-Two further suites do the same against the network backends and self-skip
-unless their backend is reachable; CI always runs both (see
+Three further suites do the same against the network backends and self-skip
+unless their backend is reachable; CI always runs all three (see
 `.github/workflows/ci.yml`). To run them locally:
 
 - **S3** (`ResticS3IntegrationTests`) needs an S3-compatible server on
@@ -46,9 +46,17 @@ unless their backend is reachable; CI always runs both (see
   Login* with key auth in place, then confirm with
   `ssh -o BatchMode=yes 127.0.0.1 true`.
 
-Both suites honor `KEELHAVEN_TEST_S3_*` / `KEELHAVEN_TEST_SFTP_*` environment
-overrides for pointing at real cloud storage or a NAS — see the test file
-headers.
+- **REST** (`ResticRESTIntegrationTests`) needs a [rest-server](https://github.com/restic/rest-server)
+  on `127.0.0.1:8000`:
+
+  ```bash
+  go install github.com/restic/rest-server/cmd/rest-server@latest
+  rest-server --listen 127.0.0.1:8000 --path /tmp/rest-server-data --no-auth
+  ```
+
+Suites honor `KEELHAVEN_TEST_S3_*` / `KEELHAVEN_TEST_SFTP_*` / `KEELHAVEN_TEST_REST_*`
+environment overrides for pointing at real cloud storage, a NAS, or a remote
+REST server — see the test file headers.
 
 ### Remote latency benchmark
 

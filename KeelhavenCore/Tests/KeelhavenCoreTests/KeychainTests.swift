@@ -13,6 +13,10 @@ final class KeychainAccountTests: XCTestCase {
             KeychainAccount.s3SecretKey(planID: id),
             "s3-secret.11111111-2222-3333-4444-555555555555"
         )
+        XCTAssertEqual(
+            KeychainAccount.restPassword(planID: id),
+            "rest-secret.11111111-2222-3333-4444-555555555555"
+        )
     }
 }
 

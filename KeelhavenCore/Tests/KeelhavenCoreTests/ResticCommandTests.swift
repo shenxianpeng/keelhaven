@@ -95,6 +95,16 @@ final class ResticCommandTests: XCTestCase {
         XCTAssertEqual(customPort.repositoryLocation, "sftp://sxp@nas.local:2222//backups/mac")
     }
 
+    func testRESTRepositoryLocationNeverEmbedsCredentials() {
+        let destination = Destination.rest(RESTConfig(url: "http://nas.local:8000/mac/", username: "sxp"))
+        // The URL is passed through as-is: neither the username here nor any
+        // password ever appears in it, so restic must pick both up from
+        // RESTIC_REST_USERNAME/RESTIC_REST_PASSWORD instead (verified against
+        // restic's rest backend: it only reads those env vars when the URL
+        // itself has no embedded user/password).
+        XCTAssertEqual(destination.repositoryLocation, "rest:http://nas.local:8000/mac/")
+    }
+
     func testEnvironmentContainsSecretsAndCleanBase() {
         let destination = Destination.s3(S3Config(
             endpoint: "s3.amazonaws.com",
@@ -125,5 +135,27 @@ final class ResticCommandTests: XCTestCase {
         let env = credentials.environment(for: .local(path: "/tmp/repo"))
         XCTAssertNil(env["AWS_ACCESS_KEY_ID"])
         XCTAssertNil(env["AWS_SECRET_ACCESS_KEY"])
+    }
+
+    func testRESTDestinationSetsUsernameAndPasswordWhenAuthenticated() {
+        let destination = Destination.rest(RESTConfig(url: "http://127.0.0.1:8000/", username: "restic"))
+        let credentials = RepoCredentials(repositoryPassword: "hunter22", restPassword: "rest-secret")
+        let env = credentials.environment(for: destination)
+
+        XCTAssertEqual(env["RESTIC_REPOSITORY"], "rest:http://127.0.0.1:8000/")
+        XCTAssertEqual(env["RESTIC_REST_USERNAME"], "restic")
+        XCTAssertEqual(env["RESTIC_REST_PASSWORD"], "rest-secret")
+    }
+
+    /// The default rest-server setup (no --private-repos, no --append-only,
+    /// no TLS) is commonly also run with --no-auth — the client must send no
+    /// basic-auth headers at all in that case, not empty-string credentials.
+    func testRESTDestinationOmitsAuthVariablesWhenUsernameEmpty() {
+        let destination = Destination.rest(RESTConfig(url: "http://127.0.0.1:8000/"))
+        let credentials = RepoCredentials(repositoryPassword: "hunter22")
+        let env = credentials.environment(for: destination)
+
+        XCTAssertNil(env["RESTIC_REST_USERNAME"])
+        XCTAssertNil(env["RESTIC_REST_PASSWORD"])
     }
 }

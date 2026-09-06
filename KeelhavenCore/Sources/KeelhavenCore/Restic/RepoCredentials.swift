@@ -5,10 +5,15 @@ import Foundation
 public struct RepoCredentials: Sendable {
     public var repositoryPassword: String
     public var s3SecretAccessKey: String?
+    /// HTTP basic-auth password for a REST server destination. Unrelated to
+    /// repositoryPassword, which stays the restic repository's own encryption
+    /// password regardless of destination.
+    public var restPassword: String?
 
-    public init(repositoryPassword: String, s3SecretAccessKey: String? = nil) {
+    public init(repositoryPassword: String, s3SecretAccessKey: String? = nil, restPassword: String? = nil) {
         self.repositoryPassword = repositoryPassword
         self.s3SecretAccessKey = s3SecretAccessKey
+        self.restPassword = restPassword
     }
 
     /// The complete environment for the restic child process: a minimal clean
@@ -31,6 +36,16 @@ public struct RepoCredentials: Sendable {
             env["AWS_ACCESS_KEY_ID"] = config.accessKeyID
             if let secret = s3SecretAccessKey {
                 env["AWS_SECRET_ACCESS_KEY"] = secret
+            }
+        }
+        // restic only reads these when the repository URL itself carries no
+        // username/password, which RESTConfig.repositoryLocation guarantees —
+        // so this is the only place REST auth can come from. An empty
+        // username means the server has no authentication; omit both.
+        if case .rest(let config) = destination, !config.username.isEmpty {
+            env["RESTIC_REST_USERNAME"] = config.username
+            if let password = restPassword {
+                env["RESTIC_REST_PASSWORD"] = password
             }
         }
         return env

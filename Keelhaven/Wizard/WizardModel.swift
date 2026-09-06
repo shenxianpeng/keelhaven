@@ -6,6 +6,7 @@ enum DestinationType: String, CaseIterable, Identifiable {
     case local
     case s3
     case sftp
+    case rest
 
     var id: String { rawValue }
 
@@ -14,6 +15,7 @@ enum DestinationType: String, CaseIterable, Identifiable {
         case .local: return String(localized: "Local / External Drive")
         case .s3: return String(localized: "S3-Compatible")
         case .sftp: return String(localized: "SFTP / NAS")
+        case .rest: return String(localized: "REST Server")
         }
     }
 }
@@ -55,6 +57,9 @@ final class WizardModel {
     var sftpHost = ""
     var sftpPort = "22"
     var sftpPath = ""
+    var restURL = ""
+    var restUsername = ""
+    var restPassword = ""
     var password = ""
     var passwordConfirm = ""
     var passwordWasGenerated = false
@@ -98,7 +103,8 @@ final class WizardModel {
         let draft = buildDraft()
         let credentials = RepoCredentials(
             repositoryPassword: draft.password,
-            s3SecretAccessKey: draft.s3SecretKey
+            s3SecretAccessKey: draft.s3SecretKey,
+            restPassword: draft.restPassword
         )
         do {
             let runner = ResticRunner(binaryURL: binaryURL)
@@ -167,6 +173,8 @@ final class WizardModel {
             return !s3Endpoint.isEmpty && !s3Bucket.isEmpty && !s3AccessKey.isEmpty && !s3SecretKey.isEmpty
         case .sftp:
             return !sftpUser.isEmpty && !sftpHost.isEmpty && !sftpPath.isEmpty && Int(sftpPort) != nil
+        case .rest:
+            return !restURL.isEmpty
         }
     }
 
@@ -206,6 +214,8 @@ final class WizardModel {
                 port: Int(sftpPort) ?? 22,
                 path: sftpPath
             ))
+        case .rest:
+            return .rest(RESTConfig(url: restURL, username: restUsername))
         }
     }
 
@@ -244,6 +254,8 @@ final class WizardModel {
                     return String(localized: "Fill in the remaining S3 fields.")
                 case .sftp:
                     return String(localized: "Fill in the remaining SFTP fields.")
+                case .rest:
+                    return String(localized: "Enter the REST server URL.")
                 }
             }
             if destinationHasConflict {
@@ -328,6 +340,7 @@ final class WizardModel {
             schedule: schedule,
             password: password,
             s3SecretKey: destinationType == .s3 ? s3SecretKey : nil,
+            restPassword: destinationType == .rest ? restPassword : nil,
             adoptExistingRepository: adoptExistingRepository
         )
     }
@@ -348,6 +361,9 @@ final class WizardModel {
         sftpHost = fresh.sftpHost
         sftpPort = fresh.sftpPort
         sftpPath = fresh.sftpPath
+        restURL = fresh.restURL
+        restUsername = fresh.restUsername
+        restPassword = fresh.restPassword
         password = fresh.password
         passwordConfirm = fresh.passwordConfirm
         passwordWasGenerated = fresh.passwordWasGenerated

@@ -54,11 +54,12 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       # The integration test suites exercise the real restic binary end-to-end
-      # against all three backends: local disk, S3 (MinIO below), and SFTP
-      # (sshd below). They self-skip when their backend is missing, but we
-      # want all of them running in CI — hence the hard failure gates in the
-      # setup steps: a broken server here must fail the job loudly, because a
-      # silent XCTSkip would look green while testing nothing.
+      # against all four backends: local disk, S3 (MinIO below), SFTP (sshd
+      # below), and a REST server (rest-server below). They self-skip when
+      # their backend is missing, but we want all of them running in CI —
+      # hence the hard failure gates in the setup steps: a broken server here
+      # must fail the job loudly, because a silent XCTSkip would look green
+      # while testing nothing.
       - name: Install restic
         # untap: the runner image ships an untrusted aws/tap that makes every
         # brew command print tap-trust warnings; we don't use it.
@@ -82,6 +83,29 @@ jobs:
           done
           echo "::error::MinIO did not become healthy"
           cat "$RUNNER_TEMP/minio.log"
+          exit 1
+      # rest-server ships only as source + a per-release tarball, no brew
+      # formula (verified: `brew search rest-server` is empty). --no-auth
+      # matches the common self-hosted default this backend targets in v1
+      # (no --private-repos, no --append-only, no TLS); the authenticated
+      # RESTIC_REST_USERNAME/PASSWORD path is covered by unit tests instead
+      # (ResticCommandTests), the same way the S3 suite skips exercising a
+      # wrong secret key live.
+      - name: Start rest-server (REST integration tests)
+        run: |
+          REST_SERVER_VERSION=0.14.0
+          curl -fsSL -o "$RUNNER_TEMP/rest-server.tar.gz" \
+            "https://github.com/restic/rest-server/releases/download/v${REST_SERVER_VERSION}/rest-server_${REST_SERVER_VERSION}_darwin_$(uname -m | sed 's/x86_64/amd64/').tar.gz"
+          tar -xzf "$RUNNER_TEMP/rest-server.tar.gz" -C "$RUNNER_TEMP"
+          "$RUNNER_TEMP/rest-server_${REST_SERVER_VERSION}_darwin_$(uname -m | sed 's/x86_64/amd64/')/rest-server" \
+            --listen 127.0.0.1:8000 --path "$RUNNER_TEMP/rest-server-data" --no-auth \
+            > "$RUNNER_TEMP/rest-server.log" 2>&1 &
+          for _ in $(seq 1 30); do
+            curl -s -o /dev/null http://127.0.0.1:8000/ && exit 0
+            sleep 1
+          done
+          echo "::error::rest-server did not become healthy"
+          cat "$RUNNER_TEMP/rest-server.log"
           exit 1
       # Loopback sshd with key auth — the same setup restic's sftp backend
       # needs from a real user (non-interactive ssh, host key already known).

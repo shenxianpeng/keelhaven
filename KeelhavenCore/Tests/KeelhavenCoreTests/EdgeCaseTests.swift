@@ -71,6 +71,20 @@ final class DestinationDisplayNameTests: XCTestCase {
             Destination.sftp(SFTPConfig(user: "sxp", host: "nas.local", path: "/backups")).displayName,
             "sxp@nas.local"
         )
+        XCTAssertEqual(
+            Destination.rest(RESTConfig(url: "http://nas.local:8000/")).displayName,
+            "rest://nas.local:8000"
+        )
+        XCTAssertEqual(
+            Destination.rest(RESTConfig(url: "https://backups.example.com/")).displayName,
+            "rest://backups.example.com"
+        )
+        // Malformed URL: URLComponents can't extract a host, so the raw
+        // string is shown rather than a blank label.
+        XCTAssertEqual(
+            Destination.rest(RESTConfig(url: "not a url")).displayName,
+            "not a url"
+        )
     }
 }
 

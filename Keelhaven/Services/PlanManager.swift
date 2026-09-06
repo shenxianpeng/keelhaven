@@ -9,6 +9,7 @@ struct PlanDraft {
     var schedule: Schedule
     var password: String
     var s3SecretKey: String?
+    var restPassword: String?
     /// True when the destination already holds a repository the user wants to
     /// connect to: the password is verified against it instead of `restic init`.
     var adoptExistingRepository = false
@@ -45,7 +46,8 @@ struct PlanManager {
 
         let credentials = RepoCredentials(
             repositoryPassword: draft.password,
-            s3SecretAccessKey: draft.s3SecretKey
+            s3SecretAccessKey: draft.s3SecretKey,
+            restPassword: draft.restPassword
         )
         let runner = ResticRunner(binaryURL: binaryURL)
 
@@ -71,6 +73,12 @@ struct PlanManager {
                 account: KeychainAccount.s3SecretKey(planID: plan.id)
             )
         }
+        if let restPassword = draft.restPassword, !restPassword.isEmpty {
+            try keychain.setSecret(
+                restPassword,
+                account: KeychainAccount.restPassword(planID: plan.id)
+            )
+        }
 
         if !draft.adoptExistingRepository {
             do {
@@ -92,5 +100,6 @@ struct PlanManager {
     func removeSecrets(planID: UUID) {
         try? keychain.deleteSecret(account: KeychainAccount.repositoryPassword(planID: planID))
         try? keychain.deleteSecret(account: KeychainAccount.s3SecretKey(planID: planID))
+        try? keychain.deleteSecret(account: KeychainAccount.restPassword(planID: planID))
     }
 }
