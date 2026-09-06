@@ -216,9 +216,10 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         try holder.run()
         defer {
             try? holderInput.fileHandleForWriting.close()
+            // No waitUntilExit here either — a wedged defer would hang
+            // teardown (see the SIGKILL wait below).
             if holder.isRunning {
                 holder.terminate()
-                holder.waitUntilExit()
             }
         }
 
@@ -241,7 +242,14 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         // SIGKILL, not terminate: restic handles SIGTERM by releasing the
         // lock, which is precisely the case that needs no recovery.
         kill(holder.processIdentifier, SIGKILL)
-        holder.waitUntilExit()
+        // Not waitUntilExit: Process can miss a SIGKILL'd child's death and
+        // block forever (rare macOS race — it wedged both CI and local runs).
+        // kill(pid, 0) asks the kernel directly: 0 while the pid exists,
+        // ESRCH once it's gone. The lock file outlives the process either
+        // way, so a bounded wait is all the assertion below needs.
+        for _ in 0..<100 where kill(holder.processIdentifier, 0) == 0 {
+            try await Task.sleep(nanoseconds: 50_000_000)
+        }
         XCTAssertEqual(lockCount(), 1, "SIGKILL should have left the lock behind")
 
         // Backups are unaffected — the reason this failure hides so well.
