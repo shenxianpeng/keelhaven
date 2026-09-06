@@ -1,0 +1,63 @@
+README.md
+  s_40a9504952462c::t_ddbbea54013a5c 58
+  s_40a9504952462c::t_3025355f196bc8 18
+KeelhavenCore/Tests/KeelhavenCoreTests/KeychainTests.swift
+  s_40a9504952462c::t_dd21923109bd91 16-19
+KeelhavenCore/Tests/KeelhavenCoreTests/ModelRoundTripTests.swift
+  s_40a9504952462c::t_308906e45cbbdc 22
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticCommandTests.swift
+  s_40a9504952462c::t_9d3cd46af00ae7 98-107
+  s_40a9504952462c::t_f780b5955185f1 139-160
+KeelhavenCore/Sources/KeelhavenCore/Models/Destination.swift
+  s_40a9504952462c::t_9771979896933e 95-128
+  s_40a9504952462c::t_443c383093280d 9,20-21,34-35
+Keelhaven/Wizard/WizardModel.swift
+  s_40a9504952462c::t_07e1e3cc9913a7 217-218
+  s_40a9504952462c::t_b76df434cccbca 257-258
+  s_40a9504952462c::t_ab12ceb0d97629 343
+  s_40a9504952462c::t_0c9b92b7b713ca 60-62
+  s_40a9504952462c::t_5dd4b8e8e48663 9,18
+  s_40a9504952462c::t_5f12661aa24619 364-366
+  s_40a9504952462c::t_640d33ad19717e 106-107
+  s_40a9504952462c::t_14d43c7d4cdbd5 176-177
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRESTIntegrationTests.swift
+  s_40a9504952462c::t_01aff10bc5b602 1-69
+KeelhavenCore/Sources/KeelhavenCore/Restic/RepoCredentials.swift
+  s_40a9504952462c::t_d79bda54e9cf42 8-11,13,16
+  s_40a9504952462c::t_7f547c0d6d4f5c 41-50
+KeelhavenCore/Sources/KeelhavenCore/Keychain/KeychainStoring.swift
+  s_40a9504952462c::t_5a8126e7f4adf2 21-24
+Keelhaven/Wizard/DestinationStepView.swift
+  s_40a9504952462c::t_b9a9fc1cff129d 161
+  s_40a9504952462c::t_9e1e2b85d3ed7f 243-258
+Keelhaven/AppState.swift
+  s_40a9504952462c::t_846005e0f4abb0 515-519
+.github/workflows/ci.yml
+  s_40a9504952462c::t_0d6fad467a5b71 87-109
+  s_40a9504952462c::t_ee468936896f7a 57-62
+CONTRIBUTING.md
+  s_40a9504952462c::t_be39257462369b 28,31-32,49-59
+KeelhavenCore/Tests/KeelhavenCoreTests/EdgeCaseTests.swift
+  s_40a9504952462c::t_3960b777dfe72c 74-87
+Keelhaven/Services/PlanManager.swift
+  s_40a9504952462c::t_61ccf8e31c4e41 12
+  s_40a9504952462c::t_82044aea6a7d81 76-81
+  s_40a9504952462c::t_442570a599d4b3 49-50
+  s_40a9504952462c::t_f139de6203a1dd 103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5acfe77c2e5a16bd48716918a0326f6c2fb7bc70",
+  "prompts": {},
+  "sessions": {
+    "s_40a9504952462c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed145837-fbfa-4f17-be3d-aac92aa6d6ff",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
