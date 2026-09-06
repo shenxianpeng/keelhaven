@@ -1,0 +1,19 @@
+.github/workflows/ci.yml
+  s_40a9504952462c::t_eff46346f0ef30 97,99,101-103
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ce2b128647efb5c11ad0bbcc5cfe12a0b85e30b7",
+  "prompts": {},
+  "sessions": {
+    "s_40a9504952462c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ed145837-fbfa-4f17-be3d-aac92aa6d6ff",
+        "model": "claude-sonnet-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
