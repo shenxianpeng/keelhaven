@@ -1,13 +1,17 @@
-// Preview deployments of the site for every PR, so a docs change can be
-// looked at rendered before it merges.
+// Cloudflare Workers Builds: preview deployments of the site for every
+// branch, so a docs PR can be looked at before it merges.
 //
 // Production stays on GitHub Pages (keelhaven.app, via website.yml) — this
 // worker is only ever reached on its *.workers.dev preview URLs. There is no
 // script: it is an assets-only worker that serves VitePress's build output.
 //
-// Deployed by .github/workflows/site-preview.yml, not by Cloudflare's own Git
-// integration (which never got its root directory right). See docs/WEBSITE.md
-// § Preview deployments for the two secrets it needs.
+// Dashboard settings that go with this file (Workers & Pages › Create ›
+// import shenxianpeng/keelhaven):
+//   Root directory:  /site   (the repo root has no package.json)
+//   Build command:   npm ci && npm run build
+//   Deploy command:  npx wrangler deploy
+//   Version command: npx wrangler versions upload   (used by PR branches)
+//   Builds for non-production branches: on
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "keelhaven-site",
