@@ -83,3 +83,13 @@ custom retention keep counts (preset retention shipped: Edit Plan →
 Retention), additional backends (rclone family), rest-server beyond its
 default mode (`--private-repos`, `--append-only`, self-signed/custom-CA
 TLS — public CA-signed HTTPS works), launchd scheduling, sandboxing.
+
+A free-form "extra restic arguments" field is not on the list either — it is
+ruled out rather than pending. `--quiet` or `--verbose` would break the
+`--json` event stream every progress bar and summary is parsed from,
+`--no-lock` would defeat the one-run-at-a-time guard, and `--insecure-tls`
+would silently drop certificate checking; none of it can be tested. The
+throughput knobs people actually ask for are shipped instead, as typed and
+range-checked fields (Edit Plan → Advanced: `--limit-upload`,
+`--read-concurrency`, `--pack-size`). Anything beyond those three should be
+a named field with its own validation, not an escape hatch.

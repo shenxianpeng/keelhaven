@@ -48,7 +48,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         // streaming backup: must yield exactly one summary carrying a snapshot id
         var summary: BackupSummary?
         let stream = runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [".DS_Store"], tag: "keelhaven-test"),
+            .backup(sources: [sourceURL.path], excludes: [".DS_Store"], tag: "keelhaven-test", performance: .off),
             destination: destination,
             credentials: credentials
         )
@@ -92,7 +92,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         // forget --prune with a real keep policy: exits clean and keeps the
         // only snapshot (every preset keeps the three most recent)
         try await runner.runIgnoringOutput(
-            .forget(retention: .month),
+            .forget(retention: .month, performance: .off),
             destination: destination,
             credentials: credentials
         )
@@ -194,7 +194,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         )
         // A snapshot, so the retention pass below has something real to do.
         for try await _ in runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test"),
+            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off),
             destination: destination,
             credentials: credentials
         ) {}
@@ -254,7 +254,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
 
         // Backups are unaffected — the reason this failure hides so well.
         for try await _ in runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test"),
+            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off),
             destination: destination,
             credentials: credentials
         ) {}
@@ -262,7 +262,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         // Retention is not: exclusive lock, so exit code 11.
         do {
             try await runner.runIgnoringOutput(
-                .forget(retention: .year),
+                .forget(retention: .year, performance: .off),
                 destination: destination,
                 credentials: credentials
             )
@@ -284,7 +284,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
 
         // Same command, now unblocked — the recovery actually recovers.
         try await runner.runIgnoringOutput(
-            .forget(retention: .year),
+            .forget(retention: .year, performance: .off),
             destination: destination,
             credentials: credentials
         )
@@ -305,5 +305,57 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         } catch {
             XCTFail("Unexpected error: \(error)")
         }
+    }
+
+    /// The performance flags are only useful if restic actually accepts them
+    /// in the position we put them, and neither restic's docs nor a unit test
+    /// can prove that — so a real run does. `--pack-size 8` and
+    /// `--read-concurrency 1` are the smallest values restic allows, which
+    /// keeps this as cheap as the other backups here.
+    func testBackupAcceptsPerformanceFlags() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+
+        let repoURL = workDirectory.appendingPathComponent("perf-repo", isDirectory: true)
+        let sourceURL = workDirectory.appendingPathComponent("perf-src", isDirectory: true)
+        try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
+        try Data("hello keelhaven\n".utf8).write(to: sourceURL.appendingPathComponent("file.txt"))
+
+        let destination = Destination.local(path: repoURL.path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        let performance = PerformanceOptions(
+            uploadLimitKiBPerSecond: 4096,
+            readConcurrency: 1,
+            packSizeMiB: 4
+        )
+        var summary: BackupSummary?
+        let stream = runner.backupStream(
+            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: performance),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in stream {
+            if case .summary(let value) = event {
+                summary = value
+            }
+        }
+        XCTAssertNotNil(summary?.snapshotID, "restic rejected the performance flags")
+
+        // The same options on forget must be accepted too — this is where a
+        // stray --read-concurrency would surface as a usage error.
+        try await runner.runIgnoringOutput(
+            .forget(retention: .year, performance: performance),
+            destination: destination,
+            credentials: credentials
+        )
     }
 }

@@ -124,8 +124,9 @@ final class ModelRoundTripTests: XCTestCase {
     }
 
     func testLegacyPlanJSONDecodesWithFeatureDefaults() throws {
-        // A plan saved by 0.2.0, before scheduled checks and retention
-        // existed: same shape as today's encoder output minus those keys.
+        // A plan saved by 0.2.0, before scheduled checks, retention and the
+        // performance knobs existed: same shape as today's encoder output
+        // minus those keys.
         let plan = BackupPlan(
             name: "Documents",
             sourcePaths: ["/Users/me/Documents"],
@@ -145,6 +146,7 @@ final class ModelRoundTripTests: XCTestCase {
         object.removeValue(forKey: "lastCheck")
         object.removeValue(forKey: "retention")
         object.removeValue(forKey: "lastPrune")
+        object.removeValue(forKey: "performance")
         let legacyData = try JSONSerialization.data(withJSONObject: object)
 
         let decoder = JSONDecoder()
@@ -154,7 +156,45 @@ final class ModelRoundTripTests: XCTestCase {
         XCTAssertNil(decoded.lastCheck)
         XCTAssertEqual(decoded.retention, .off)
         XCTAssertNil(decoded.lastPrune)
+        XCTAssertEqual(decoded.performance, .off)
         XCTAssertEqual(decoded.name, plan.name)
         XCTAssertEqual(decoded.schedule, plan.schedule)
+    }
+
+    func testPlanWithPerformanceOptionsRoundTrip() throws {
+        let plan = BackupPlan(
+            name: "Documents",
+            sourcePaths: ["/Users/me/Documents"],
+            destination: .s3(S3Config(endpoint: "s3.amazonaws.com", bucket: "b", pathPrefix: "p", accessKeyID: "AKIA")),
+            schedule: .hourly,
+            performance: PerformanceOptions(
+                uploadLimitKiBPerSecond: 500,
+                readConcurrency: 8,
+                packSizeMiB: 64
+            ),
+            createdAt: date
+        )
+        XCTAssertEqual(try roundTrip(plan), plan)
+        XCTAssertEqual(try roundTrip(plan).performance.packSizeMiB, 64)
+    }
+
+    /// Unset knobs must not be written at all, so a plan left on the defaults
+    /// keeps producing the same plans.json it does today.
+    func testDefaultPerformanceOptionsEncodeToAnEmptyObject() throws {
+        let object = try XCTUnwrap(
+            try JSONSerialization.jsonObject(with: JSONEncoder().encode(PerformanceOptions.off)) as? [String: Any]
+        )
+        XCTAssertTrue(object.isEmpty)
+    }
+
+    /// Decoding routes through `init`, so a value someone typed into
+    /// plans.json by hand is clamped instead of reaching restic and failing
+    /// every run.
+    func testOutOfRangeStoredValuesAreClampedOnDecode() throws {
+        let json = Data(#"{"readConcurrency": 500, "packSizeMiB": 2, "uploadLimitKiBPerSecond": -1}"#.utf8)
+        let decoded = try JSONDecoder().decode(PerformanceOptions.self, from: json)
+        XCTAssertEqual(decoded.readConcurrency, 32)
+        XCTAssertEqual(decoded.packSizeMiB, 4)
+        XCTAssertNil(decoded.uploadLimitKiBPerSecond)
     }
 }
