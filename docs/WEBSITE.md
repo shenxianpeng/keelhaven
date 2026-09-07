@@ -131,8 +131,29 @@ keelhaven.app is still GitHub Pages, published by `website.yml`, and nothing
 about that changes. The preview only ever lives on `*.workers.dev` URLs.
 
 It is an assets-only Cloudflare Worker — no script, just VitePress's build
-output — described by `site/wrangler.jsonc`. The one-time dashboard setup,
-under Workers & Pages › Create › import `shenxianpeng/keelhaven`:
+output — described by `site/wrangler.jsonc` and driven by
+`.github/workflows/site-preview.yml`. A PR that touches `site/**` is built,
+uploaded as a preview *version* of the worker, and the URL is posted as a
+single comment that is rewritten on each push. Pushes to `main` run
+`wrangler deploy` instead, which is what creates the worker in the first
+place — `versions upload` can only add a version to a worker that already
+exists, so the first main run has to come before any preview works.
+
+Two repository secrets drive it, and without them the workflow builds the
+site and skips the deploy:
+
+| Secret | Where it comes from |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | My Profile › API Tokens › Create Token, with **Workers Scripts: Edit** on the account |
+| `CLOUDFLARE_ACCOUNT_ID` | The hex id in any dashboard URL, `dash.cloudflare.com/<id>/...` |
+
+**Do not also connect Cloudflare's own Git integration.** It was tried first
+and failed every build: each build recorded root directory `/` no matter what
+the dashboard was set to, and `npm ci` has nothing to install at the repo root
+because everything npm needs lives in `site/`. If it is still connected,
+disconnect it under Workers & Pages › keelhaven-site › Settings › Builds, or
+its red check will sit next to this one on every PR. What that dashboard
+wanted, for the record:
 
 | Field | Value |
 |---|---|
@@ -144,12 +165,8 @@ under Workers & Pages › Create › import `shenxianpeng/keelhaven`:
 | Builds for non-production branches | on — this is what produces PR previews |
 | Production branch | `main` |
 
-With the Cloudflare GitHub app installed on the repo, each push to a PR
-branch builds and Cloudflare comments the preview URL on the PR. Only pushes
-made after the project was connected count: a branch that was already open
-when you set this up gets no build until its next push. Pushes to
-`main` also deploy to the worker's production URL, which is harmless and
-unused — do not attach the custom domain to it.
+The worker's own production URL is harmless and unused — do not attach the
+custom domain to it.
 
 Two things look broken on a preview and aren't. `/latest.json` and
 `/downloads/` 404, because `Scripts/deploy-site.sh` mirrors those into
