@@ -10,7 +10,8 @@ final class ResticCommandTests: XCTestCase {
         let command = ResticCommand.backup(
             sources: ["/Users/me/Documents", "/Users/me/Photos"],
             excludes: [".DS_Store", "node_modules"],
-            tag: "keelhaven"
+            tag: "keelhaven",
+            performance: .off
         )
         XCTAssertEqual(command.arguments, [
             "backup", "--json",
@@ -22,7 +23,7 @@ final class ResticCommandTests: XCTestCase {
     }
 
     func testBackupWithoutTagOrExcludes() {
-        let command = ResticCommand.backup(sources: ["/tmp/data"], excludes: [], tag: nil)
+        let command = ResticCommand.backup(sources: ["/tmp/data"], excludes: [], tag: nil, performance: .off)
         XCTAssertEqual(command.arguments, ["backup", "--json", "/tmp/data"])
     }
 
@@ -38,14 +39,14 @@ final class ResticCommandTests: XCTestCase {
     }
 
     func testForgetArguments() {
-        XCTAssertEqual(ResticCommand.forget(retention: .year).arguments, [
+        XCTAssertEqual(ResticCommand.forget(retention: .year, performance: .off).arguments, [
             "forget", "--prune",
             "--keep-last", "3",
             "--keep-daily", "7",
             "--keep-weekly", "5",
             "--keep-monthly", "12",
         ])
-        XCTAssertEqual(ResticCommand.forget(retention: .month).arguments, [
+        XCTAssertEqual(ResticCommand.forget(retention: .month, performance: .off).arguments, [
             "forget", "--prune",
             "--keep-last", "3",
             "--keep-daily", "7",
@@ -53,7 +54,106 @@ final class ResticCommandTests: XCTestCase {
         ])
         // Never issued by the app — PrunePolicy.isDue is false for .off —
         // and restic rejects the bare command rather than deleting anything.
-        XCTAssertEqual(ResticCommand.forget(retention: .off).arguments, ["forget", "--prune"])
+        XCTAssertEqual(ResticCommand.forget(retention: .off, performance: .off).arguments, ["forget", "--prune"])
+    }
+
+    // MARK: - Performance options
+
+    /// The whole point of `.off`: a plan that never touches the Advanced
+    /// section produces the exact argument list it did before these knobs
+    /// existed. Asserted separately from the tests above so a future default
+    /// creeping in fails here loudly.
+    func testDefaultPerformanceOptionsAddNothing() {
+        XCTAssertTrue(PerformanceOptions.off.isDefault)
+        XCTAssertEqual(PerformanceOptions.off.arguments(includingReadConcurrency: true), [])
+        XCTAssertEqual(PerformanceOptions.off.arguments(includingReadConcurrency: false), [])
+    }
+
+    func testBackupCarriesEveryPerformanceFlag() {
+        let command = ResticCommand.backup(
+            sources: ["/tmp/data"],
+            excludes: [],
+            tag: nil,
+            performance: PerformanceOptions(
+                uploadLimitKiBPerSecond: 500,
+                readConcurrency: 8,
+                packSizeMiB: 64
+            )
+        )
+        // Flags come before the sources: restic accepts them either way, but
+        // a path is a positional argument and reads as one here.
+        XCTAssertEqual(command.arguments, [
+            "backup", "--json",
+            "--limit-upload", "500",
+            "--read-concurrency", "8",
+            "--pack-size", "64",
+            "/tmp/data",
+        ])
+    }
+
+    /// `--read-concurrency` is a `backup` flag. Passing it to `forget` makes
+    /// restic exit with a usage error, which would break every retention pass
+    /// for anyone who set it — so it must never reach this command.
+    func testForgetTakesTheGlobalFlagsButNotReadConcurrency() {
+        let command = ResticCommand.forget(
+            retention: .month,
+            performance: PerformanceOptions(
+                uploadLimitKiBPerSecond: 500,
+                readConcurrency: 8,
+                packSizeMiB: 64
+            )
+        )
+        XCTAssertEqual(command.arguments, [
+            "forget", "--prune",
+            "--limit-upload", "500",
+            "--pack-size", "64",
+            "--keep-last", "3",
+            "--keep-daily", "7",
+            "--keep-weekly", "4",
+        ])
+    }
+
+    func testEachPerformanceKnobIsIndependent() {
+        XCTAssertEqual(
+            PerformanceOptions(uploadLimitKiBPerSecond: 100).arguments(includingReadConcurrency: true),
+            ["--limit-upload", "100"]
+        )
+        XCTAssertEqual(
+            PerformanceOptions(readConcurrency: 4).arguments(includingReadConcurrency: true),
+            ["--read-concurrency", "4"]
+        )
+        XCTAssertEqual(
+            PerformanceOptions(packSizeMiB: 32).arguments(includingReadConcurrency: true),
+            ["--pack-size", "32"]
+        )
+    }
+
+    /// Clamping lives in Core because the Edit Plan window is in the UI
+    /// target, which has no tests — and because a hand-edited plans.json
+    /// would otherwise produce a command restic refuses on every run.
+    func testOutOfRangeValuesAreClamped() {
+        let tooLow = PerformanceOptions(readConcurrency: 0, packSizeMiB: 1)
+        XCTAssertEqual(tooLow.readConcurrency, 1)
+        XCTAssertEqual(tooLow.packSizeMiB, 4)
+
+        let tooHigh = PerformanceOptions(readConcurrency: 99, packSizeMiB: 999)
+        XCTAssertEqual(tooHigh.readConcurrency, 32)
+        XCTAssertEqual(tooHigh.packSizeMiB, 128)
+    }
+
+    /// Zero and negative are how the UI says "no limit" when the field is
+    /// cleared: they collapse to nil rather than becoming `--limit-upload 0`,
+    /// which restic reads as a real cap of zero.
+    func testNonPositiveUploadLimitMeansUnlimited() {
+        XCTAssertNil(PerformanceOptions(uploadLimitKiBPerSecond: 0).uploadLimitKiBPerSecond)
+        XCTAssertNil(PerformanceOptions(uploadLimitKiBPerSecond: -5).uploadLimitKiBPerSecond)
+        XCTAssertTrue(PerformanceOptions(uploadLimitKiBPerSecond: 0).isDefault)
+    }
+
+    func testAnyKnobSetIsNotDefault() {
+        XCTAssertFalse(PerformanceOptions(uploadLimitKiBPerSecond: 1).isDefault)
+        XCTAssertFalse(PerformanceOptions(readConcurrency: 1).isDefault)
+        XCTAssertFalse(PerformanceOptions(packSizeMiB: 4).isDefault)
     }
 
     func testRestoreArguments() {

@@ -245,6 +245,11 @@ An external or network drive mounted on your Mac, any S3-compatible bucket (AWS,
 Only if you leave retention off — which is the default, because deleting your data is never something Keelhaven decides on its own. Every run adds a deduplicated snapshot, storing only what changed. When a plan should stop growing, pick a retention preset in Edit Plan — a year of history or a month of history — and older snapshots are thinned to daily, weekly and monthly keepers, with the space reclaimed after a backup at most once a week. The repository stays standard restic throughout, so `restic forget --prune` with a policy of your own still works from any machine.
 
 </FaqItem>
+<FaqItem question="A backup is eating my whole upload. Can I slow it down?">
+
+Yes. **Edit Plan → Advanced** has an upload limit in KiB/s: set it and restic never pushes harder than that, so a big first backup can't take your connection hostage while you're on a call. The same section can lower how many files are read at once — worth doing on an external hard disk, where reading several at a time only makes it seek more — and raise the pack size for cloud storage that charges per request. All three are empty by default and each one left empty stays exactly as restic ships it.
+
+</FaqItem>
 <FaqItem question="How do I know the backups are actually good?">
 
 A failed or incomplete run is never silent — errors from the engine surface immediately in the menu bar and as a notification. Keelhaven also verifies each plan's repository with restic's own integrity check on a schedule — weekly by default, adjustable per plan — and a quiet "Verified" line in the plan row shows the last time it passed; only a problem speaks up. And restoring a file now and then remains the gold standard for any backup tool, ours included.

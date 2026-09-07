@@ -104,6 +104,16 @@
         }
       }
     },
+    "1–32": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1–32"
+          }
+        }
+      }
+    },
     "A backup or repository check for this plan is still running. Wait for it to finish, then delete the plan.": {
       "localizations": {
         "zh-Hans": {
@@ -210,6 +220,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "添加至少一个文件夹后继续"
+          }
+        }
+      }
+    },
+    "Advanced": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级"
           }
         }
       }
@@ -464,6 +484,16 @@
         }
       }
     },
+    "Caps how fast a backup uploads, so it can't take the whole connection. Only affects backups to a server — a local disk ignores it.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "限制备份的上传速度，免得整条带宽被占满。只对备份到服务器有效，备份到本地磁盘时不起作用。"
+          }
+        }
+      }
+    },
     "Choose": {
       "localizations": {
         "zh-Hans": {
@@ -650,6 +680,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "日期"
+          }
+        }
+      }
+    },
+    "Default (16)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认（16）"
+          }
+        }
+      }
+    },
+    "Default (2)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "默认（2）"
           }
         }
       }
@@ -874,6 +924,16 @@
         }
       }
     },
+    "Files read at once": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同时读取文件数"
+          }
+        }
+      }
+    },
     "Fill in the remaining S3 fields.": {
       "localizations": {
         "zh-Hans": {
@@ -1037,6 +1097,26 @@
         }
       }
     },
+    "KiB/s": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "KiB/秒"
+          }
+        }
+      }
+    },
+    "Larger packs mean fewer, bigger uploads. Worth raising for cloud storage that charges per request; leave it alone otherwise.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包越大，上传的次数越少、每次越大。按请求次数计费的云存储值得调大，其他情况保持默认即可。"
+          }
+        }
+      }
+    },
     "Last backup %@ ago": {
       "localizations": {
         "zh-Hans": {
@@ -1077,6 +1157,16 @@
         }
       }
     },
+    "Leave these empty unless a backup is too slow or takes too much of your connection. Empty means restic's own default.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "除非备份太慢或太占网速，否则留空即可。留空表示使用 restic 自己的默认值。"
+          }
+        }
+      }
+    },
     "Loading snapshots…": {
       "localizations": {
         "zh-Hans": {
@@ -1103,6 +1193,26 @@
           "stringUnit": {
             "state": "translated",
             "value": "请在屏幕右上角的菜单栏里找它的图标，点击图标即可管理备份。\n\n看不到图标？菜单栏可能已经放满了——在带刘海的 Mac 上，放不下的图标会被系统隐藏。请退出一个其他菜单栏程序，或按住 ⌘ 键把某个图标拖出菜单栏腾出位置，然后重新打开 Keelhaven。"
+          }
+        }
+      }
+    },
+    "Lower this on an external hard disk, where reading several files at once makes it slower. Raise it on a fast internal SSD.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "机械移动硬盘上同时读多个文件反而更慢，可以调低；内置固态硬盘则可以调高。"
+          }
+        }
+      }
+    },
+    "MiB (4–128)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MiB（4–128）"
           }
         }
       }
@@ -1303,6 +1413,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "或选择任意文件夹："
+          }
+        }
+      }
+    },
+    "Pack size": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打包大小"
           }
         }
       }
@@ -1897,6 +2017,16 @@
         }
       }
     },
+    "Unlimited": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不限速"
+          }
+        }
+      }
+    },
     "Unlock": {
       "localizations": {
         "zh-Hans": {
@@ -1953,6 +2083,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "解锁…"
+          }
+        }
+      }
+    },
+    "Upload limit": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上传限速"
           }
         }
       }

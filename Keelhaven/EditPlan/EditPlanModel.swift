@@ -17,6 +17,11 @@ final class EditPlanModel {
     var retention: RetentionPolicy = .off
     /// Scratch field for the exclude-pattern TextField.
     var newExcludePattern = ""
+    /// The Advanced knobs are held as text so an empty field can mean
+    /// "restic's own default" — a number would have to invent one.
+    var uploadLimitText = ""
+    var readConcurrencyText = ""
+    var packSizeText = ""
 
     func load(from plan: BackupPlan) {
         name = plan.name
@@ -26,6 +31,23 @@ final class EditPlanModel {
         checkCadence = plan.checkCadence
         retention = plan.retention
         newExcludePattern = ""
+        uploadLimitText = Self.text(plan.performance.uploadLimitKiBPerSecond)
+        readConcurrencyText = Self.text(plan.performance.readConcurrency)
+        packSizeText = Self.text(plan.performance.packSizeMiB)
+    }
+
+    private static func text(_ value: Int?) -> String {
+        value.map(String.init) ?? ""
+    }
+
+    /// Anything unparseable is treated as "unset" rather than rejected: the
+    /// fields are optional, and `PerformanceOptions` clamps what does parse.
+    func builtPerformance() -> PerformanceOptions {
+        PerformanceOptions(
+            uploadLimitKiBPerSecond: Int(uploadLimitText.trimmingCharacters(in: .whitespaces)),
+            readConcurrency: Int(readConcurrencyText.trimmingCharacters(in: .whitespaces)),
+            packSizeMiB: Int(packSizeText.trimmingCharacters(in: .whitespaces))
+        )
     }
 
     var isValid: Bool {

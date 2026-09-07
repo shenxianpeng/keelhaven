@@ -179,7 +179,8 @@ final class AppState {
         excludePatterns: [String],
         schedule: Schedule,
         checkCadence: CheckCadence,
-        retention: RetentionPolicy
+        retention: RetentionPolicy,
+        performance: PerformanceOptions
     ) {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty, !sourcePaths.isEmpty,
@@ -190,6 +191,7 @@ final class AppState {
         plans[index].schedule = schedule
         plans[index].checkCadence = checkCadence
         plans[index].retention = retention
+        plans[index].performance = performance
         Task {
             try? await planStore.save(plans)
         }
@@ -262,7 +264,12 @@ final class AppState {
             let credentials = try credentials(for: plan)
             let runner = ResticRunner(binaryURL: binaryURL)
             let stream = runner.backupStream(
-                .backup(sources: plan.sourcePaths, excludes: plan.excludePatterns, tag: "keelhaven"),
+                .backup(
+                    sources: plan.sourcePaths,
+                    excludes: plan.excludePatterns,
+                    tag: "keelhaven",
+                    performance: plan.performance
+                ),
                 destination: plan.destination,
                 credentials: credentials
             )
@@ -439,7 +446,7 @@ final class AppState {
             let credentials = try credentials(for: plan)
             let runner = ResticRunner(binaryURL: binaryURL)
             try await runner.runIgnoringOutput(
-                .forget(retention: plan.retention),
+                .forget(retention: plan.retention, performance: plan.performance),
                 destination: plan.destination,
                 credentials: credentials
             )

@@ -13,6 +13,8 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
     public var excludePatterns: [String]
     public var checkCadence: CheckCadence
     public var retention: RetentionPolicy
+    /// restic throughput knobs, all off by default. See `PerformanceOptions`.
+    public var performance: PerformanceOptions
     public var createdAt: Date
     public var lastRun: BackupRunRecord?
     public var lastCheck: CheckRunRecord?
@@ -34,6 +36,7 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         excludePatterns: [String] = BackupPlan.defaultExcludePatterns,
         checkCadence: CheckCadence = .weekly,
         retention: RetentionPolicy = .off,
+        performance: PerformanceOptions = .off,
         createdAt: Date = Date(),
         lastRun: BackupRunRecord? = nil,
         lastCheck: CheckRunRecord? = nil,
@@ -47,15 +50,17 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         self.excludePatterns = excludePatterns
         self.checkCadence = checkCadence
         self.retention = retention
+        self.performance = performance
         self.createdAt = createdAt
         self.lastRun = lastRun
         self.lastCheck = lastCheck
         self.lastPrune = lastPrune
     }
 
-    /// Plans saved before scheduled checks or retention existed lack those
-    /// keys — decode them leniently so an upgrade can never lose the plan
-    /// list. (`encode(to:)` and `CodingKeys` stay synthesized.)
+    /// Plans saved before scheduled checks, retention or the performance
+    /// knobs existed lack those keys — decode them leniently so an upgrade
+    /// can never lose the plan list. (`encode(to:)` and `CodingKeys` stay
+    /// synthesized.)
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         id = try container.decode(UUID.self, forKey: .id)
@@ -66,6 +71,7 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         excludePatterns = try container.decode([String].self, forKey: .excludePatterns)
         checkCadence = try container.decodeIfPresent(CheckCadence.self, forKey: .checkCadence) ?? .weekly
         retention = try container.decodeIfPresent(RetentionPolicy.self, forKey: .retention) ?? .off
+        performance = try container.decodeIfPresent(PerformanceOptions.self, forKey: .performance) ?? .off
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         lastRun = try container.decodeIfPresent(BackupRunRecord.self, forKey: .lastRun)
         lastCheck = try container.decodeIfPresent(CheckRunRecord.self, forKey: .lastCheck)

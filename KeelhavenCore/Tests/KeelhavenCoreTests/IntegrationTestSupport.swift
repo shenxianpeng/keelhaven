@@ -85,7 +85,7 @@ enum IntegrationTestSupport {
 
         var summary: BackupSummary?
         let stream = runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [".DS_Store"], tag: "keelhaven-test"),
+            .backup(sources: [sourceURL.path], excludes: [".DS_Store"], tag: "keelhaven-test", performance: .off),
             destination: destination,
             credentials: credentials
         )
