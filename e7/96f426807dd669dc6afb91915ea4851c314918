@@ -1,0 +1,59 @@
+Keelhaven/Localizable.xcstrings
+  s_ea9c0d419ff413::t_4a0dffde6f49e4 107-116,227-236,487-496,703-706,927-936,1100-1119,1160-1169,1200-1219,1420-1429,2020-2029,2090-2099
+  s_ea9c0d419ff413::t_a1928356016477 687-702
+KeelhavenCore/Tests/KeelhavenCoreTests/ModelRoundTripTests.swift
+  s_ea9c0d419ff413::t_ce13d94cff41e6 127-129,149,159,163-199
+KeelhavenCore/Sources/KeelhavenCore/Restic/ResticCommand.swift
+  s_ea9c0d419ff413::t_61926220498d31 8,15-17,37,39,56-62
+KeelhavenCore/Sources/KeelhavenCore/Models/PerformanceOptions.swift
+  s_ea9c0d419ff413::t_753d41fd4d575b 1-94
+CLAUDE.md
+  s_ea9c0d419ff413::t_fbed5fe87150a3 55
+KeelhavenCore/Tests/KeelhavenCoreTests/IntegrationTestSupport.swift
+  s_ea9c0d419ff413::t_5372307974da07 88
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerIntegrationTests.swift
+  s_ea9c0d419ff413::t_02312335974df9 309-360
+  s_ea9c0d419ff413::t_5372307974da07 51,95,197,257,265,287
+site/zh/index.md
+  s_ea9c0d419ff413::t_cd8b7a06d75f77 270-273
+  s_ea9c0d419ff413::t_9571f37955df89 269
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticCommandTests.swift
+  s_ea9c0d419ff413::t_5372307974da07 26,42,49,57
+  s_ea9c0d419ff413::t_f669b7b7b0c619 13-14,58-156
+site/index.md
+  s_ea9c0d419ff413::t_cd8b7a06d75f77 248-251
+  s_ea9c0d419ff413::t_bc1c756b088863 247
+Keelhaven/EditPlan/EditPlanWindowView.swift
+  s_ea9c0d419ff413::t_a1928356016477 207,215
+  s_ea9c0d419ff413::t_43571285186ca2 4-5
+  s_ea9c0d419ff413::t_644b7b7745faef 57-58,74-75,186-206,208-214,216-242,245-246
+  s_ea9c0d419ff413::t_1216ff8ad7d128 243-244,247
+KeelhavenCore/Sources/KeelhavenCore/Models/BackupPlan.swift
+  s_ea9c0d419ff413::t_7304ee1a1d9f07 16-17,39,53,60,74
+  s_ea9c0d419ff413::t_7713bd51c5ce80 61-63
+Keelhaven/AppState.swift
+  s_ea9c0d419ff413::t_7b402857d26f04 182-183,194
+  s_ea9c0d419ff413::t_5372307974da07 267-272,449
+docs/ARCHITECTURE.md
+  s_ea9c0d419ff413::t_fbed5fe87150a3 86-95
+Keelhaven/EditPlan/EditPlanModel.swift
+  s_ea9c0d419ff413::t_f9efe7b8cf3b9a 20-24,34-50
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerProcessTests.swift
+  s_ea9c0d419ff413::t_5372307974da07 95,117,145,185
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e796f426807dd669dc6afb91915ea4851c314918",
+  "prompts": {},
+  "sessions": {
+    "s_ea9c0d419ff413": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce93ee80-9271-4c59-b293-584a2d4795b6",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
