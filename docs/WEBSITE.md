@@ -137,12 +137,20 @@ under Workers & Pages › Create › import `shenxianpeng/keelhaven`:
 | Field | Value |
 |---|---|
 | Project name | `keelhaven-site` (must match `name` in `site/wrangler.jsonc`) |
-| Root directory (Advanced settings) | `/site` — everything npm needs lives there, not at the repo root |
-| Build command | `npm ci && npm run build` |
-| Deploy command | `npx wrangler deploy` |
-| Version command | `npx wrangler versions upload` — what a non-production branch runs instead of the deploy command |
+| Root directory (Advanced settings) | left at `/` — see below; the commands do not rely on it |
+| Build command | `npm ci --prefix site && npm run build --prefix site` |
+| Deploy command | `./site/node_modules/.bin/wrangler deploy --config site/wrangler.jsonc` |
+| Version command | `./site/node_modules/.bin/wrangler versions upload --config site/wrangler.jsonc` — what a non-production branch runs instead of the deploy command |
 | Builds for non-production branches | on — this is what produces PR previews |
 | Production branch | `main` |
+
+Every command is written to run from the repository root, because the root
+directory field would not stay set (see below). `npm --prefix site` installs
+and builds inside `site/`, and wrangler resolves `assets.directory` relative
+to the config file it is given, so `--config site/wrangler.jsonc` finds
+`site/.vitepress/dist` on its own. The binary is called by path rather than
+through `npx`, which would not find a wrangler installed under `site/` and
+would fetch an unpinned copy from the registry instead.
 
 With the Cloudflare GitHub app installed on the repo, each push to a PR
 branch builds and Cloudflare comments the preview URL on the PR. Only pushes
@@ -167,16 +175,19 @@ cd site && npx wrangler deploy --dry-run
 ## When it breaks
 
 - **A preview build fails immediately at `npm ci`,** with `EUSAGE: The 'npm ci'
-  command can only install with an existing package-lock.json`. The build ran
-  from the repository root, which has no `package.json` at all — only `site/`
-  does. Every build records the settings it used, in the "Build settings" panel
-  on the build's own page; compare the root directory there with Settings ›
-  Build configuration. They can disagree, because each build snapshots the
-  configuration as it stood when the build was created. **Retry build replays
-  that snapshot**, so a retried build shows — and uses — the old root directory
-  no matter what the settings page now says, which makes it useless for testing
-  a settings change. Only a new commit produces a build that picks up the new
-  value.
+  command can only install with an existing package-lock.json`. It ran from the
+  repository root, which has no `package.json` at all — only `site/` does. Every
+  build records the settings it ran with, in the "Build settings" panel on the
+  build's own page, and that panel is the authority: a value there that differs
+  from Settings › Build configuration means the settings-page edit was never
+  saved. Retried builds read the current configuration too, so a retry is a
+  fair test of a change you just made.
+
+  The root directory field in particular has refused to persist here (six
+  builds recorded `/` while the page read `/site`), which is why the commands
+  above do not depend on it: `--prefix site` and `--config site/wrangler.jsonc`
+  work from the repository root, so the field can stay wrong without costing
+  anything.
 - **`keelhaven.app` 404s, `shenxianpeng.github.io` works.** The CNAME file is
   missing from the published branch — check `site/public/CNAME` is still
   committed, then re-run the deploy and re-save the custom domain in Settings.
