@@ -1,0 +1,20 @@
+CLAUDE.md
+  s_ea9c0d419ff413::t_8253c4aa78141c 62
+  s_ea9c0d419ff413::t_370082a39c5e27 53-61
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "badcf79f5f2cfe2b087979241134664337489f04",
+  "prompts": {},
+  "sessions": {
+    "s_ea9c0d419ff413": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "ce93ee80-9271-4c59-b293-584a2d4795b6",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
