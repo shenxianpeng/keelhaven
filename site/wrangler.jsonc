@@ -7,9 +7,10 @@
 //
 // Dashboard settings that go with this file (Workers & Pages › Create ›
 // import shenxianpeng/keelhaven):
-//   Root directory:  site
+//   Root directory:  /site   (the repo root has no package.json)
 //   Build command:   npm ci && npm run build
 //   Deploy command:  npx wrangler deploy
+//   Version command: npx wrangler versions upload   (used by PR branches)
 //   Builds for non-production branches: on
 {
   "$schema": "node_modules/wrangler/config-schema.json",

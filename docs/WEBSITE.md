@@ -137,9 +137,10 @@ under Workers & Pages › Create › import `shenxianpeng/keelhaven`:
 | Field | Value |
 |---|---|
 | Project name | `keelhaven-site` (must match `name` in `site/wrangler.jsonc`) |
-| Root directory (Advanced settings) | `site` |
+| Root directory (Advanced settings) | `/site` — everything npm needs lives there, not at the repo root |
 | Build command | `npm ci && npm run build` |
 | Deploy command | `npx wrangler deploy` |
+| Version command | `npx wrangler versions upload` — what a non-production branch runs instead of the deploy command |
 | Builds for non-production branches | on — this is what produces PR previews |
 | Production branch | `main` |
 
@@ -165,6 +166,14 @@ cd site && npx wrangler deploy --dry-run
 
 ## When it breaks
 
+- **A preview build fails immediately at `npm ci`,** with `EUSAGE: The 'npm ci'
+  command can only install with an existing package-lock.json`. The build ran
+  from the repository root, which has no `package.json` at all — only `site/`
+  does. Every build records the settings it used, in the "Build settings" panel
+  on the build's own page; compare the root directory there with Settings ›
+  Build configuration. They can disagree, because a saved change applies only
+  to builds created after the save, so an in-flight or already-queued build
+  keeps the old value. Fix the setting, then re-run that build or push again.
 - **`keelhaven.app` 404s, `shenxianpeng.github.io` works.** The CNAME file is
   missing from the published branch — check `site/public/CNAME` is still
   committed, then re-run the deploy and re-save the custom domain in Settings.
