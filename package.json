@@ -1,0 +1,8 @@
+{
+  "name": "keelhaven",
+  "private": true,
+  "description": "Root shim so a build run from the repository root reaches site/. The website itself lives in site/ — see docs/WEBSITE.md.",
+  "scripts": {
+    "build": "npm ci --prefix site && npm run build --prefix site"
+  }
+}

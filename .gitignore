@@ -15,6 +15,7 @@ Vendor/
 site/public/downloads/
 site/public/latest.json
 build/
+/node_modules/
 design/node_modules/
 design/package-lock.json
 site/node_modules/

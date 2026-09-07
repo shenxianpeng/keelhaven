@@ -207,9 +207,14 @@ Beta 版还没做 Apple 公证，第一次打开要多点一次确认，[下面�
 <LandingSection id="voices" eyebrow="04 · 评价" title="别人怎么说">
 
 <div class="kh-voices">
-<VoiceCard name="mao mao" handle="@maomao000211" source="X" href="https://x.com/maomao000211/status/2095382774874267938">
+<VoiceCard name="小弟调调" handle="@jaywcjlove" source="X" href="https://x.com/jaywcjlove/status/2096527566400352339">
 
-Nice scope — restic plus a menu bar UI is exactly the missing piece, and keeping the repo format standard means people aren't locked into your app. The no-account, no-telemetry stance will do a lot of the selling for you.
+无 Dock 图标，没有主窗口。选定文件夹、备份存储介质、定时策略，后台静默执行，出错才推送通知。密码仅保存在 macOS 钥匙串，生成标准 restic 仓库，脱离本软件也能用 restic 命令行恢复。
+
+</VoiceCard>
+<VoiceCard name="mao mao" handle="@maomao000211" source="X" href="https://x.com/maomao000211/status/2095382774874267938" note="译自英文">
+
+思路很对，restic 配上菜单栏界面，正好补上了缺的那一块。仓库保持标准格式，用户就不会被你的软件绑住。不要账号、不做遥测，光这一条就够说服不少人了。
 
 </VoiceCard>
 </div>

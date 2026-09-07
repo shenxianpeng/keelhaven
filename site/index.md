@@ -190,6 +190,11 @@ Beta builds aren't notarised by Apple yet, so the very first launch takes one ex
 Nice scope — restic plus a menu bar UI is exactly the missing piece, and keeping the repo format standard means people aren't locked into your app. The no-account, no-telemetry stance will do a lot of the selling for you.
 
 </VoiceCard>
+<VoiceCard name="小弟调调" handle="@jaywcjlove" source="X" href="https://x.com/jaywcjlove/status/2096527566400352339" note="translated from Chinese">
+
+No Dock icon, no main window. Pick the folders, the storage and the schedule, and it runs quietly in the background, speaking up only when something fails. The password is kept in the macOS Keychain, and it writes a standard restic repository, so you can restore from the restic command line without this app.
+
+</VoiceCard>
 </div>
 
 </LandingSection>

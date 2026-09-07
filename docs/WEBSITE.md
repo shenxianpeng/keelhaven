@@ -137,11 +137,26 @@ under Workers & Pages › Create › import `shenxianpeng/keelhaven`:
 | Field | Value |
 |---|---|
 | Project name | `keelhaven-site` (must match `name` in `site/wrangler.jsonc`) |
-| Root directory (Advanced settings) | `site` |
-| Build command | `npm ci && npm run build` |
-| Deploy command | `npx wrangler deploy` |
+| Root directory (Advanced settings) | left at `/` — see below; nothing relies on it |
+| Build command | `npm ci && npm run build` — the stock default, which the root `package.json` forwards into `site/` |
+| Deploy command | `./site/node_modules/.bin/wrangler deploy --config site/wrangler.jsonc` |
+| Version command | `./site/node_modules/.bin/wrangler versions upload --config site/wrangler.jsonc` — what a non-production branch runs instead of the deploy command |
 | Builds for non-production branches | on — this is what produces PR previews |
 | Production branch | `main` |
+
+Everything runs from the repository root, because the dashboard would not
+keep an edit to either the root directory or the build command (see below).
+So the repository meets it where it stands. The root `package.json` exists
+only for this: it declares no dependencies, which makes the stock `npm ci`
+succeed at the root, and its `build` script forwards to `site/`. Wrangler
+resolves `assets.directory` relative to the config file it is handed, so
+`--config site/wrangler.jsonc` finds `site/.vitepress/dist` on its own, and
+calling the binary by path rather than through `npx` uses the pinned wrangler
+under `site/` instead of fetching a fresh one from the registry.
+
+Nothing else should grow at the root `package.json`. Dependencies, scripts
+and tooling for the site belong in `site/package.json`, which is the real
+one.
 
 With the Cloudflare GitHub app installed on the repo, each push to a PR
 branch builds and Cloudflare comments the preview URL on the PR. Only pushes
@@ -165,6 +180,22 @@ cd site && npx wrangler deploy --dry-run
 
 ## When it breaks
 
+- **A preview build fails immediately at `npm ci`,** with `EUSAGE: The 'npm ci'
+  command can only install with an existing package-lock.json`. It ran from the
+  repository root, which has no `package.json` at all — only `site/` does. Every
+  build records the settings it ran with, in the "Build settings" panel on the
+  build's own page, and that panel is the authority: a value there that differs
+  from Settings › Build configuration means the settings-page edit was never
+  saved. Retried builds read the current configuration too, so a retry is a
+  fair test of a change you just made.
+
+  Two fields on that card have refused to persist here: root directory (eight
+  builds recorded `/` while the page read `/site`) and the build command (still
+  the stock `npm ci && npm run build` after being changed and saved). The
+  version command, edited in the same card, did save — so the card is not
+  simply read-only, and no explanation for the split has turned up. Hence the
+  root `package.json` and the `--config` flag: with those, the two fields that
+  will not save are the two fields nothing depends on.
 - **`keelhaven.app` 404s, `shenxianpeng.github.io` works.** The CNAME file is
   missing from the published branch — check `site/public/CNAME` is still
   committed, then re-run the deploy and re-save the custom domain in Settings.

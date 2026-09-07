@@ -560,6 +560,11 @@ body:has(.kh-landing) .VPLocalNav {
 .kh-landing .kh-voice-handle {
   color: var(--kh-ink-soft);
 }
+.kh-landing .kh-voice-note {
+  color: var(--kh-ink-soft);
+  font-size: 13px;
+  font-style: italic;
+}
 .kh-landing .kh-voice-source {
   margin-left: auto;
   color: var(--kh-ink-soft);
