@@ -171,9 +171,12 @@ cd site && npx wrangler deploy --dry-run
   from the repository root, which has no `package.json` at all — only `site/`
   does. Every build records the settings it used, in the "Build settings" panel
   on the build's own page; compare the root directory there with Settings ›
-  Build configuration. They can disagree, because a saved change applies only
-  to builds created after the save, so an in-flight or already-queued build
-  keeps the old value. Fix the setting, then re-run that build or push again.
+  Build configuration. They can disagree, because each build snapshots the
+  configuration as it stood when the build was created. **Retry build replays
+  that snapshot**, so a retried build shows — and uses — the old root directory
+  no matter what the settings page now says, which makes it useless for testing
+  a settings change. Only a new commit produces a build that picks up the new
+  value.
 - **`keelhaven.app` 404s, `shenxianpeng.github.io` works.** The CNAME file is
   missing from the published branch — check `site/public/CNAME` is still
   committed, then re-run the deploy and re-save the custom domain in Settings.
