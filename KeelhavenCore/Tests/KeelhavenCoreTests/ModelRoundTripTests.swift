@@ -147,6 +147,7 @@ final class ModelRoundTripTests: XCTestCase {
         object.removeValue(forKey: "retention")
         object.removeValue(forKey: "lastPrune")
         object.removeValue(forKey: "performance")
+        object.removeValue(forKey: "firstBackupStartsOnCreation")
         let legacyData = try JSONSerialization.data(withJSONObject: object)
 
         let decoder = JSONDecoder()
@@ -157,6 +158,9 @@ final class ModelRoundTripTests: XCTestCase {
         XCTAssertEqual(decoded.retention, .off)
         XCTAssertNil(decoded.lastPrune)
         XCTAssertEqual(decoded.performance, .off)
+        // Every plan written before the flag existed did start its first
+        // backup on creation, so absence must decode as true (issue #42).
+        XCTAssertTrue(decoded.firstBackupStartsOnCreation)
         XCTAssertEqual(decoded.name, plan.name)
         XCTAssertEqual(decoded.schedule, plan.schedule)
     }

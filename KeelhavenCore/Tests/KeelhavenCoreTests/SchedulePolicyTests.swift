@@ -13,12 +13,22 @@ final class SchedulePolicyTests: XCTestCase {
         return calendar.date(from: components)!
     }
 
-    private func makePlan(schedule: Schedule, lastRun: Date?) -> BackupPlan {
+    /// `createdAt` defaults to a fixed instant before every `now` the tests
+    /// use, so a never-run plan's anchor is deterministic rather than the
+    /// real clock.
+    private func makePlan(
+        schedule: Schedule,
+        lastRun: Date?,
+        firstBackupStartsOnCreation: Bool = true,
+        createdAt: Date? = nil
+    ) -> BackupPlan {
         BackupPlan(
             name: "Test",
             sourcePaths: ["/tmp/src"],
             destination: .local(path: "/tmp/repo"),
             schedule: schedule,
+            firstBackupStartsOnCreation: firstBackupStartsOnCreation,
+            createdAt: createdAt ?? utcDate(2026, 8, 1, 0, 0),
             lastRun: lastRun.map { BackupRunRecord(date: $0, success: true) }
         )
     }
@@ -44,6 +54,82 @@ final class SchedulePolicyTests: XCTestCase {
     func testNeverRanPlanIsDue() {
         let plan = makePlan(schedule: .hourly, lastRun: nil)
         XCTAssertTrue(SchedulePolicy.isDue(plan, now: utcDate(2026, 8, 14, 0, 0), calendar: calendar))
+    }
+
+    // MARK: - First run (issue #42)
+
+    /// The whole point of the flag: skipping the creation-time run is not
+    /// enough, because the scheduler asks again every minute. A plan created
+    /// to wait must actually report "not due".
+    func testPlanCreatedToWaitIsNotDueBeforeItsFirstScheduledTime() {
+        let plan = makePlan(
+            schedule: .daily(hour: 21, minute: 0),
+            lastRun: nil,
+            firstBackupStartsOnCreation: false,
+            createdAt: utcDate(2026, 8, 14, 10, 0)
+        )
+        XCTAssertFalse(SchedulePolicy.isDue(plan, now: utcDate(2026, 8, 14, 10, 1), calendar: calendar))
+        XCTAssertFalse(SchedulePolicy.isDue(plan, now: utcDate(2026, 8, 14, 20, 59), calendar: calendar))
+    }
+
+    func testPlanCreatedToWaitBecomesDueAtItsFirstScheduledTime() {
+        let plan = makePlan(
+            schedule: .daily(hour: 21, minute: 0),
+            lastRun: nil,
+            firstBackupStartsOnCreation: false,
+            createdAt: utcDate(2026, 8, 14, 10, 0)
+        )
+        XCTAssertTrue(SchedulePolicy.isDue(plan, now: utcDate(2026, 8, 14, 21, 0), calendar: calendar))
+    }
+
+    /// A plan created to wait, whose first scheduled time passed while the Mac
+    /// was off, still catches up — it does not silently skip a window.
+    func testPlanCreatedToWaitCatchesUpAfterAMissedFirstWindow() {
+        let plan = makePlan(
+            schedule: .daily(hour: 21, minute: 0),
+            lastRun: nil,
+            firstBackupStartsOnCreation: false,
+            createdAt: utcDate(2026, 8, 14, 10, 0)
+        )
+        XCTAssertTrue(SchedulePolicy.isDue(plan, now: utcDate(2026, 8, 20, 9, 0), calendar: calendar))
+    }
+
+    func testNextRunOfPlanCreatedToStartNowIsItsCreationTime() {
+        let created = utcDate(2026, 8, 14, 10, 0)
+        let plan = makePlan(schedule: .daily(hour: 21, minute: 0), lastRun: nil, createdAt: created)
+        XCTAssertEqual(SchedulePolicy.nextRun(for: plan, calendar: calendar), created)
+    }
+
+    func testNextRunOfPlanCreatedToWaitIsTheFirstScheduledTimeAfterCreation() {
+        let plan = makePlan(
+            schedule: .daily(hour: 21, minute: 0),
+            lastRun: nil,
+            firstBackupStartsOnCreation: false,
+            createdAt: utcDate(2026, 8, 14, 10, 0)
+        )
+        XCTAssertEqual(
+            SchedulePolicy.nextRun(for: plan, calendar: calendar),
+            utcDate(2026, 8, 14, 21, 0)
+        )
+    }
+
+    /// Once it has run, the flag stops mattering — the anchor is the last run.
+    func testNextRunOfPlanThatHasRunAnchorsOnTheLastRun() {
+        let plan = makePlan(
+            schedule: .daily(hour: 21, minute: 0),
+            lastRun: utcDate(2026, 8, 14, 21, 0),
+            firstBackupStartsOnCreation: false,
+            createdAt: utcDate(2026, 8, 1, 0, 0)
+        )
+        XCTAssertEqual(
+            SchedulePolicy.nextRun(for: plan, calendar: calendar),
+            utcDate(2026, 8, 15, 21, 0)
+        )
+    }
+
+    func testNextRunForPlanUsesCurrentCalendarByDefault() {
+        let plan = makePlan(schedule: .hourly, lastRun: nil, createdAt: utcDate(2026, 8, 14, 10, 0))
+        XCTAssertEqual(SchedulePolicy.nextRun(for: plan), utcDate(2026, 8, 14, 10, 0))
     }
 
     func testHourlyPlanNotDueBeforeInterval() {

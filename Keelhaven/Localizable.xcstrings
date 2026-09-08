@@ -1907,6 +1907,16 @@
         }
       }
     },
+    "Start the first backup now": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即开始首次备份"
+          }
+        }
+      }
+    },
     "Step %lld of %lld: %@": {
       "localizations": {
         "zh-Hans": {
@@ -1983,6 +1993,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "上一次保留策略清理没能获得仓库的锁"
+          }
+        }
+      }
+    },
+    "The plan is created but stays idle: the first backup runs at %@, then on this schedule — catching up automatically if your Mac was asleep or off. You can always start one yourself with Back Up Now.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "计划会创建好但先不动：首次备份将在 %@ 运行，之后按此计划进行——睡眠或关机错过的时间点会自动补跑。你也随时可以用「立即备份」手动跑一次。"
           }
         }
       }
