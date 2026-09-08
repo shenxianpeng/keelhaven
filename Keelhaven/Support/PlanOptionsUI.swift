@@ -160,6 +160,16 @@ struct ExcludePatternsSection: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+
+                // Same kind of rule as the one above — what not to read —
+                // and the label says what actually happens rather than
+                // naming a file system boundary (issue #50).
+                Toggle("Don't back up other disks mounted inside these folders", isOn: $options.oneFileSystem)
+                    .toggleStyle(.checkbox)
+                Text("Stops at the disk each folder lives on. Without this, an external drive or a network share mounted inside one of them is backed up too.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.top, 6)
         }

@@ -19,6 +19,7 @@ final class PlanOptionsDraft {
     /// The two boolean `restic backup` switches (issue #46). Off by default,
     /// like every other advanced setting here.
     var excludeCaches = false
+    var oneFileSystem = false
     var skipIfUnchanged = false
     /// Scratch field for the exclude-pattern TextField.
     var newExcludePattern = ""
@@ -46,6 +47,7 @@ final class PlanOptionsDraft {
         checkCadence = plan.checkCadence
         retention = plan.retention
         excludeCaches = plan.backupOptions.excludeCaches
+        oneFileSystem = plan.backupOptions.oneFileSystem
         skipIfUnchanged = plan.backupOptions.skipIfUnchanged
         newExcludePattern = ""
         uploadLimitText = Self.text(plan.performance.uploadLimitKiBPerSecond)
@@ -68,7 +70,11 @@ final class PlanOptionsDraft {
     }
 
     func builtBackupOptions() -> BackupOptions {
-        BackupOptions(excludeCaches: excludeCaches, skipIfUnchanged: skipIfUnchanged)
+        BackupOptions(
+            excludeCaches: excludeCaches,
+            oneFileSystem: oneFileSystem,
+            skipIfUnchanged: skipIfUnchanged
+        )
     }
 
     func addExcludePattern() {

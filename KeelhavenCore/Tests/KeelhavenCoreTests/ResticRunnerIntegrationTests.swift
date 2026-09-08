@@ -506,4 +506,153 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         )
         XCTAssertEqual(snapshots.count, 1)
     }
+
+    /// `--one-file-system` against the real binary, with a real second
+    /// volume mounted inside the source — the only arrangement where the
+    /// flag does anything at all.
+    ///
+    /// A disk image is created and attached under the source folder, so the
+    /// backup has a genuine filesystem boundary to stop at. Asserted by
+    /// listing the snapshot rather than by trusting the summary counts: a
+    /// restic that silently ignored the flag would report plausible numbers.
+    /// Skips, rather than fails, when `hdiutil` cannot create or attach the
+    /// image — the same self-skipping rule the rest of this suite follows.
+    func testOneFileSystemStopsAtAMountedVolume() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+
+        let repoURL = workDirectory.appendingPathComponent("repo", isDirectory: true)
+        let sourceURL = workDirectory.appendingPathComponent("src", isDirectory: true)
+        let mountURL = sourceURL.appendingPathComponent("mounted", isDirectory: true)
+        try FileManager.default.createDirectory(at: mountURL, withIntermediateDirectories: true)
+        try Data("on the main disk\n".utf8).write(to: sourceURL.appendingPathComponent("keep.txt"))
+
+        let imageURL = workDirectory.appendingPathComponent("volume.dmg")
+        guard Self.run("/usr/bin/hdiutil", [
+            "create", "-size", "10m", "-fs", "HFS+", "-volname", "KeelhavenTest",
+            "-quiet", imageURL.path,
+        ]) else {
+            throw XCTSkip("hdiutil could not create a disk image here")
+        }
+        guard Self.run("/usr/bin/hdiutil", [
+            "attach", imageURL.path, "-mountpoint", mountURL.path, "-nobrowse", "-quiet",
+        ]) else {
+            throw XCTSkip("hdiutil could not attach a disk image here")
+        }
+        defer { _ = Self.run("/usr/bin/hdiutil", ["detach", mountURL.path, "-quiet"]) }
+
+        try Data("on the other volume\n".utf8)
+            .write(to: mountURL.appendingPathComponent("other.txt"))
+
+        let destination = Destination.local(path: repoURL.path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        func backup(oneFileSystem: Bool) async throws -> BackupSummary? {
+            var summary: BackupSummary?
+            let stream = runner.backupStream(
+                .backup(
+                    sources: [sourceURL.path],
+                    excludes: [],
+                    tag: "keelhaven-test",
+                    performance: .off,
+                    options: BackupOptions(oneFileSystem: oneFileSystem)
+                ),
+                destination: destination,
+                credentials: credentials
+            )
+            for try await event in stream {
+                if case .summary(let value) = event { summary = value }
+            }
+            return summary
+        }
+
+        // Without the flag, the mounted volume is followed into.
+        let withoutSummary = try await backup(oneFileSystem: false)
+        let withoutID = try XCTUnwrap(try XCTUnwrap(withoutSummary).snapshotID)
+        let withoutFiles = try await Self.restoredFileNames(
+            runner: runner,
+            snapshotID: withoutID,
+            destination: destination,
+            credentials: credentials,
+            sourcePath: sourceURL.path,
+            target: workDirectory.appendingPathComponent("restored-without", isDirectory: true)
+        )
+        XCTAssertTrue(withoutFiles.contains("keep.txt"))
+        XCTAssertTrue(
+            withoutFiles.contains("mounted/other.txt"),
+            "Without the flag restic should cross into the mounted volume"
+        )
+
+        // With it, the boundary is respected.
+        let withSummary = try await backup(oneFileSystem: true)
+        let withID = try XCTUnwrap(try XCTUnwrap(withSummary).snapshotID)
+        let withFiles = try await Self.restoredFileNames(
+            runner: runner,
+            snapshotID: withID,
+            destination: destination,
+            credentials: credentials,
+            sourcePath: sourceURL.path,
+            target: workDirectory.appendingPathComponent("restored-with", isDirectory: true)
+        )
+        XCTAssertTrue(withFiles.contains("keep.txt"), "The folder's own files must still be backed up")
+        XCTAssertFalse(
+            withFiles.contains("mounted/other.txt"),
+            "A file on a volume mounted inside the source should have been skipped"
+        )
+    }
+
+    /// Restores a snapshot and returns the paths inside it, relative to the
+    /// backed-up folder — the only way to see what restic actually stored.
+    private static func restoredFileNames(
+        runner: ResticRunner,
+        snapshotID: String,
+        destination: Destination,
+        credentials: RepoCredentials,
+        sourcePath: String,
+        target: URL
+    ) async throws -> Set<String> {
+        try await runner.runIgnoringOutput(
+            .restore(snapshotID: snapshotID, target: target.path),
+            destination: destination,
+            credentials: credentials
+        )
+        let root = target.appendingPathComponent(sourcePath)
+        guard let walker = FileManager.default.enumerator(atPath: root.path) else { return [] }
+        var found: Set<String> = []
+        for case let path as String in walker {
+            var isDirectory: ObjCBool = false
+            let full = root.appendingPathComponent(path).path
+            if FileManager.default.fileExists(atPath: full, isDirectory: &isDirectory),
+               !isDirectory.boolValue {
+                found.insert(path)
+            }
+        }
+        return found
+    }
+
+    /// Runs a command and reports whether it succeeded, so the caller can
+    /// skip instead of failing when the environment will not cooperate.
+    private static func run(_ launchPath: String, _ arguments: [String]) -> Bool {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: launchPath)
+        process.arguments = arguments
+        process.standardOutput = FileHandle.nullDevice
+        process.standardError = FileHandle.nullDevice
+        do {
+            try process.run()
+        } catch {
+            return false
+        }
+        process.waitUntilExit()
+        return process.terminationStatus == 0
+    }
 }
+

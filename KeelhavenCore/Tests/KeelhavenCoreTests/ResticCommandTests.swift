@@ -97,8 +97,10 @@ final class ResticCommandTests: XCTestCase {
         XCTAssertEqual(BackupOptions.off.arguments, [])
         XCTAssertTrue(BackupOptions.off.isDefault)
         XCTAssertEqual(BackupOptions(excludeCaches: true).arguments, ["--exclude-caches"])
+        XCTAssertEqual(BackupOptions(oneFileSystem: true).arguments, ["--one-file-system"])
         XCTAssertEqual(BackupOptions(skipIfUnchanged: true).arguments, ["--skip-if-unchanged"])
         XCTAssertFalse(BackupOptions(excludeCaches: true).isDefault)
+        XCTAssertFalse(BackupOptions(oneFileSystem: true).isDefault)
         XCTAssertFalse(BackupOptions(skipIfUnchanged: true).isDefault)
     }
 
@@ -110,12 +112,13 @@ final class ResticCommandTests: XCTestCase {
             excludes: ["*.log"],
             tag: "keelhaven",
             performance: PerformanceOptions(packSizeMiB: 64),
-            options: BackupOptions(excludeCaches: true, skipIfUnchanged: true)
+            options: BackupOptions(excludeCaches: true, oneFileSystem: true, skipIfUnchanged: true)
         )
         XCTAssertEqual(command.arguments, [
             "backup", "--json",
             "--pack-size", "64",
             "--exclude-caches",
+            "--one-file-system",
             "--skip-if-unchanged",
             "--exclude", "*.log",
             "--tag", "keelhaven",
@@ -129,6 +132,7 @@ final class ResticCommandTests: XCTestCase {
     func testForgetCarriesNoBackupOptions() {
         let command = ResticCommand.forget(retention: .month, performance: .off)
         XCTAssertFalse(command.arguments.contains("--exclude-caches"))
+        XCTAssertFalse(command.arguments.contains("--one-file-system"))
         XCTAssertFalse(command.arguments.contains("--skip-if-unchanged"))
     }
 
