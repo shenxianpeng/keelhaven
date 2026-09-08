@@ -274,16 +274,6 @@
         }
       }
     },
-    "Anything to fine-tune?": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "还有什么要调整的吗？"
-          }
-        }
-      }
-    },
     "At": {
       "localizations": {
         "zh-Hans": {
@@ -670,6 +660,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "正在创建备份仓库…"
+          }
+        }
+      }
+    },
+    "Customize this plan": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义这个计划"
           }
         }
       }
@@ -1417,16 +1417,6 @@
         }
       }
     },
-    "Options": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "选项"
-          }
-        }
-      }
-    },
     "Or choose a folder instead:": {
       "localizations": {
         "zh-Hans": {
@@ -1997,16 +1987,6 @@
         }
       }
     },
-    "These all have sensible defaults. You can change them later under Edit Plan.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "以下选项都已有合理的默认值，之后也可以在“编辑计划”里再改。"
-          }
-        }
-      }
-    },
     "Thins older snapshots to daily, weekly and monthly keepers and reclaims the space — after a backup, at most once a week. Keep everything never deletes a snapshot.": {
       "localizations": {
         "zh-Hans": {
@@ -2183,6 +2163,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "验证失败"
+          }
+        }
+      }
+    },
+    "Verification, retention, excluded files, speed limits — all optional": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证、保留策略、排除规则、速度限制 —— 均为可选"
           }
         }
       }

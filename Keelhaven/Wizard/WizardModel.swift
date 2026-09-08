@@ -36,20 +36,21 @@ enum ScheduleKind: String, CaseIterable, Identifiable {
     }
 }
 
-/// Draft state for the 4-step wizard, with per-step validation.
+/// Draft state for the 3-step wizard, with per-step validation.
 @MainActor
 @Observable
 final class WizardModel {
-    static let stepCount = 4
+    static let stepCount = 3
 
     var step = 0
     var name = ""
     var sourcePaths: [String] = []
 
-    /// Verification, retention, excludes and the throughput knobs — the
-    /// step-4 settings the wizard used to skip entirely (issue #39). Starts
-    /// at the same defaults `BackupPlan.init` applies, so a wizard run that
-    /// clicks straight past step 4 builds the plan it always built.
+    /// Verification, retention, excludes and the throughput knobs — the four
+    /// settings the wizard used to skip entirely (issue #41), now behind the
+    /// schedule step's collapsed Customize section. Starts at the same
+    /// defaults `BackupPlan.init` applies, so a wizard run that never opens
+    /// that section builds the plan it always built.
     var options = PlanOptionsDraft()
 
     var destinationType: DestinationType = .local

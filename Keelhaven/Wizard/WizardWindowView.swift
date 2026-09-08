@@ -10,7 +10,6 @@ struct WizardWindowView: View {
         String(localized: "What to back up"),
         String(localized: "Where to"),
         String(localized: "When"),
-        String(localized: "Options"),
     ]
 
     var body: some View {
@@ -24,10 +23,8 @@ struct WizardWindowView: View {
                     SourceStepView(model: model)
                 case 1:
                     DestinationStepView(model: model)
-                case 2:
-                    ScheduleStepView(model: model)
                 default:
-                    OptionsStepView(model: model)
+                    ScheduleStepView(model: model)
                 }
             }
             .padding(20)
@@ -36,9 +33,7 @@ struct WizardWindowView: View {
             Divider()
             footer
         }
-        // 620, not 560: the Options step's summary is the last thing read
-        // before Create, and at 560 it sat below the fold on first sight.
-        .frame(width: 560, height: 620)
+        .frame(width: 560, height: 560)
         .onAppear {
             model.existingRepositoryLocations = appState.plans.map { $0.destination.repositoryLocation }
         }
