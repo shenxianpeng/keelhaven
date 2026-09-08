@@ -16,6 +16,7 @@ struct PlanDraft {
     var checkCadence: CheckCadence = .weekly
     var retention: RetentionPolicy = .off
     var performance: PerformanceOptions = .off
+    var backupOptions: BackupOptions = .off
     /// The wizard's "Start the first backup now" checkbox (issue #42).
     var firstBackupStartsOnCreation: Bool = true
     var password: String
@@ -57,6 +58,7 @@ struct PlanManager {
             checkCadence: draft.checkCadence,
             retention: draft.retention,
             performance: draft.performance,
+            backupOptions: draft.backupOptions,
             firstBackupStartsOnCreation: draft.firstBackupStartsOnCreation
         )
 

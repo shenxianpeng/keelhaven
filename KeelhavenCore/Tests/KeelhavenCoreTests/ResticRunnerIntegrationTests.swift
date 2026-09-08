@@ -48,7 +48,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         // streaming backup: must yield exactly one summary carrying a snapshot id
         var summary: BackupSummary?
         let stream = runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [".DS_Store"], tag: "keelhaven-test", performance: .off),
+            .backup(sources: [sourceURL.path], excludes: [".DS_Store"], tag: "keelhaven-test", performance: .off, options: .off),
             destination: destination,
             credentials: credentials
         )
@@ -194,7 +194,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         )
         // A snapshot, so the retention pass below has something real to do.
         for try await _ in runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off),
+            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off, options: .off),
             destination: destination,
             credentials: credentials
         ) {}
@@ -254,7 +254,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
 
         // Backups are unaffected — the reason this failure hides so well.
         for try await _ in runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off),
+            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off, options: .off),
             destination: destination,
             credentials: credentials
         ) {}
@@ -339,7 +339,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         )
         var summary: BackupSummary?
         let stream = runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: performance),
+            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: performance, options: .off),
             destination: destination,
             credentials: credentials
         )
@@ -357,5 +357,153 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             destination: destination,
             credentials: credentials
         )
+    }
+
+    /// `--exclude-caches` against the real binary: a directory carrying a
+    /// `CACHEDIR.TAG` must not reach the snapshot. Asserted by restoring the
+    /// snapshot and looking, not by trusting the summary counts — the counts
+    /// would also look right if restic silently ignored the flag.
+    func testExcludeCachesSkipsTaggedDirectories() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+
+        let repoURL = workDirectory.appendingPathComponent("repo", isDirectory: true)
+        let sourceURL = workDirectory.appendingPathComponent("src", isDirectory: true)
+        let cacheURL = sourceURL.appendingPathComponent("Cache", isDirectory: true)
+        try FileManager.default.createDirectory(at: cacheURL, withIntermediateDirectories: true)
+        try Data("keep me\n".utf8).write(to: sourceURL.appendingPathComponent("keep.txt"))
+        try Data("junk\n".utf8).write(to: cacheURL.appendingPathComponent("junk.bin"))
+        // The exact marker the Cache Directory Tagging Standard defines.
+        try Data("Signature: 8a477f597d28d172789f06886806bc55\n".utf8)
+            .write(to: cacheURL.appendingPathComponent("CACHEDIR.TAG"))
+
+        let destination = Destination.local(path: repoURL.path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        var summary: BackupSummary?
+        let stream = runner.backupStream(
+            .backup(
+                sources: [sourceURL.path],
+                excludes: [],
+                tag: "keelhaven-test",
+                performance: .off,
+                options: BackupOptions(excludeCaches: true)
+            ),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in stream {
+            if case .summary(let value) = event { summary = value }
+        }
+        let snapshotID = try XCTUnwrap(summary?.snapshotID)
+
+        let targetURL = workDirectory.appendingPathComponent("restored", isDirectory: true)
+        try await runner.runIgnoringOutput(
+            .restore(snapshotID: snapshotID, target: targetURL.path),
+            destination: destination,
+            credentials: credentials
+        )
+
+        let restoredRoot = targetURL.appendingPathComponent(sourceURL.path)
+        XCTAssertTrue(
+            FileManager.default.fileExists(atPath: restoredRoot.appendingPathComponent("keep.txt").path),
+            "The untagged file should have been backed up"
+        )
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: restoredRoot.appendingPathComponent("Cache/junk.bin").path),
+            "A CACHEDIR.TAG directory should have been excluded"
+        )
+    }
+
+    /// `--skip-if-unchanged` against the real binary, twice over an untouched
+    /// source. Pins the two things the app depends on: the second run creates
+    /// no snapshot, and its summary omits `snapshot_id` — which is the only
+    /// signal `AppState` has for reporting "nothing was stored" (issue #46).
+    ///
+    /// Not run from `workDirectory`. That lives under `$TMPDIR`, which macOS
+    /// writes to constantly, and restic stores the **whole ancestor chain** in
+    /// the snapshot tree — so one unrelated process creating a temp file makes
+    /// the second snapshot differ even though no backed-up file did.
+    /// Confirmed with `restic diff`: 0 files and 0 dirs changed, 5 tree blobs
+    /// replaced, and `restic ls --long` showing only `$TMPDIR`'s own mtime
+    /// moving. `/private/tmp` is quiet enough that this does not happen; if it
+    /// does anyway, the test skips rather than failing on someone else's write.
+    func testSkipIfUnchangedOmitsSnapshotIDOnTheSecondRun() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+
+        let root = URL(fileURLWithPath: "/tmp").resolvingSymlinksInPath()
+            .appendingPathComponent("KeelhavenSkipIfUnchanged-\(UUID().uuidString)", isDirectory: true)
+        let sourceURL = root.appendingPathComponent("src", isDirectory: true)
+        try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
+        defer { try? FileManager.default.removeItem(at: root) }
+        try Data("unchanging\n".utf8).write(to: sourceURL.appendingPathComponent("a.txt"))
+
+        let destination = Destination.local(path: root.appendingPathComponent("repo").path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        func backup() async throws -> BackupSummary? {
+            var summary: BackupSummary?
+            let stream = runner.backupStream(
+                .backup(
+                    sources: [sourceURL.path],
+                    excludes: [],
+                    tag: "keelhaven-test",
+                    performance: .off,
+                    options: BackupOptions(skipIfUnchanged: true)
+                ),
+                destination: destination,
+                credentials: credentials
+            )
+            for try await event in stream {
+                if case .summary(let value) = event { summary = value }
+            }
+            return summary
+        }
+
+        let firstSummary = try await backup()
+        let first = try XCTUnwrap(firstSummary)
+        XCTAssertNotNil(first.snapshotID, "The first run must create a snapshot")
+
+        let secondSummary = try await backup()
+        let second = try XCTUnwrap(secondSummary)
+
+        // True whether or not a snapshot was written: nothing in the source
+        // moved. A regression that stopped passing the flag, or broke exclude
+        // handling, would fail here rather than reaching the skip below.
+        XCTAssertEqual(second.filesNew, 0)
+        XCTAssertEqual(second.filesChanged, 0)
+        XCTAssertEqual(second.filesUnmodified, 1)
+
+        if second.snapshotID != nil {
+            throw XCTSkip(
+                "A directory above the source changed while the test ran, so the "
+                + "snapshot legitimately differed. Nothing in the source did."
+            )
+        }
+
+        let snapshots = try await runner.run(
+            .snapshots,
+            destination: destination,
+            credentials: credentials,
+            decoding: [ResticSnapshot].self
+        )
+        XCTAssertEqual(snapshots.count, 1)
     }
 }

@@ -184,7 +184,8 @@ final class AppState {
         schedule: Schedule,
         checkCadence: CheckCadence,
         retention: RetentionPolicy,
-        performance: PerformanceOptions
+        performance: PerformanceOptions,
+        backupOptions: BackupOptions
     ) {
         let trimmed = name.trimmingCharacters(in: .whitespaces)
         guard !trimmed.isEmpty, !sourcePaths.isEmpty,
@@ -196,6 +197,7 @@ final class AppState {
         plans[index].checkCadence = checkCadence
         plans[index].retention = retention
         plans[index].performance = performance
+        plans[index].backupOptions = backupOptions
         Task {
             try? await planStore.save(plans)
         }
@@ -272,7 +274,8 @@ final class AppState {
                     sources: plan.sourcePaths,
                     excludes: plan.excludePatterns,
                     tag: "keelhaven",
-                    performance: plan.performance
+                    performance: plan.performance,
+                    options: plan.backupOptions
                 ),
                 destination: plan.destination,
                 credentials: credentials
@@ -288,6 +291,14 @@ final class AppState {
                 }
             }
 
+            // restic omits `snapshot_id` from its summary when
+            // `--skip-if-unchanged` finds nothing to store. Only trust that
+            // when we asked for it: the same field is also absent from the
+            // nested summary inside `restic snapshots --json`, so a bare nil
+            // check is ambiguous everywhere else (issue #46).
+            let skippedUnchanged = plan.backupOptions.skipIfUnchanged
+                && summary != nil
+                && summary?.snapshotID == nil
             let record = BackupRunRecord(
                 date: startedAt,
                 success: true,
@@ -295,11 +306,16 @@ final class AppState {
                 filesNew: summary?.filesNew,
                 filesChanged: summary?.filesChanged,
                 dataAddedBytes: summary?.dataAdded,
-                duration: summary?.totalDuration
+                duration: summary?.totalDuration,
+                skippedUnchanged: skippedUnchanged
             )
             await finishRun(plan, record: record)
             runStates[plan.id] = .succeeded(Date())
-            await NotificationService.postBackupFinished(planName: plan.name, summary: summary)
+            if skippedUnchanged {
+                await NotificationService.postBackupUnchanged(planName: plan.name)
+            } else {
+                await NotificationService.postBackupFinished(planName: plan.name, summary: summary)
+            }
             // Verification rides on the tail of a successful backup: the
             // destination is provably reachable and restic is already
             // serialized, so a due check can never fire a false alarm about

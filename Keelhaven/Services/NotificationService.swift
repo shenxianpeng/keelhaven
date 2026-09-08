@@ -23,6 +23,18 @@ enum NotificationService {
         await post(content)
     }
 
+    /// A run that stored nothing because the folders were byte-for-byte
+    /// identical to the last backup. Reported separately rather than as
+    /// "0 new files, Zero bytes added", which reads like something went
+    /// wrong — and, more importantly, so nobody is told a snapshot was
+    /// written when none was (issue #46).
+    static func postBackupUnchanged(planName: String) async {
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Nothing to back up")
+        content.body = String(localized: "\(planName): no changes since the last backup, so no new snapshot was created.")
+        await post(content)
+    }
+
     static func postBackupFailed(planName: String, message: String) async {
         let content = UNMutableNotificationContent()
         content.title = String(localized: "Backup failed")

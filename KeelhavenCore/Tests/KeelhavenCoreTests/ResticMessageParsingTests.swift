@@ -23,6 +23,48 @@ final class ResticMessageParsingTests: XCTestCase {
         XCTAssertTrue(result.repository.hasSuffix("/repo"))
     }
 
+    /// The `--skip-if-unchanged` run that stored nothing. Captured from real
+    /// restic 0.19.1 by backing the same unchanged source up twice; this is
+    /// the second run.
+    ///
+    /// The point of the fixture is the *absence* of `snapshot_id` — restic's
+    /// scripting docs say it "is omitted if snapshot creation was skipped",
+    /// and this pins that we decode that shape without losing the rest of the
+    /// summary, which is what the run record and the notification read.
+    func testDecodeSkippedSnapshotSummary() throws {
+        let lines = try fixtureLines("backup-skip-if-unchanged.jsonl")
+        XCTAssertEqual(lines.count, 1)
+
+        let event = try XCTUnwrap(ResticJSON.decodeProgressEvent(fromLine: lines[0]))
+        guard case .summary(let summary) = event else {
+            return XCTFail("Expected a summary event")
+        }
+        XCTAssertNil(summary.snapshotID)
+        XCTAssertEqual(summary.filesNew, 0)
+        XCTAssertEqual(summary.filesChanged, 0)
+        XCTAssertEqual(summary.filesUnmodified, 2)
+        XCTAssertEqual(summary.dataAdded, 0)
+        XCTAssertEqual(summary.totalFilesProcessed, 2)
+        XCTAssertNotNil(summary.totalDuration)
+        XCTAssertNotNil(summary.backupStart)
+    }
+
+    /// The same summary shape when a snapshot *was* written, so the two
+    /// fixtures together show that `snapshot_id` is the only difference —
+    /// which is what `AppState` keys its "nothing was stored" reporting on.
+    func testSnapshotIDIsThePresentDifferenceFromASkippedRun() throws {
+        let skipped = try fixtureLines("backup-skip-if-unchanged.jsonl")[0]
+        let stored = try fixtureLines("backup-incremental.jsonl")[0]
+
+        guard case .summary(let skippedSummary)? = ResticJSON.decodeProgressEvent(fromLine: skipped),
+              case .summary(let storedSummary)? = ResticJSON.decodeProgressEvent(fromLine: stored)
+        else {
+            return XCTFail("Expected both fixtures to decode as summaries")
+        }
+        XCTAssertNil(skippedSummary.snapshotID)
+        XCTAssertNotNil(storedSummary.snapshotID)
+    }
+
     func testDecodeEveryBackupProgressLine() throws {
         let lines = try fixtureLines("backup-progress.jsonl")
         XCTAssertEqual(lines.count, 10)

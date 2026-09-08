@@ -148,6 +148,7 @@ final class ModelRoundTripTests: XCTestCase {
         object.removeValue(forKey: "lastPrune")
         object.removeValue(forKey: "performance")
         object.removeValue(forKey: "firstBackupStartsOnCreation")
+        object.removeValue(forKey: "backupOptions")
         let legacyData = try JSONSerialization.data(withJSONObject: object)
 
         let decoder = JSONDecoder()
@@ -161,6 +162,7 @@ final class ModelRoundTripTests: XCTestCase {
         // Every plan written before the flag existed did start its first
         // backup on creation, so absence must decode as true (issue #42).
         XCTAssertTrue(decoded.firstBackupStartsOnCreation)
+        XCTAssertEqual(decoded.backupOptions, .off)
         XCTAssertEqual(decoded.name, plan.name)
         XCTAssertEqual(decoded.schedule, plan.schedule)
     }
@@ -200,5 +202,63 @@ final class ModelRoundTripTests: XCTestCase {
         XCTAssertEqual(decoded.readConcurrency, 32)
         XCTAssertEqual(decoded.packSizeMiB, 4)
         XCTAssertNil(decoded.uploadLimitKiBPerSecond)
+    }
+
+    /// A `plans.json` holding only one of the two switches — the shape a
+    /// future third switch (#50) will create for anyone upgrading. Each field
+    /// falls back independently, so no migration is ever needed.
+    func testBackupOptionsDecodesMissingFieldsAsFalse() throws {
+        let decoder = JSONDecoder()
+
+        let partial = try XCTUnwrap(#"{"excludeCaches":true}"#.data(using: .utf8))
+        let decodedPartial = try decoder.decode(BackupOptions.self, from: partial)
+        XCTAssertTrue(decodedPartial.excludeCaches)
+        XCTAssertFalse(decodedPartial.skipIfUnchanged)
+
+        let empty = try XCTUnwrap("{}".data(using: .utf8))
+        XCTAssertEqual(try decoder.decode(BackupOptions.self, from: empty), .off)
+    }
+
+    func testBackupOptionsRoundTrip() throws {
+        let plan = BackupPlan(
+            name: "Documents",
+            sourcePaths: ["/Users/me/Documents"],
+            destination: .local(path: "/Volumes/Backup/repo"),
+            schedule: .hourly,
+            backupOptions: BackupOptions(excludeCaches: true, skipIfUnchanged: true),
+            createdAt: date
+        )
+        let decoded = try roundTrip(plan)
+        XCTAssertTrue(decoded.backupOptions.excludeCaches)
+        XCTAssertTrue(decoded.backupOptions.skipIfUnchanged)
+        XCTAssertFalse(decoded.backupOptions.isDefault)
+    }
+
+    /// The skipped-run marker survives a save/load, so the menu bar still
+    /// says "no changes" after a relaunch instead of reverting to
+    /// "Last backup ... ago" (issue #46).
+    func testSkippedUnchangedSurvivesRoundTrip() throws {
+        let plan = BackupPlan(
+            name: "Documents",
+            sourcePaths: ["/Users/me/Documents"],
+            destination: .local(path: "/Volumes/Backup/repo"),
+            schedule: .hourly,
+            createdAt: date,
+            lastRun: BackupRunRecord(date: date, success: true, skippedUnchanged: true)
+        )
+        XCTAssertEqual(try roundTrip(plan).lastRun?.skippedUnchanged, true)
+    }
+
+    /// Records written before the option existed have no such key and must
+    /// read as "not skipped", not as a missing-value crash.
+    func testLegacyRunRecordHasNoSkippedMarker() throws {
+        let legacy = try XCTUnwrap(
+            #"{"date":"2026-08-14T22:20:53Z","success":true}"#.data(using: .utf8)
+        )
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let record = try decoder.decode(BackupRunRecord.self, from: legacy)
+        XCTAssertNil(record.skippedUnchanged)
+        XCTAssertNotEqual(record.skippedUnchanged, true)
     }
 }
