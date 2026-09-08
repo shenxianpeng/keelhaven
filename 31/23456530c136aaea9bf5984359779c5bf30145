@@ -1,0 +1,41 @@
+Keelhaven/Localizable.xcstrings
+  s_1085d35454c91f::t_6b18d8d956cb32 81-90,287-296,457-466,527-536,707-716,1450-1459,1490-1499,1700-1729,2556-2565
+KeelhavenCore/Tests/KeelhavenCoreTests/Fixtures/backup-dry-run.jsonl
+  s_1085d35454c91f::t_88ba84a424ca9e 1-8
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerIntegrationTests.swift
+  s_1085d35454c91f::t_0d2bb4e37c7ff6 657-713,716-719,722-737,740-744,746,748-750
+  s_1085d35454c91f::t_93f693c9900936 714-715,720-721,738-739,745,747
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticMessageParsingTests.swift
+  s_1085d35454c91f::t_d93b6aeca2b538 68-115
+Keelhaven/MenuBar/PlanHealth.swift
+  s_1085d35454c91f::t_b5b3f8a75a1b23 16
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticCommandTests.swift
+  s_1085d35454c91f::t_d93b6aeca2b538 96-134
+Keelhaven/MenuBar/PlanStatusRow.swift
+  s_1085d35454c91f::t_63d78d7cb61fbd 132-138,218-263,378-390
+KeelhavenCore/Sources/KeelhavenCore/Restic/ResticCommand.swift
+  s_1085d35454c91f::t_88ba84a424ca9e 9-17,47-55,77-104
+  s_1085d35454c91f::t_1fd7f0f2132efa 105
+KeelhavenCore/Sources/KeelhavenCore/Restic/ResticMessage.swift
+  s_1085d35454c91f::t_88ba84a424ca9e 66-71,88
+Keelhaven/AppState.swift
+  s_1085d35454c91f::t_b5b3f8a75a1b23 10-12,26,417-422,424-477
+  s_1085d35454c91f::t_7bc57c6755fad3 423
+  s_1085d35454c91f::t_0e7d67069ac988 478
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "3123456530c136aaea9bf5984359779c5bf30145",
+  "prompts": {},
+  "sessions": {
+    "s_1085d35454c91f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26ef7f1d-7223-416c-8bc4-4bd2164dae69",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
