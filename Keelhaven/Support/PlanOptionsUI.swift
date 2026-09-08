@@ -72,7 +72,11 @@ struct VerificationSection: View {
             }
             .labelsHidden()
             .pickerStyle(.segmented)
-            .frame(maxWidth: 260)
+            // `alignment: .leading`, or the control keeps its intrinsic width
+            // and centres itself in the frame — leaving the buttons floating
+            // off the left edge its own heading and caption sit on. Visible in
+            // English here, and in every language once the labels get shorter.
+            .frame(maxWidth: 260, alignment: .leading)
             Text("Runs restic's own repository check after a backup, and only speaks up when something is wrong.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
@@ -96,7 +100,9 @@ struct RetentionSection: View {
             }
             .labelsHidden()
             .pickerStyle(.segmented)
-            .frame(maxWidth: 380)
+            // Same reason as Verification above. English fills the 380 and
+            // hides it; Chinese ("保留全部" and friends) does not.
+            .frame(maxWidth: 380, alignment: .leading)
             Text("Thins older snapshots to daily, weekly and monthly keepers and reclaims the space — after a backup, at most once a week. Keep everything never deletes a snapshot.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
