@@ -2,11 +2,20 @@ import Foundation
 import KeelhavenCore
 
 /// Everything the wizard collects to create a plan.
+///
+/// The four settings after `schedule` default to exactly what `BackupPlan`'s
+/// own initializer would have applied, so the wizard's Options step (issue
+/// #39) changes what a plan *can* be created with, never what an untouched
+/// wizard run produces.
 struct PlanDraft {
     var name: String
     var sourcePaths: [String]
     var destination: Destination
     var schedule: Schedule
+    var excludePatterns: [String] = BackupPlan.defaultExcludePatterns
+    var checkCadence: CheckCadence = .weekly
+    var retention: RetentionPolicy = .off
+    var performance: PerformanceOptions = .off
     var password: String
     var s3SecretKey: String?
     var restPassword: String?
@@ -41,7 +50,11 @@ struct PlanManager {
             name: draft.name,
             sourcePaths: draft.sourcePaths,
             destination: draft.destination,
-            schedule: draft.schedule
+            schedule: draft.schedule,
+            excludePatterns: draft.excludePatterns,
+            checkCadence: draft.checkCadence,
+            retention: draft.retention,
+            performance: draft.performance
         )
 
         let credentials = RepoCredentials(

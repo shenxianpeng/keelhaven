@@ -274,6 +274,16 @@
         }
       }
     },
+    "Anything to fine-tune?": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还有什么要调整的吗？"
+          }
+        }
+      }
+    },
     "At": {
       "localizations": {
         "zh-Hans": {
@@ -1347,6 +1357,16 @@
         }
       }
     },
+    "Nothing is excluded — every file in those folders is backed up.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有排除任何东西 —— 这些文件夹里的所有文件都会备份。"
+          }
+        }
+      }
+    },
     "OK": {
       "localizations": {
         "zh-Hans": {
@@ -1393,6 +1413,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "每周一次"
+          }
+        }
+      }
+    },
+    "Options": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选项"
           }
         }
       }
@@ -1963,6 +1993,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "上一次保留策略清理没能获得仓库的锁"
+          }
+        }
+      }
+    },
+    "These all have sensible defaults. You can change them later under Edit Plan.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "以下选项都已有合理的默认值，之后也可以在“编辑计划”里再改。"
           }
         }
       }

@@ -43,11 +43,17 @@ struct KeelhavenApp: App {
         }
         .windowResizability(.contentSize)
 
+        // The only window the user can resize: its sections expand, and
+        // `.contentSize` used to pin it to whatever height the expanded
+        // content demanded — off the bottom of the screen, unshrinkable
+        // and unscrollable (issue #39). `.contentMinSize` keeps the floor
+        // the content asks for and hands the rest to the user.
         Window("Edit Backup Plan", id: WindowID.editPlan) {
             EditPlanWindowView()
                 .environment(appState)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 560, height: 640)
 
         Window("About Keelhaven", id: WindowID.about) {
             AboutView()

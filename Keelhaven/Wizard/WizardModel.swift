@@ -36,15 +36,21 @@ enum ScheduleKind: String, CaseIterable, Identifiable {
     }
 }
 
-/// Draft state for the 3-step wizard, with per-step validation.
+/// Draft state for the 4-step wizard, with per-step validation.
 @MainActor
 @Observable
 final class WizardModel {
-    static let stepCount = 3
+    static let stepCount = 4
 
     var step = 0
     var name = ""
     var sourcePaths: [String] = []
+
+    /// Verification, retention, excludes and the throughput knobs — the
+    /// step-4 settings the wizard used to skip entirely (issue #39). Starts
+    /// at the same defaults `BackupPlan.init` applies, so a wizard run that
+    /// clicks straight past step 4 builds the plan it always built.
+    var options = PlanOptionsDraft()
 
     var destinationType: DestinationType = .local
     var localPath = ""
@@ -347,6 +353,10 @@ final class WizardModel {
             sourcePaths: sourcePaths,
             destination: destination,
             schedule: schedule,
+            excludePatterns: options.excludePatterns,
+            checkCadence: options.checkCadence,
+            retention: options.retention,
+            performance: options.builtPerformance(),
             password: password,
             s3SecretKey: destinationType == .s3 ? s3SecretKey : nil,
             restPassword: destinationType == .rest ? restPassword : nil,
@@ -359,6 +369,7 @@ final class WizardModel {
         step = fresh.step
         name = fresh.name
         sourcePaths = fresh.sourcePaths
+        options = fresh.options
         destinationType = fresh.destinationType
         localPath = fresh.localPath
         s3Endpoint = fresh.s3Endpoint

@@ -84,7 +84,10 @@ SFTP, and it is paid per invocation.
 ### Manual smoke test
 
 1. Run the app — it appears in the menu bar only (no Dock icon).
-2. *Add Backup Plan…* → 3-step wizard → use a temp folder as a local destination.
+2. *Add Backup Plan…* → 4-step wizard → use a temp folder as a local destination.
+   Step 4 (*Options*) carries the same verification, retention, exclude and
+   Advanced controls as *Edit Plan…*; leaving it untouched creates the plan
+   with the stock defaults.
 3. *Back Up Now* → progress appears in the menu bar → completion notification.
 4. Verify independently: `restic snapshots -r <destination-folder>` (with the password you chose).
 
