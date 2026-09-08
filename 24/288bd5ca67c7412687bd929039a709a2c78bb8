@@ -1,0 +1,33 @@
+Keelhaven/Localizable.xcstrings
+  s_1085d35454c91f::t_ad0b3beb03696d 337-346
+site/zh/index.md
+  s_1085d35454c91f::t_1dc4f1ad28f098 265-272
+  s_1085d35454c91f::t_ed58e8406bef29 264
+KeelhavenCore/Tests/KeelhavenCoreTests/EdgeCaseTests.swift
+  s_1085d35454c91f::t_b786496e99fbcb 124-165
+KeelhavenCore/Sources/KeelhavenCore/Models/Destination.swift
+  s_1085d35454c91f::t_35d5781db2c224 57-85
+Keelhaven/Wizard/WizardModel.swift
+  s_1085d35454c91f::t_3b0d495a65be84 192-205
+site/index.md
+  s_1085d35454c91f::t_1dc4f1ad28f098 243-250
+  s_1085d35454c91f::t_2595fa40736244 242
+Keelhaven/Wizard/DestinationStepView.swift
+  s_1085d35454c91f::t_3b0d495a65be84 221-231
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "24288bd5ca67c7412687bd929039a709a2c78bb8",
+  "prompts": {},
+  "sessions": {
+    "s_1085d35454c91f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26ef7f1d-7223-416c-8bc4-4bd2164dae69",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
