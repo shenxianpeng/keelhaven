@@ -32,7 +32,11 @@ frameworks (UserNotifications, ServiceManagement, AppKit panels).
 1. `SchedulerService` fires every 60s → `AppState.runDuePlans()`.
 2. `SchedulePolicy.isDue(plan)` — pure date math; a missed window (Mac asleep)
    makes the plan due immediately. Also checked at launch and on
-   `NSWorkspace.didWakeNotification`.
+   `NSWorkspace.didWakeNotification`. A plan that has never run anchors on
+   `createdAt`: due at once if it was created with "Start the first backup
+   now", otherwise at the first scheduled time after creation. That flag is
+   persisted on the plan rather than acted on once at creation, because this
+   function is the only thing consulted on every tick and at every launch.
 3. `AppState` reads secrets from the Keychain (`KeychainAccount` names are
    keyed by plan UUID), builds `RepoCredentials`.
 4. `ResticRunner.backupStream(...)` spawns `restic backup --json` with a

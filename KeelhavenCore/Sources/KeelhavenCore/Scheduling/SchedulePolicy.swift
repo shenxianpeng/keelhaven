@@ -35,17 +35,39 @@ public enum SchedulePolicy {
         }
     }
 
-    /// A plan is due when it has never run, or when its next scheduled time
-    /// after the last run is in the past. Missed runs (Mac was asleep or the
-    /// app wasn't running) therefore make the plan due immediately.
+    /// When this plan's next backup is expected, from one anchor rule:
+    ///
+    /// - it has run before → the first scheduled time after that run;
+    /// - never run, created to start right away → `createdAt`, i.e. already
+    ///   past, so it is due the moment the plan exists;
+    /// - never run, created to wait → the first scheduled time after
+    ///   `createdAt` (issue #42).
+    ///
+    /// `isDue` is defined in terms of this rather than repeating the anchor,
+    /// so the menu bar's "Next backup:" line and the scheduler can never
+    /// disagree about when a plan runs — they used to, for a fresh plan.
+    public static func nextRun(
+        for plan: BackupPlan,
+        calendar: Calendar = .current
+    ) -> Date {
+        guard let lastRunDate = plan.lastRun?.date else {
+            return plan.firstBackupStartsOnCreation
+                ? plan.createdAt
+                : nextRun(for: plan.schedule, after: plan.createdAt, calendar: calendar)
+        }
+        return nextRun(for: plan.schedule, after: lastRunDate, calendar: calendar)
+    }
+
+    /// A plan is due once its expected next run is in the past. Missed runs
+    /// (Mac was asleep or the app wasn't running) therefore make the plan due
+    /// immediately, and stay that way until it actually runs — so a plan whose
+    /// creation-time backup was skipped because restic was busy is picked up
+    /// by the next tick.
     public static func isDue(
         _ plan: BackupPlan,
         now: Date,
         calendar: Calendar = .current
     ) -> Bool {
-        guard let lastRunDate = plan.lastRun?.date else {
-            return true
-        }
-        return nextRun(for: plan.schedule, after: lastRunDate, calendar: calendar) <= now
+        nextRun(for: plan, calendar: calendar) <= now
     }
 }

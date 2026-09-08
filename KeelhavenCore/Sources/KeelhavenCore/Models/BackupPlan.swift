@@ -15,6 +15,15 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
     public var retention: RetentionPolicy
     /// restic throughput knobs, all off by default. See `PerformanceOptions`.
     public var performance: PerformanceOptions
+    /// Whether the very first backup starts the moment the plan is created,
+    /// rather than waiting for the first scheduled time after `createdAt`.
+    ///
+    /// Persisted rather than kept in the wizard, because the alternative does
+    /// not survive a relaunch: `SchedulePolicy` is asked once a minute and at
+    /// every launch, so a plan that only *skipped* its creation-time run would
+    /// be started by the very next tick (issue #42). Only consulted while
+    /// `lastRun` is nil; after the first run the schedule anchors there.
+    public var firstBackupStartsOnCreation: Bool
     public var createdAt: Date
     public var lastRun: BackupRunRecord?
     public var lastCheck: CheckRunRecord?
@@ -37,6 +46,7 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         checkCadence: CheckCadence = .weekly,
         retention: RetentionPolicy = .off,
         performance: PerformanceOptions = .off,
+        firstBackupStartsOnCreation: Bool = true,
         createdAt: Date = Date(),
         lastRun: BackupRunRecord? = nil,
         lastCheck: CheckRunRecord? = nil,
@@ -51,6 +61,7 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         self.checkCadence = checkCadence
         self.retention = retention
         self.performance = performance
+        self.firstBackupStartsOnCreation = firstBackupStartsOnCreation
         self.createdAt = createdAt
         self.lastRun = lastRun
         self.lastCheck = lastCheck
@@ -72,6 +83,10 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         checkCadence = try container.decodeIfPresent(CheckCadence.self, forKey: .checkCadence) ?? .weekly
         retention = try container.decodeIfPresent(RetentionPolicy.self, forKey: .retention) ?? .off
         performance = try container.decodeIfPresent(PerformanceOptions.self, forKey: .performance) ?? .off
+        // Absent on every plan written before this flag existed — and those
+        // all started their first backup on creation, so `true` is the value
+        // that keeps them behaving exactly as they did.
+        firstBackupStartsOnCreation = try container.decodeIfPresent(Bool.self, forKey: .firstBackupStartsOnCreation) ?? true
         createdAt = try container.decode(Date.self, forKey: .createdAt)
         lastRun = try container.decodeIfPresent(BackupRunRecord.self, forKey: .lastRun)
         lastCheck = try container.decodeIfPresent(CheckRunRecord.self, forKey: .lastCheck)

@@ -129,6 +129,10 @@ final class WizardModel {
         }
     }
 
+    /// "Start the first backup now", on by default — the behaviour every
+    /// plan had before the checkbox existed (issue #42).
+    var firstBackupStartsOnCreation = true
+
     var scheduleKind: ScheduleKind = .daily
     var dailyTime = Calendar.current.date(bySettingHour: 21, minute: 0, second: 0, of: Date()) ?? Date()
     /// Calendar weekday (1 = Sunday); defaults to the region's first weekday.
@@ -358,6 +362,7 @@ final class WizardModel {
             checkCadence: options.checkCadence,
             retention: options.retention,
             performance: options.builtPerformance(),
+            firstBackupStartsOnCreation: firstBackupStartsOnCreation,
             password: password,
             s3SecretKey: destinationType == .s3 ? s3SecretKey : nil,
             restPassword: destinationType == .rest ? restPassword : nil,
@@ -391,6 +396,7 @@ final class WizardModel {
         adoptExistingRepository = fresh.adoptExistingRepository
         isVerifyingPassword = fresh.isVerifyingPassword
         passwordVerificationError = fresh.passwordVerificationError
+        firstBackupStartsOnCreation = fresh.firstBackupStartsOnCreation
         scheduleKind = fresh.scheduleKind
         dailyTime = fresh.dailyTime
         weekday = fresh.weekday

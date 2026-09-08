@@ -16,6 +16,8 @@ struct PlanDraft {
     var checkCadence: CheckCadence = .weekly
     var retention: RetentionPolicy = .off
     var performance: PerformanceOptions = .off
+    /// The wizard's "Start the first backup now" checkbox (issue #42).
+    var firstBackupStartsOnCreation: Bool = true
     var password: String
     var s3SecretKey: String?
     var restPassword: String?
@@ -54,7 +56,8 @@ struct PlanManager {
             excludePatterns: draft.excludePatterns,
             checkCadence: draft.checkCadence,
             retention: draft.retention,
-            performance: draft.performance
+            performance: draft.performance,
+            firstBackupStartsOnCreation: draft.firstBackupStartsOnCreation
         )
 
         let credentials = RepoCredentials(

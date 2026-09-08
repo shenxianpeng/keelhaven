@@ -154,8 +154,12 @@ final class AppState {
         plans.append(plan)
         runStates[plan.id] = .idle
         try await planStore.save(plans)
-        // The wizard promises the first backup starts right after creation —
-        // kick the scheduler now instead of waiting up to 60s for its tick.
+        // Kick the scheduler now instead of waiting up to 60s for its tick.
+        // Whether that actually starts a backup is `SchedulePolicy.isDue`'s
+        // call: a plan created with "Start the first backup now" unchecked is
+        // not due yet, so this is a no-op for it (issue #42). Deliberately not
+        // an `if` here — the flag has to hold across relaunches too, and only
+        // the policy is asked on every tick and at launch.
         runDuePlans()
     }
 

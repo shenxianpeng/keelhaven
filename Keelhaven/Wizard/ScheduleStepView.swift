@@ -15,19 +15,7 @@ struct ScheduleStepView: View {
 
                 ScheduleEditor(kind: $model.scheduleKind, dailyTime: $model.dailyTime, weekday: $model.weekday)
 
-                // Surprise-proofing, not decoration: the first run starts on
-                // creation (SchedulePolicy treats a never-run plan as due), and
-                // users who set an evening time expect silence until then. One
-                // footnote-sized block, System Settings style — not two callout
-                // paragraphs competing with the summary.
-                //
-                // It is also why Customize sits on this step rather than in
-                // Edit Plan alone: a backup that starts this soon has to be
-                // configurable before it does (issue #41).
-                Text("The first backup starts as soon as you create the plan. After that, backups run on this schedule, catching up automatically if your Mac was asleep or off.")
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                firstBackupRow
 
                 customizeSection
 
@@ -37,6 +25,41 @@ struct ScheduleStepView: View {
             }
             .frame(maxWidth: .infinity, alignment: .leading)
         }
+    }
+
+    /// The checkbox and the sentence that explains it, as one block.
+    ///
+    /// They belong together: the sentence *is* the promise the checkbox
+    /// changes, and splitting the control into the summary below would leave
+    /// a bare checkbox in a read-only recap and a claim up here that the
+    /// choice can contradict (issue #42). On by default, so nobody who does
+    /// not care ever has to look at it — unticking is the whole opt-in.
+    private var firstBackupRow: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Toggle("Start the first backup now", isOn: $model.firstBackupStartsOnCreation)
+                .toggleStyle(.checkbox)
+            // Surprise-proofing, not decoration: users who set an evening time
+            // expect silence until then. One footnote-sized block, System
+            // Settings style — not two callout paragraphs competing with the
+            // summary.
+            Text(firstBackupExplanation)
+                .font(.footnote)
+                .foregroundStyle(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// Says what will actually happen, naming the concrete time when the first
+    /// backup is going to wait for it — "at the next scheduled time" alone
+    /// leaves the user doing the arithmetic.
+    private var firstBackupExplanation: String {
+        let schedule = Schedule(kind: model.scheduleKind, dailyTime: model.dailyTime, weekday: model.weekday)
+        if model.firstBackupStartsOnCreation {
+            return String(localized: "The first backup starts as soon as you create the plan. After that, backups run on this schedule, catching up automatically if your Mac was asleep or off.")
+        }
+        let first = SchedulePolicy.nextRun(for: schedule, after: Date(), calendar: .current)
+            .formatted(date: .abbreviated, time: .shortened)
+        return String(localized: "The plan is created but stays idle: the first backup runs at \(first), then on this schedule — catching up automatically if your Mac was asleep or off. You can always start one yourself with Back Up Now.")
     }
 
     /// The four settings Edit Plan offers, collapsed — and staying collapsed

@@ -32,11 +32,11 @@ struct PlanStatusRow: View {
 
     /// When the next scheduled run is due, shown as a tooltip on the status line.
     private var nextRunText: String {
-        let next = SchedulePolicy.nextRun(
-            for: plan.schedule,
-            after: plan.lastRun?.date ?? Date(),
-            calendar: .current
-        )
+        // Asks the policy about the whole plan, not just its schedule: a
+        // never-run plan's anchor depends on how it was created, and computing
+        // it here from `Date()` made this line disagree with the scheduler
+        // (issue #42).
+        let next = SchedulePolicy.nextRun(for: plan)
         if next <= Date() {
             return String(localized: "Next backup: as soon as possible")
         }
