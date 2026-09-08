@@ -16,8 +16,8 @@ final class PlanOptionsDraft {
     var excludePatterns: [String]
     var checkCadence: CheckCadence
     var retention: RetentionPolicy
-    /// The two boolean `restic backup` switches (issue #46). Off by default,
-    /// like every other advanced setting here.
+    /// The boolean `restic backup` switches (issues #46, #50). Off by
+    /// default, like every other advanced setting here.
     var excludeCaches = false
     var oneFileSystem = false
     var skipIfUnchanged = false

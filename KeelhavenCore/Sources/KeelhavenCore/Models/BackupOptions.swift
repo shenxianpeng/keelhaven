@@ -30,7 +30,7 @@ public struct BackupOptions: Codable, Hashable, Sendable {
     /// tell someone a backup was stored when none was.
     public var skipIfUnchanged: Bool
 
-    /// Both switches off — restic's own behaviour.
+    /// Every switch off — restic's own behaviour.
     public static let off = BackupOptions()
 
     public init(
