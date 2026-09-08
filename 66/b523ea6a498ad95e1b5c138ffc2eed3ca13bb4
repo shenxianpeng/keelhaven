@@ -1,0 +1,41 @@
+KeelhavenCore/Tests/KeelhavenCoreTests/ModelRoundTripTests.swift
+  s_1085d35454c91f::t_970f839a9d959b 150,161-163
+KeelhavenCore/Sources/KeelhavenCore/Scheduling/SchedulePolicy.swift
+  s_1085d35454c91f::t_c9057f2eb7ce77 38-65,71
+Keelhaven/MenuBar/PlanStatusRow.swift
+  s_1085d35454c91f::t_5f4b8983ae4757 35-39
+KeelhavenCore/Tests/KeelhavenCoreTests/SchedulePolicyTests.swift
+  s_1085d35454c91f::t_970f839a9d959b 16-24,30-31,59-133
+  s_1085d35454c91f::t_f3be1e0b2a33a9 134
+Keelhaven/Wizard/ScheduleStepView.swift
+  s_1085d35454c91f::t_d60b8d13fcc8ff 18,30-63
+  s_1085d35454c91f::t_1cd15d57c17d78 64
+docs/ARCHITECTURE.md
+  s_1085d35454c91f::t_703cd006bb4b9d 35-39
+KeelhavenCore/Sources/KeelhavenCore/Models/BackupPlan.swift
+  s_1085d35454c91f::t_933a1c784b18f0 18-26,49,64,86-89
+Keelhaven/Services/PlanManager.swift
+  s_1085d35454c91f::t_5f4b8983ae4757 19-20,59-60
+Keelhaven/AppState.swift
+  s_1085d35454c91f::t_5f4b8983ae4757 157-162
+Keelhaven/Wizard/WizardModel.swift
+  s_1085d35454c91f::t_5f4b8983ae4757 132-135,365,399
+Keelhaven/Localizable.xcstrings
+  s_1085d35454c91f::t_effb6d6d02e964 1910-1919,2000-2009
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "66b523ea6a498ad95e1b5c138ffc2eed3ca13bb4",
+  "prompts": {},
+  "sessions": {
+    "s_1085d35454c91f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26ef7f1d-7223-416c-8bc4-4bd2164dae69",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
