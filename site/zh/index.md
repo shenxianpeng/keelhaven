@@ -262,6 +262,15 @@ Beta 版还没做 Apple 公证，第一次打开要多点一次确认，[下面�
 挂在 Mac 上的外置硬盘或网络硬盘；任何兼容 S3 的存储桶（AWS、Backblaze B2、Wasabi、Cloudflare R2、MinIO）；用 SFTP 连自己的服务器或 NAS；以及你自己架设的 [restic REST server](https://github.com/restic/rest-server)。
 
 </FaqItem>
+<FaqItem question="我备份到 Backblaze B2，为什么删掉旧备份并没有腾出空间？">
+
+因为 B2 不是删除，而是隐藏。Keelhaven 通过 B2 的 S3 兼容 API 访问它，而经由这个 API 删除对象，只会把旧版本标记为隐藏，并不会真正移除。隐藏的版本照样占用存储、照样出现在账单上，而且 `restic forget --prune` 再跑多少次也够不着它们——删除指令早就发出去了，它已经做完了这个 API 允许它做的事。
+
+解法是存储桶上的一个设置，不在 Keelhaven 里。在 B2 存储桶的生命周期设置中选择 **Keep only the last version of the file**（只保留文件的最新版本）。这正是 [restic 官方文档](https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html)对 B2 的建议，文档里也写明了之后会发生什么：文件的旧版本会被「隐藏」一天，然后由 B2 自动删除。
+
+空间通常会在随后一两天内回来，而不是立刻。B2 按它自己的节奏执行生命周期规则，所以第二天早上看桶还没什么变化是正常的，并不代表规则没生效。
+
+</FaqItem>
 <FaqItem question="备份会一直涨下去吗？">
 
 默认会，因为删你的数据这件事，Keelhaven 从不自作主张。每次运行加一个去重后的快照，只存变化的部分。想让某个计划别再涨，在「编辑计划」里选一档保留策略，保留一年或保留一个月，较旧的快照就会按每日、每周、每月逐级精简，空间在备份完成后回收，每周最多清一次。仓库始终是标准 restic 格式，想自己用 `restic forget --prune` 按别的策略清，随时可以。

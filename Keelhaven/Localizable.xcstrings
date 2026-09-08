@@ -334,6 +334,16 @@
         }
       }
     },
+    "Backblaze B2 keeps a hidden copy of everything a backup deletes, and keeps charging for it. Turn on the bucket's “Keep only the last version of the file” lifecycle rule so B2 clears them. [Why this is needed](https://keelhaven.app/#faq)": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Backblaze B2 会为备份删掉的每一样东西保留一份隐藏副本，并持续计费。请在存储桶上打开「Keep only the last version of the file」生命周期规则，让 B2 清理它们。[为什么需要这样做](https://keelhaven.app/zh/#faq)"
+          }
+        }
+      }
+    },
     "Backed up": {
       "localizations": {
         "zh-Hans": {

@@ -189,6 +189,20 @@ final class WizardModel {
         }
     }
 
+    /// The endpoint being typed is Backblaze B2, which needs a bucket-side
+    /// lifecycle rule or deleted data keeps being billed forever (issue #47).
+    /// Guidance, not a conflict: the destination is perfectly valid, so this
+    /// deliberately has no effect on `destinationHasConflict` or on Next.
+    var destinationIsBackblazeB2: Bool {
+        guard destinationType == .s3 else { return false }
+        return S3Config(
+            endpoint: s3Endpoint,
+            bucket: s3Bucket,
+            pathPrefix: s3Prefix,
+            accessKeyID: s3AccessKey
+        ).isBackblazeB2
+    }
+
     /// A REST URL pasted with restic-docs-style embedded credentials
     /// ("https://user:pass@host/"). Refused because the URL is persisted to
     /// plans.json in plain text — the separate fields keep the password in

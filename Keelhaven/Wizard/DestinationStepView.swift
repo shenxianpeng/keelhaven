@@ -218,6 +218,17 @@ struct DestinationStepView: View {
             }
             .formStyle(.columns)
             .textFieldStyle(.roundedBorder)
+            // Plain secondary text, like the SFTP note below and unlike the
+            // HintCallout boxes above: nothing the user typed is wrong. It is
+            // a standing fact about B2 that no other S3 provider shares, and
+            // one Keelhaven cannot fix from this side — `forget --prune`
+            // deletes through the S3 API, which on B2 only hides (issue #47).
+            if model.destinationIsBackblazeB2 {
+                Text("Backblaze B2 keeps a hidden copy of everything a backup deletes, and keeps charging for it. Turn on the bucket's “Keep only the last version of the file” lifecycle rule so B2 clears them. [Why this is needed](https://keelhaven.app/#faq)")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
             if !model.destinationFieldsComplete {
                 Text("All fields except the path prefix are required.")
                     .font(.callout)
