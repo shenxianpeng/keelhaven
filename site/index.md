@@ -240,6 +240,15 @@ No. Backups are encrypted on your Mac before anything is uploaded, and the repos
 An external or network drive mounted on your Mac, any S3-compatible bucket (AWS, Backblaze B2, Wasabi, Cloudflare R2, MinIO), SFTP to your own server or NAS, and a [restic REST server](https://github.com/restic/rest-server) you host yourself.
 
 </FaqItem>
+<FaqItem question="I back up to Backblaze B2. Why is deleting old backups not freeing any space?">
+
+Because B2 does not delete — it hides. Keelhaven reaches B2 through its S3-compatible API, and deleting an object over that API marks the old version hidden rather than removing it. Hidden versions still take up storage and still appear on your bill, and no amount of `restic forget --prune` can reach them: the deletion has already been issued, and it did what the API allows.
+
+The fix is one setting on the bucket, not in Keelhaven. In your B2 bucket's lifecycle settings, choose **Keep only the last version of the file**. This is what [restic's own documentation](https://restic.readthedocs.io/en/stable/030_preparing_a_new_repo.html) recommends for B2, and it describes what follows: the previous version of the file is "hidden" for one day and then deleted automatically by B2.
+
+Expect the space to come back over the next day or two rather than straight away. B2 applies lifecycle rules on its own schedule, so a bucket that looks unchanged tomorrow morning is normal — not a sign the rule failed.
+
+</FaqItem>
 <FaqItem question="Do backups grow forever?">
 
 Only if you leave retention off — which is the default, because deleting your data is never something Keelhaven decides on its own. Every run adds a deduplicated snapshot, storing only what changed. When a plan should stop growing, pick a retention preset in Edit Plan — a year of history or a month of history — and older snapshots are thinned to daily, weekly and monthly keepers, with the space reclaimed after a backup at most once a week. The repository stays standard restic throughout, so `restic forget --prune` with a policy of your own still works from any machine.

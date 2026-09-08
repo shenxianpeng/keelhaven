@@ -121,3 +121,45 @@ final class StoreEdgeTests: XCTestCase {
         XCTAssertTrue(deletedRecords.isEmpty)
     }
 }
+
+/// `S3Config.isBackblazeB2` decides whether the wizard warns that deleted
+/// data keeps being billed until a bucket lifecycle rule clears it (issue
+/// #47). A false negative costs someone money silently; a false positive
+/// tells them to change a setting that does not exist on their provider.
+final class BackblazeB2DetectionTests: XCTestCase {
+    private func config(_ endpoint: String) -> S3Config {
+        S3Config(endpoint: endpoint, bucket: "b", pathPrefix: "", accessKeyID: "k")
+    }
+
+    func testRecognisesBackblazeEndpoints() {
+        // The form B2's own console shows, plus the shapes people paste.
+        XCTAssertTrue(config("s3.us-west-004.backblazeb2.com").isBackblazeB2)
+        XCTAssertTrue(config("s3.eu-central-003.backblazeb2.com").isBackblazeB2)
+        XCTAssertTrue(config("https://s3.us-west-004.backblazeb2.com").isBackblazeB2)
+        XCTAssertTrue(config("https://s3.us-west-004.backblazeb2.com/").isBackblazeB2)
+        XCTAssertTrue(config("S3.US-WEST-004.BackblazeB2.com").isBackblazeB2)
+        XCTAssertTrue(config("backblazeb2.com").isBackblazeB2)
+        XCTAssertTrue(config("s3.us-west-004.backblazeb2.com:443").isBackblazeB2)
+        // A trailing dot is a valid fully-qualified host.
+        XCTAssertTrue(config("s3.us-west-004.backblazeb2.com.").isBackblazeB2)
+    }
+
+    func testDoesNotMistakeOtherProvidersForBackblaze() {
+        XCTAssertFalse(config("s3.amazonaws.com").isBackblazeB2)
+        XCTAssertFalse(config("s3.wasabisys.com").isBackblazeB2)
+        XCTAssertFalse(config("minio.example.com:9000").isBackblazeB2)
+        XCTAssertFalse(config("").isBackblazeB2)
+        // The suffix check exists for these: the name appears, the host is
+        // somebody else's.
+        XCTAssertFalse(config("minio.backblazeb2.com.example.net").isBackblazeB2)
+        XCTAssertFalse(config("notbackblazeb2.com").isBackblazeB2)
+        XCTAssertFalse(config("https://example.com/backblazeb2.com").isBackblazeB2)
+    }
+
+    /// Credentials in the endpoint must not hide the host behind them.
+    func testStripsCredentialsBeforeMatching() {
+        XCTAssertTrue(config("https://key@s3.us-west-004.backblazeb2.com").isBackblazeB2)
+        XCTAssertFalse(config("https://s3.us-west-004.backblazeb2.com@evil.example.com").isBackblazeB2)
+    }
+}
+

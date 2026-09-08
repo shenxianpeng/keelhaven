@@ -54,6 +54,35 @@ public struct S3Config: Codable, Hashable, Sendable {
         self.accessKeyID = accessKeyID
     }
 
+    /// True when the endpoint points at Backblaze B2's S3-compatible API.
+    ///
+    /// B2 needs one thing no other S3 provider does: deleting an object
+    /// through the S3 API only *hides* it there, so every version restic
+    /// removes keeps costing money until a bucket lifecycle rule clears it —
+    /// something `forget --prune` can never do from this side (issue #47).
+    /// The wizard uses this to say so while the endpoint is being typed.
+    ///
+    /// Matched on the host suffix rather than by `contains`, so a bucket or
+    /// a self-hosted endpoint that merely mentions the name — say
+    /// `minio.backblazeb2.com.example.net` — is not mistaken for B2. Any
+    /// scheme, port, path or trailing dot is stripped first.
+    public var isBackblazeB2: Bool {
+        var host = endpoint.lowercased()
+        if let schemeRange = host.range(of: "://") {
+            host = String(host[schemeRange.upperBound...])
+        }
+        host = String(host.prefix { $0 != "/" })
+        // Strip credentials and port: "user@host:9000" -> "host".
+        if let at = host.lastIndex(of: "@") {
+            host = String(host[host.index(after: at)...])
+        }
+        host = String(host.prefix { $0 != ":" })
+        while host.hasSuffix(".") {
+            host.removeLast()
+        }
+        return host == "backblazeb2.com" || host.hasSuffix(".backblazeb2.com")
+    }
+
     public var repositoryLocation: String {
         var endpointWithScheme = endpoint
         if !endpointWithScheme.contains("://") {
