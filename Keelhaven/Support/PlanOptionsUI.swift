@@ -149,6 +149,17 @@ struct ExcludePatternsSection: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
+
+                Divider()
+
+                // Lives with the patterns because it is one: a rule about
+                // what not to back up, just one restic already knows by name.
+                Toggle("Skip cache folders", isOn: $options.excludeCaches)
+                    .toggleStyle(.checkbox)
+                Text("Skips folders that apps mark as caches. They are rebuilt automatically, so backing them up costs space and time for nothing.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
             .padding(.top, 6)
         }
@@ -165,6 +176,17 @@ struct AdvancedPerformanceSection: View {
     var body: some View {
         DisclosureGroup("Advanced") {
             VStack(alignment: .leading, spacing: 10) {
+                // Above the intro sentence below, which says "these" and has
+                // to keep referring only to the three numeric fields.
+                Toggle("Skip backups when nothing has changed", isOn: $options.skipIfUnchanged)
+                    .toggleStyle(.checkbox)
+                Text("Creates no new backup when the folders are identical to the last one, instead of a fresh copy that stores nothing. Keeps the list you restore from shorter.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                Divider()
+
                 Text("Leave these empty unless a backup is too slow or takes too much of your connection. Empty means restic's own default.")
                     .font(.callout)
                     .foregroundStyle(.secondary)

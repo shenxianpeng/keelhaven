@@ -267,6 +267,16 @@ struct PlanStatusRow: View {
         }
     }
 
+    /// Secondary, not orange or red: nothing is wrong. The plan checked, the
+    /// folders were identical to the last snapshot, and nothing needed
+    /// storing — which is the whole point of the option.
+    private var unchangedLine: some View {
+        Text("No changes — nothing new to back up")
+            .font(.callout)
+            .foregroundStyle(.secondary)
+            .help(nextRunText)
+    }
+
     private func verificationLine(_ check: CheckRunRecord) -> some View {
         HStack(spacing: 4) {
             Image(systemName: check.success ? "checkmark.shield" : "exclamationmark.shield")
@@ -364,17 +374,28 @@ struct PlanStatusRow: View {
             }
             .help(message)
         case .succeeded(let date):
-            RelativeTimeText(kind: .backedUp, date: date)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-                .help(nextRunText)
+            // "Backed up just now" would be a lie when the run stored
+            // nothing: the newest snapshot is still the older one, which is
+            // what Restore… will offer (issue #46).
+            if plan.lastRun?.skippedUnchanged == true {
+                unchangedLine
+            } else {
+                RelativeTimeText(kind: .backedUp, date: date)
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .help(nextRunText)
+            }
         case .idle:
             if let lastRun = plan.lastRun {
                 if lastRun.success {
-                    RelativeTimeText(kind: .lastBackup, date: lastRun.date)
-                        .font(.callout)
-                        .foregroundStyle(.secondary)
-                        .help(nextRunText)
+                    if lastRun.skippedUnchanged == true {
+                        unchangedLine
+                    } else {
+                        RelativeTimeText(kind: .lastBackup, date: lastRun.date)
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                            .help(nextRunText)
+                    }
                 } else {
                     Text(lastRun.errorMessage ?? String(localized: "Last backup failed"))
                         .font(.callout)

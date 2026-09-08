@@ -51,6 +51,16 @@
         }
       }
     },
+    "%@: no changes since the last backup, so no new snapshot was created.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@：与上次备份相比没有变化，因此没有创建新的备份点。"
+          }
+        }
+      }
+    },
     "%lld backups need attention": {
       "extractionState": "manual",
       "localizations": {
@@ -650,6 +660,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "创建备份计划"
+          }
+        }
+      }
+    },
+    "Creates no new backup when the folders are identical to the last one, instead of a fresh copy that stores nothing. Keeps the list you restore from shorter.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当这些文件夹与上次备份完全相同时，不再新建一份什么都没存的备份。可以让恢复时的列表更简洁。"
           }
         }
       }
@@ -1307,6 +1327,16 @@
         }
       }
     },
+    "No changes — nothing new to back up": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有变化 —— 没有需要备份的新内容"
+          }
+        }
+      }
+    },
     "No destination chosen yet.": {
       "localizations": {
         "zh-Hans": {
@@ -1363,6 +1393,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "没有排除任何东西 —— 这些文件夹里的所有文件都会备份。"
+          }
+        }
+      }
+    },
+    "Nothing to back up": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无需备份"
           }
         }
       }
@@ -1893,6 +1933,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "大小"
+          }
+        }
+      }
+    },
+    "Skip backups when nothing has changed": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内容没有变化时跳过备份"
+          }
+        }
+      }
+    },
+    "Skip cache folders": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过缓存文件夹"
+          }
+        }
+      }
+    },
+    "Skips folders that apps mark as caches. They are rebuilt automatically, so backing them up costs space and time for nothing.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过被应用标记为缓存的文件夹。这些内容会自动重建，备份它们只会白白占用空间和时间。"
           }
         }
       }

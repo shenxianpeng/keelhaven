@@ -11,7 +11,8 @@ final class ResticCommandTests: XCTestCase {
             sources: ["/Users/me/Documents", "/Users/me/Photos"],
             excludes: [".DS_Store", "node_modules"],
             tag: "keelhaven",
-            performance: .off
+            performance: .off,
+            options: .off
         )
         XCTAssertEqual(command.arguments, [
             "backup", "--json",
@@ -23,7 +24,7 @@ final class ResticCommandTests: XCTestCase {
     }
 
     func testBackupWithoutTagOrExcludes() {
-        let command = ResticCommand.backup(sources: ["/tmp/data"], excludes: [], tag: nil, performance: .off)
+        let command = ResticCommand.backup(sources: ["/tmp/data"], excludes: [], tag: nil, performance: .off, options: .off)
         XCTAssertEqual(command.arguments, ["backup", "--json", "/tmp/data"])
     }
 
@@ -78,7 +79,8 @@ final class ResticCommandTests: XCTestCase {
                 uploadLimitKiBPerSecond: 500,
                 readConcurrency: 8,
                 packSizeMiB: 64
-            )
+            ),
+            options: .off
         )
         // Flags come before the sources: restic accepts them either way, but
         // a path is a positional argument and reads as one here.
@@ -89,6 +91,45 @@ final class ResticCommandTests: XCTestCase {
             "--pack-size", "64",
             "/tmp/data",
         ])
+    }
+
+    func testBackupOptionsArguments() {
+        XCTAssertEqual(BackupOptions.off.arguments, [])
+        XCTAssertTrue(BackupOptions.off.isDefault)
+        XCTAssertEqual(BackupOptions(excludeCaches: true).arguments, ["--exclude-caches"])
+        XCTAssertEqual(BackupOptions(skipIfUnchanged: true).arguments, ["--skip-if-unchanged"])
+        XCTAssertFalse(BackupOptions(excludeCaches: true).isDefault)
+        XCTAssertFalse(BackupOptions(skipIfUnchanged: true).isDefault)
+    }
+
+    /// Both switches land between the throughput flags and the excludes, and
+    /// ahead of the positional sources — the order this test exists to pin.
+    func testBackupCarriesEveryBackupOption() {
+        let command = ResticCommand.backup(
+            sources: ["/tmp/data"],
+            excludes: ["*.log"],
+            tag: "keelhaven",
+            performance: PerformanceOptions(packSizeMiB: 64),
+            options: BackupOptions(excludeCaches: true, skipIfUnchanged: true)
+        )
+        XCTAssertEqual(command.arguments, [
+            "backup", "--json",
+            "--pack-size", "64",
+            "--exclude-caches",
+            "--skip-if-unchanged",
+            "--exclude", "*.log",
+            "--tag", "keelhaven",
+            "/tmp/data",
+        ])
+    }
+
+    /// Neither switch may reach `forget`: restic exits with a usage error on
+    /// an unknown flag, which would break every retention pass. `.forget`
+    /// takes no `BackupOptions` at all, so this pins that it stays that way.
+    func testForgetCarriesNoBackupOptions() {
+        let command = ResticCommand.forget(retention: .month, performance: .off)
+        XCTAssertFalse(command.arguments.contains("--exclude-caches"))
+        XCTAssertFalse(command.arguments.contains("--skip-if-unchanged"))
     }
 
     /// `--read-concurrency` is a `backup` flag. Passing it to `forget` makes

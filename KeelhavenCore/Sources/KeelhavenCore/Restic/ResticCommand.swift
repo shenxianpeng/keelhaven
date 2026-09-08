@@ -5,7 +5,7 @@ import Foundation
 /// every process on the machine).
 public enum ResticCommand: Equatable, Sendable {
     case initRepository
-    case backup(sources: [String], excludes: [String], tag: String?, performance: PerformanceOptions)
+    case backup(sources: [String], excludes: [String], tag: String?, performance: PerformanceOptions, options: BackupOptions)
     case snapshots
     case stats
     case check
@@ -34,9 +34,10 @@ public enum ResticCommand: Equatable, Sendable {
         switch self {
         case .initRepository:
             return ["init", "--json"]
-        case .backup(let sources, let excludes, let tag, let performance):
+        case .backup(let sources, let excludes, let tag, let performance, let options):
             var args = ["backup", "--json"]
             args.append(contentsOf: performance.arguments(includingReadConcurrency: true))
+            args.append(contentsOf: options.arguments)
             for pattern in excludes {
                 args.append("--exclude")
                 args.append(pattern)

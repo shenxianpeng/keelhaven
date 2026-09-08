@@ -92,7 +92,7 @@ final class ResticRunnerProcessTests: XCTestCase {
             binaryURL: workDirectory.appendingPathComponent("does-not-exist")
         )
         let stream = runner.backupStream(
-            .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off),
+            .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off, options: .off),
             destination: destination, credentials: credentials
         )
         do {
@@ -114,7 +114,7 @@ final class ResticRunnerProcessTests: XCTestCase {
         """)
         let runner = ResticRunner(binaryURL: binary)
         let stream = runner.backupStream(
-            .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off),
+            .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off, options: .off),
             destination: destination, credentials: credentials
         )
 
@@ -142,7 +142,7 @@ final class ResticRunnerProcessTests: XCTestCase {
 
         let consumer = Task {
             let stream = runner.backupStream(
-                .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off),
+                .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off, options: .off),
                 destination: destination, credentials: credentials
             )
             var count = 0
@@ -182,7 +182,7 @@ final class ResticRunnerProcessTests: XCTestCase {
 
         let consumer = Task {
             let stream = runner.backupStream(
-                .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off),
+                .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off, options: .off),
                 destination: destination, credentials: credentials
             )
             var count = 0

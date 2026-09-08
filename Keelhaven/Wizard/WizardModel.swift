@@ -362,6 +362,7 @@ final class WizardModel {
             checkCadence: options.checkCadence,
             retention: options.retention,
             performance: options.builtPerformance(),
+            backupOptions: options.builtBackupOptions(),
             firstBackupStartsOnCreation: firstBackupStartsOnCreation,
             password: password,
             s3SecretKey: destinationType == .s3 ? s3SecretKey : nil,

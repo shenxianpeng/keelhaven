@@ -15,6 +15,8 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
     public var retention: RetentionPolicy
     /// restic throughput knobs, all off by default. See `PerformanceOptions`.
     public var performance: PerformanceOptions
+    /// Boolean `restic backup` switches, both off by default. See `BackupOptions`.
+    public var backupOptions: BackupOptions
     /// Whether the very first backup starts the moment the plan is created,
     /// rather than waiting for the first scheduled time after `createdAt`.
     ///
@@ -46,6 +48,7 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         checkCadence: CheckCadence = .weekly,
         retention: RetentionPolicy = .off,
         performance: PerformanceOptions = .off,
+        backupOptions: BackupOptions = .off,
         firstBackupStartsOnCreation: Bool = true,
         createdAt: Date = Date(),
         lastRun: BackupRunRecord? = nil,
@@ -61,6 +64,7 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         self.checkCadence = checkCadence
         self.retention = retention
         self.performance = performance
+        self.backupOptions = backupOptions
         self.firstBackupStartsOnCreation = firstBackupStartsOnCreation
         self.createdAt = createdAt
         self.lastRun = lastRun
@@ -83,6 +87,7 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         checkCadence = try container.decodeIfPresent(CheckCadence.self, forKey: .checkCadence) ?? .weekly
         retention = try container.decodeIfPresent(RetentionPolicy.self, forKey: .retention) ?? .off
         performance = try container.decodeIfPresent(PerformanceOptions.self, forKey: .performance) ?? .off
+        backupOptions = try container.decodeIfPresent(BackupOptions.self, forKey: .backupOptions) ?? .off
         // Absent on every plan written before this flag existed — and those
         // all started their first backup on creation, so `true` is the value
         // that keeps them behaving exactly as they did.

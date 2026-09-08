@@ -94,7 +94,8 @@ struct EditPlanWindowView: View {
                         schedule: model.builtSchedule(),
                         checkCadence: model.options.checkCadence,
                         retention: model.options.retention,
-                        performance: model.options.builtPerformance()
+                        performance: model.options.builtPerformance(),
+                        backupOptions: model.options.builtBackupOptions()
                     )
                     dismiss()
                 }
