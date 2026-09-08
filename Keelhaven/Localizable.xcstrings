@@ -824,6 +824,16 @@
         }
       }
     },
+    "Don't back up other disks mounted inside these folders": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不要备份挂载在这些文件夹里的其它磁盘"
+          }
+        }
+      }
+    },
     "Done": {
       "localizations": {
         "zh-Hans": {
@@ -2003,6 +2013,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "第 %1$lld 步，共 %2$lld 步：%3$@"
+          }
+        }
+      }
+    },
+    "Stops at the disk each folder lives on. Without this, an external drive or a network share mounted inside one of them is backed up too.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "只备份到每个文件夹所在的那块磁盘为止。不勾选时，挂载在其中的外置硬盘或网络共享也会一并被备份。"
           }
         }
       }

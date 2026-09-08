@@ -15,6 +15,13 @@ import Foundation
 public struct BackupOptions: Codable, Hashable, Sendable {
     /// `--exclude-caches`: skip directories tagged with `CACHEDIR.TAG`.
     public var excludeCaches: Bool
+    /// `--one-file-system`: stop at the boundary of the disk each source
+    /// folder lives on, instead of following into anything mounted below it.
+    ///
+    /// Picking a folder is a directory choice, but what gets read is whatever
+    /// is *mounted* underneath — on a Mac routinely an external drive or a
+    /// network share sitting inside the source tree (issue #50).
+    public var oneFileSystem: Bool
     /// `--skip-if-unchanged`: write no snapshot when the content is identical
     /// to the parent snapshot.
     ///
@@ -23,11 +30,16 @@ public struct BackupOptions: Codable, Hashable, Sendable {
     /// tell someone a backup was stored when none was.
     public var skipIfUnchanged: Bool
 
-    /// Both switches off — restic's own behaviour.
+    /// Every switch off — restic's own behaviour.
     public static let off = BackupOptions()
 
-    public init(excludeCaches: Bool = false, skipIfUnchanged: Bool = false) {
+    public init(
+        excludeCaches: Bool = false,
+        oneFileSystem: Bool = false,
+        skipIfUnchanged: Bool = false
+    ) {
         self.excludeCaches = excludeCaches
+        self.oneFileSystem = oneFileSystem
         self.skipIfUnchanged = skipIfUnchanged
     }
 
@@ -40,13 +52,14 @@ public struct BackupOptions: Codable, Hashable, Sendable {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.init(
             excludeCaches: try container.decodeIfPresent(Bool.self, forKey: .excludeCaches) ?? false,
+            oneFileSystem: try container.decodeIfPresent(Bool.self, forKey: .oneFileSystem) ?? false,
             skipIfUnchanged: try container.decodeIfPresent(Bool.self, forKey: .skipIfUnchanged) ?? false
         )
     }
 
     /// True when restic is left entirely to its own behaviour.
     public var isDefault: Bool {
-        !excludeCaches && !skipIfUnchanged
+        !excludeCaches && !oneFileSystem && !skipIfUnchanged
     }
 
     /// The flags for this configuration, empty when nothing is set.
@@ -57,6 +70,11 @@ public struct BackupOptions: Codable, Hashable, Sendable {
         var args: [String] = []
         if excludeCaches {
             args.append("--exclude-caches")
+        }
+        // Next to `--exclude-caches` because it is the same kind of thing —
+        // a rule about what not to read — and the UI groups them together.
+        if oneFileSystem {
+            args.append("--one-file-system")
         }
         if skipIfUnchanged {
             args.append("--skip-if-unchanged")

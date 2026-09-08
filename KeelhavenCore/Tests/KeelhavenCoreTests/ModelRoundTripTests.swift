@@ -213,7 +213,18 @@ final class ModelRoundTripTests: XCTestCase {
         let partial = try XCTUnwrap(#"{"excludeCaches":true}"#.data(using: .utf8))
         let decodedPartial = try decoder.decode(BackupOptions.self, from: partial)
         XCTAssertTrue(decodedPartial.excludeCaches)
+        XCTAssertFalse(decodedPartial.oneFileSystem)
         XCTAssertFalse(decodedPartial.skipIfUnchanged)
+
+        // The shape a 0.8.0 plans.json has: the two switches that shipped
+        // first are present, the third is not (issue #50).
+        let previousRelease = try XCTUnwrap(
+            #"{"excludeCaches":true,"skipIfUnchanged":true}"#.data(using: .utf8)
+        )
+        let decodedPrevious = try decoder.decode(BackupOptions.self, from: previousRelease)
+        XCTAssertTrue(decodedPrevious.excludeCaches)
+        XCTAssertTrue(decodedPrevious.skipIfUnchanged)
+        XCTAssertFalse(decodedPrevious.oneFileSystem)
 
         let empty = try XCTUnwrap("{}".data(using: .utf8))
         XCTAssertEqual(try decoder.decode(BackupOptions.self, from: empty), .off)
@@ -225,11 +236,12 @@ final class ModelRoundTripTests: XCTestCase {
             sourcePaths: ["/Users/me/Documents"],
             destination: .local(path: "/Volumes/Backup/repo"),
             schedule: .hourly,
-            backupOptions: BackupOptions(excludeCaches: true, skipIfUnchanged: true),
+            backupOptions: BackupOptions(excludeCaches: true, oneFileSystem: true, skipIfUnchanged: true),
             createdAt: date
         )
         let decoded = try roundTrip(plan)
         XCTAssertTrue(decoded.backupOptions.excludeCaches)
+        XCTAssertTrue(decoded.backupOptions.oneFileSystem)
         XCTAssertTrue(decoded.backupOptions.skipIfUnchanged)
         XCTAssertFalse(decoded.backupOptions.isDefault)
     }
