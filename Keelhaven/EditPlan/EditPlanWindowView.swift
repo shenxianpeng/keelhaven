@@ -24,40 +24,62 @@ struct EditPlanWindowView: View {
             } else {
                 Text("This backup plan no longer exists.")
                     .foregroundStyle(.secondary)
+                    .padding(20)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
-        .padding(20)
-        .frame(width: 560)
+        // Expanding Exclude patterns or Advanced used to grow this window past
+        // the bottom of the screen with no way to scroll or shrink it back
+        // (issue #39): the content had no scroll view, and `.contentSize`
+        // resizability pinned the window to whatever height the content asked
+        // for. Now the sections scroll and the window is the user's to resize.
+        .frame(
+            minWidth: 560,
+            idealWidth: 560,
+            maxWidth: .infinity,
+            minHeight: 320,
+            idealHeight: 640,
+            maxHeight: .infinity
+        )
     }
 
     @ViewBuilder
     private func content(for plan: BackupPlan) -> some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Text("Edit “\(plan.name)”")
-                .font(.title3.bold())
+        VStack(spacing: 0) {
+            ScrollView {
+                VStack(alignment: .leading, spacing: 14) {
+                    Text("Edit “\(plan.name)”")
+                        .font(.title3.bold())
 
-            TextField("Name", text: $model.name)
-                .textFieldStyle(.roundedBorder)
-                .frame(maxWidth: 300)
+                    TextField("Name", text: $model.name)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: 300)
 
-            folderList
+                    folderList
 
-            Text("Schedule")
-                .font(.headline)
-            ScheduleEditor(kind: $model.scheduleKind, dailyTime: $model.dailyTime, weekday: $model.weekday)
+                    Text("Schedule")
+                        .font(.headline)
+                    ScheduleEditor(kind: $model.scheduleKind, dailyTime: $model.dailyTime, weekday: $model.weekday)
 
-            verificationSection
+                    VerificationSection(cadence: $model.options.checkCadence)
 
-            retentionSection
+                    RetentionSection(retention: $model.options.retention)
 
-            destinationRow(for: plan)
+                    destinationRow(for: plan)
 
-            excludeSection
+                    ExcludePatternsSection(options: model.options)
 
-            advancedSection
+                    AdvancedPerformanceSection(options: model.options)
+                }
+                .padding(20)
+                .frame(maxWidth: .infinity, alignment: .leading)
+            }
 
             Divider()
 
+            // Outside the scroll view on purpose: Save used to ride the
+            // bottom of the content and disappear off-screen the moment a
+            // section was expanded.
             HStack {
                 Spacer()
                 Button("Cancel") {
@@ -68,17 +90,18 @@ struct EditPlanWindowView: View {
                         id: plan.id,
                         name: model.name,
                         sourcePaths: model.sourcePaths,
-                        excludePatterns: model.excludePatterns,
+                        excludePatterns: model.options.excludePatterns,
                         schedule: model.builtSchedule(),
-                        checkCadence: model.checkCadence,
-                        retention: model.retention,
-                        performance: model.builtPerformance()
+                        checkCadence: model.options.checkCadence,
+                        retention: model.options.retention,
+                        performance: model.options.builtPerformance()
                     )
                     dismiss()
                 }
                 .keyboardShortcut(.defaultAction)
                 .disabled(!model.isValid)
             }
+            .padding(16)
         }
     }
 
@@ -102,67 +125,25 @@ struct EditPlanWindowView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.small)
             }
-            List {
-                ForEach(model.sourcePaths, id: \.self) { path in
-                    HStack {
-                        Image(systemName: "folder")
-                        Text(path)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
-                        Spacer()
-                        Button {
-                            model.sourcePaths.removeAll { $0 == path }
-                        } label: {
-                            Image(systemName: "minus.circle")
-                        }
-                        .buttonStyle(.plain)
-                        .accessibilityLabel("Remove \(path)")
+            PlanRowBox(
+                items: model.sourcePaths,
+                emptyText: "No folders yet — add at least one."
+            ) { path in
+                HStack {
+                    Image(systemName: "folder")
+                    Text(path)
+                        .lineLimit(1)
+                        .truncationMode(.middle)
+                    Spacer()
+                    Button {
+                        model.sourcePaths.removeAll { $0 == path }
+                    } label: {
+                        Image(systemName: "minus.circle")
                     }
+                    .buttonStyle(.plain)
+                    .accessibilityLabel("Remove \(path)")
                 }
             }
-            .frame(height: 110)
-            .overlay {
-                if model.sourcePaths.isEmpty {
-                    Text("No folders yet — add at least one.")
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
-    }
-
-    private var verificationSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Verification")
-                .font(.headline)
-            Picker("Verification", selection: $model.checkCadence) {
-                Text("Weekly").tag(CheckCadence.weekly)
-                Text("Monthly").tag(CheckCadence.monthly)
-                Text("Off").tag(CheckCadence.off)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 260)
-            Text("Runs restic's own repository check after a backup, and only speaks up when something is wrong.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var retentionSection: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("Retention")
-                .font(.headline)
-            Picker("Retention", selection: $model.retention) {
-                Text("Keep everything").tag(RetentionPolicy.off)
-                Text("A year of history").tag(RetentionPolicy.year)
-                Text("A month of history").tag(RetentionPolicy.month)
-            }
-            .labelsHidden()
-            .pickerStyle(.segmented)
-            .frame(maxWidth: 380)
-            Text("Thins older snapshots to daily, weekly and monthly keepers and reclaims the space — after a backup, at most once a week. Keep everything never deletes a snapshot.")
-                .font(.callout)
-                .foregroundStyle(.secondary)
         }
     }
 
@@ -180,106 +161,7 @@ struct EditPlanWindowView: View {
             Text("The destination can't be changed. To back up somewhere else, create a new backup plan.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
-        }
-    }
-
-    /// Collapsed like the exclude patterns above it, and for the same
-    /// reason: nobody needs it to make a working backup. These map to restic
-    /// flags one to one, and an empty field means the flag is left off
-    /// entirely rather than sent with a value we picked.
-    private var advancedSection: some View {
-        DisclosureGroup("Advanced") {
-            VStack(alignment: .leading, spacing: 10) {
-                Text("Leave these empty unless a backup is too slow or takes too much of your connection. Empty means restic's own default.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-
-                advancedField(
-                    title: "Upload limit",
-                    placeholder: "Unlimited",
-                    unit: "KiB/s",
-                    text: $model.uploadLimitText,
-                    explanation: "Caps how fast a backup uploads, so it can't take the whole connection. Only affects backups to a server — a local disk ignores it."
-                )
-
-                advancedField(
-                    title: "Files read at once",
-                    placeholder: "Default (2)",
-                    unit: "1–32",
-                    text: $model.readConcurrencyText,
-                    explanation: "Lower this on an external hard disk, where reading several files at once makes it slower. Raise it on a fast internal SSD."
-                )
-
-                advancedField(
-                    title: "Pack size",
-                    placeholder: "Default (16)",
-                    unit: "MiB (4–128)",
-                    text: $model.packSizeText,
-                    explanation: "Larger packs mean fewer, bigger uploads. Worth raising for cloud storage that charges per request; leave it alone otherwise."
-                )
-            }
-            .padding(.top, 6)
-        }
-    }
-
-    private func advancedField(
-        title: LocalizedStringKey,
-        placeholder: LocalizedStringKey,
-        unit: LocalizedStringKey,
-        text: Binding<String>,
-        explanation: LocalizedStringKey
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            HStack(spacing: 8) {
-                Text(title)
-                    .frame(width: 130, alignment: .leading)
-                TextField(placeholder, text: text)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 90)
-                Text(unit)
-                    .foregroundStyle(.secondary)
-            }
-            Text(explanation)
-                .font(.callout)
-                .foregroundStyle(.secondary)
-        }
-    }
-
-    private var excludeSection: some View {
-        DisclosureGroup("Exclude patterns") {
-            VStack(alignment: .leading, spacing: 8) {
-                List {
-                    ForEach(model.excludePatterns, id: \.self) { pattern in
-                        HStack {
-                            Text(pattern)
-                                .font(.callout.monospaced())
-                            Spacer()
-                            Button {
-                                model.removeExcludePattern(pattern)
-                            } label: {
-                                Image(systemName: "minus.circle")
-                            }
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Remove \(pattern)")
-                        }
-                    }
-                }
-                .frame(height: 100)
-                HStack {
-                    TextField("*.log", text: $model.newExcludePattern)
-                        .textFieldStyle(.roundedBorder)
-                        .frame(maxWidth: 200)
-                        .onSubmit { model.addExcludePattern() }
-                    Button("Add") {
-                        model.addExcludePattern()
-                    }
-                    .disabled(model.newExcludePattern.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-                Text("Files and folders matching these patterns are skipped.")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
-            }
-            .padding(.top, 6)
+                .fixedSize(horizontal: false, vertical: true)
         }
     }
 }

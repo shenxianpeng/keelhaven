@@ -664,6 +664,16 @@
         }
       }
     },
+    "Customize this plan": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义这个计划"
+          }
+        }
+      }
+    },
     "Daily at %@": {
       "localizations": {
         "zh-Hans": {
@@ -1343,6 +1353,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "还没有任何备份。"
+          }
+        }
+      }
+    },
+    "Nothing is excluded — every file in those folders is backed up.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有排除任何东西 —— 这些文件夹里的所有文件都会备份。"
           }
         }
       }
@@ -2143,6 +2163,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "验证失败"
+          }
+        }
+      }
+    },
+    "Verification, retention, excluded files, speed limits — all optional": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "验证、保留策略、排除规则、速度限制 —— 均为可选"
           }
         }
       }

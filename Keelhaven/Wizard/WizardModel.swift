@@ -46,6 +46,13 @@ final class WizardModel {
     var name = ""
     var sourcePaths: [String] = []
 
+    /// Verification, retention, excludes and the throughput knobs — the four
+    /// settings the wizard used to skip entirely (issue #41), now behind the
+    /// schedule step's collapsed Customize section. Starts at the same
+    /// defaults `BackupPlan.init` applies, so a wizard run that never opens
+    /// that section builds the plan it always built.
+    var options = PlanOptionsDraft()
+
     var destinationType: DestinationType = .local
     var localPath = ""
     var s3Endpoint = ""
@@ -347,6 +354,10 @@ final class WizardModel {
             sourcePaths: sourcePaths,
             destination: destination,
             schedule: schedule,
+            excludePatterns: options.excludePatterns,
+            checkCadence: options.checkCadence,
+            retention: options.retention,
+            performance: options.builtPerformance(),
             password: password,
             s3SecretKey: destinationType == .s3 ? s3SecretKey : nil,
             restPassword: destinationType == .rest ? restPassword : nil,
@@ -359,6 +370,7 @@ final class WizardModel {
         step = fresh.step
         name = fresh.name
         sourcePaths = fresh.sourcePaths
+        options = fresh.options
         destinationType = fresh.destinationType
         localPath = fresh.localPath
         s3Endpoint = fresh.s3Endpoint

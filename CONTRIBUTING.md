@@ -85,6 +85,9 @@ SFTP, and it is paid per invocation.
 
 1. Run the app — it appears in the menu bar only (no Dock icon).
 2. *Add Backup Plan…* → 3-step wizard → use a temp folder as a local destination.
+   Step 3's collapsed *Customize this plan* carries the same verification,
+   retention, exclude and Advanced controls as *Edit Plan…*; left closed, the
+   plan is created with the stock defaults.
 3. *Back Up Now* → progress appears in the menu bar → completion notification.
 4. Verify independently: `restic snapshots -r <destination-folder>` (with the password you chose).
 
