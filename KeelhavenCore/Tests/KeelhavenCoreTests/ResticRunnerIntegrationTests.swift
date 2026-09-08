@@ -654,5 +654,99 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         process.waitUntilExit()
         return process.terminationStatus == 0
     }
+
+    /// The guarantee the whole feature rests on: a preview reports what a
+    /// backup would store and leaves the repository exactly as it found it
+    /// (issue #43). Asserted against the real binary by counting snapshots
+    /// before and after, not by trusting the summary.
+    func testPreviewBackupReportsWorkWithoutWritingASnapshot() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+
+        let repoURL = workDirectory.appendingPathComponent("repo", isDirectory: true)
+        let sourceURL = workDirectory.appendingPathComponent("src", isDirectory: true)
+        try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
+        for index in 0..<5 {
+            try Data("hello \(index)\n".utf8)
+                .write(to: sourceURL.appendingPathComponent("file\(index).txt"))
+        }
+
+        let destination = Destination.local(path: repoURL.path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        func snapshotCount() async throws -> Int {
+            try await runner.run(
+                .snapshots,
+                destination: destination,
+                credentials: credentials,
+                decoding: [ResticSnapshot].self
+            ).count
+        }
+
+        func preview() async throws -> BackupSummary? {
+            var summary: BackupSummary?
+            let stream = runner.backupStream(
+                .previewBackup(
+                    sources: [sourceURL.path],
+                    excludes: [],
+                    tag: "keelhaven-test",
+                    performance: .off,
+                    options: .off
+                ),
+                destination: destination,
+                credentials: credentials
+            )
+            for try await event in stream {
+                if case .summary(let value) = event { summary = value }
+            }
+            return summary
+        }
+
+        // Previewing an empty repository: everything is new, nothing is stored.
+        let countBefore = try await snapshotCount()
+        XCTAssertEqual(countBefore, 0)
+        let firstSummary = try await preview()
+        let first = try XCTUnwrap(firstSummary)
+        XCTAssertEqual(first.filesNew, 5)
+        XCTAssertEqual(first.dryRun, true)
+        let countAfterPreview = try await snapshotCount()
+        XCTAssertEqual(countAfterPreview, 0, "A preview must not create a snapshot")
+
+        // And again after a real backup: now nothing is new, and the
+        // repository still holds exactly the one snapshot the backup wrote.
+        var backupSummary: BackupSummary?
+        let backupStream = runner.backupStream(
+            .backup(
+                sources: [sourceURL.path], excludes: [], tag: "keelhaven-test",
+                performance: .off, options: .off
+            ),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in backupStream {
+            if case .summary(let value) = event { backupSummary = value }
+        }
+        XCTAssertNil(try XCTUnwrap(backupSummary).dryRun, "A real backup is not marked as a dry run")
+        let countAfterBackup = try await snapshotCount()
+        XCTAssertEqual(countAfterBackup, 1)
+
+        let secondSummary = try await preview()
+        let second = try XCTUnwrap(secondSummary)
+        XCTAssertEqual(second.filesNew, 0)
+        XCTAssertEqual(second.filesChanged, 0)
+        let countAfterSecondPreview = try await snapshotCount()
+        XCTAssertEqual(
+            countAfterSecondPreview, 1,
+            "A preview after a backup must still leave the snapshot count alone"
+        )
+    }
 }
 

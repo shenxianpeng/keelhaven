@@ -78,6 +78,16 @@
         }
       }
     },
+    "%lld new files and %lld changed, about %@ to store.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "新增 %1$lld 个文件、改动 %2$lld 个，约需存入 %3$@。"
+          }
+        }
+      }
+    },
     "%lld. %@": {
       "localizations": {
         "zh-Hans": {
@@ -274,6 +284,16 @@
         }
       }
     },
+    "Another backup is running right now. Try again when it finishes.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "当前有另一个备份正在运行，等它结束后再试。"
+          }
+        }
+      }
+    },
     "Another plan already backs up to this destination. Connect to its repository under Advanced options, or pick a different folder or bucket path.": {
       "localizations": {
         "zh-Hans": {
@@ -434,6 +454,16 @@
         }
       }
     },
+    "Backup preview %lld percent done": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份预览已完成 %lld%%"
+          }
+        }
+      }
+    },
     "Backup running": {
       "localizations": {
         "zh-Hans": {
@@ -490,6 +520,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "存储桶"
+          }
+        }
+      }
+    },
+    "Can't preview right now": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "现在无法预览"
           }
         }
       }
@@ -660,6 +700,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "无法读取备份计划：%@"
+          }
+        }
+      }
+    },
+    "Couldn't preview “%@”": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法预览“%@”"
           }
         }
       }
@@ -1397,6 +1447,16 @@
         }
       }
     },
+    "Nothing has changed since the last backup, so a backup right now would store nothing new.\n\nNothing was written — this was only a preview.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "与上次备份相比没有变化，现在备份也不会存入任何新内容。\n\n没有写入任何内容 —— 这只是一次预览。"
+          }
+        }
+      }
+    },
     "Nothing is backed up yet.": {
       "localizations": {
         "zh-Hans": {
@@ -1423,6 +1483,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "无需备份"
+          }
+        }
+      }
+    },
+    "Nothing was written — this was only a preview.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有写入任何内容 —— 这只是一次预览。"
           }
         }
       }
@@ -1623,6 +1693,36 @@
           "stringUnit": {
             "state": "translated",
             "value": "端口"
+          }
+        }
+      }
+    },
+    "Preview Backup": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "预览本次备份"
+          }
+        }
+      }
+    },
+    "Preview of “%@”": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "“%@”的预览结果"
+          }
+        }
+      }
+    },
+    "Previewing what would be backed up…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在预览会备份哪些内容…"
           }
         }
       }
@@ -2452,6 +2552,16 @@
     },
     "nas.local": {
       "shouldTranslate": false
+    },
+    "restic finished without reporting what it would back up.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "restic 运行结束，但没有报告它会备份哪些内容。"
+          }
+        }
+      }
     },
     "restic license (BSD 2-Clause)": {
       "localizations": {

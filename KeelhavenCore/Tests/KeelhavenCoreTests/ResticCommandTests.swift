@@ -93,6 +93,45 @@ final class ResticCommandTests: XCTestCase {
         ])
     }
 
+    /// A preview must be the same command as the backup it previews, plus
+    /// `--dry-run` — otherwise it answers a question about a backup nobody
+    /// is going to run (issue #43).
+    func testPreviewBackupIsTheBackupCommandPlusDryRun() {
+        let sources = ["/Users/me/Documents"]
+        let excludes = ["*.log"]
+        let performance = PerformanceOptions(uploadLimitKiBPerSecond: 500, packSizeMiB: 64)
+        let options = BackupOptions(excludeCaches: true, oneFileSystem: true, skipIfUnchanged: true)
+
+        let backup = ResticCommand.backup(
+            sources: sources, excludes: excludes, tag: "keelhaven",
+            performance: performance, options: options
+        )
+        let preview = ResticCommand.previewBackup(
+            sources: sources, excludes: excludes, tag: "keelhaven",
+            performance: performance, options: options
+        )
+
+        XCTAssertEqual(preview.arguments.first, "backup")
+        XCTAssertTrue(preview.arguments.contains("--dry-run"))
+        XCTAssertFalse(backup.arguments.contains("--dry-run"))
+
+        // Identical once the flag is removed: same excludes, same tag, same
+        // throughput knobs, same sources, same order.
+        var withoutDryRun = preview.arguments
+        withoutDryRun.removeAll { $0 == "--dry-run" }
+        XCTAssertEqual(withoutDryRun, backup.arguments)
+    }
+
+    func testPreviewBackupArgumentOrder() {
+        let command = ResticCommand.previewBackup(
+            sources: ["/tmp/data"], excludes: [], tag: nil,
+            performance: .off, options: .off
+        )
+        // `--dry-run` immediately after `--json`, before anything optional,
+        // so it can never end up after a positional source path.
+        XCTAssertEqual(command.arguments, ["backup", "--json", "--dry-run", "/tmp/data"])
+    }
+
     func testBackupOptionsArguments() {
         XCTAssertEqual(BackupOptions.off.arguments, [])
         XCTAssertTrue(BackupOptions.off.isDefault)

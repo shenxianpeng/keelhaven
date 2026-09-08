@@ -129,6 +129,13 @@ struct PlanStatusRow: View {
             openWindow(id: WindowID.restore)
             NSApp.activate(ignoringOtherApps: true)
         }
+        // No ellipsis, and next to Verify: both run immediately and need no
+        // further input. A preview holds the repository like any other run,
+        // so it carries the same gate.
+        Button("Preview Backup") {
+            runPreview()
+        }
+        .disabled(appState.isResticBusy || appState.resticBinaryURL == nil)
         Button("Verify Backup Now") {
             appState.runCheck(plan)
         }
@@ -206,6 +213,52 @@ struct PlanStatusRow: View {
         alert.addButton(withTitle: String(localized: "Cancel"))
         guard alert.runModal() == .alertFirstButtonReturn else { return }
         appState.unlockRepository(plan)
+    }
+
+    /// Runs the dry run and reports what it found. NSAlert for the same
+    /// reason as the dialogs above: the panel is gone by the time the answer
+    /// arrives, and a SwiftUI alert would go with it (issue #11).
+    private func runPreview() {
+        NSApp.activate(ignoringOtherApps: true)
+        Task {
+            let outcome = await appState.previewBackup(plan)
+            NSApp.activate(ignoringOtherApps: true)
+            let alert = NSAlert()
+            switch outcome {
+            case .summary(let summary):
+                alert.messageText = String(localized: "Preview of “\(plan.name)”")
+                alert.informativeText = Self.previewBody(summary)
+                alert.alertStyle = .informational
+            case .failed(let message):
+                alert.messageText = String(localized: "Couldn't preview “\(plan.name)”")
+                alert.informativeText = message
+                alert.alertStyle = .warning
+            case .unavailable(let message):
+                alert.messageText = String(localized: "Can't preview right now")
+                alert.informativeText = message
+                alert.alertStyle = .informational
+            }
+            alert.addButton(withTitle: String(localized: "OK"))
+            alert.runModal()
+        }
+    }
+
+    /// The whole point of the feature in two sentences: what would be stored,
+    /// and that nothing was. Says "nothing to store" plainly when that is the
+    /// answer, rather than three zeroes the reader has to interpret.
+    private static func previewBody(_ summary: BackupSummary) -> String {
+        let nothingChanged = summary.filesNew == 0 && summary.filesChanged == 0
+        if nothingChanged {
+            return String(localized: "Nothing has changed since the last backup, so a backup right now would store nothing new.\n\nNothing was written — this was only a preview.")
+        }
+        let added = ByteCountFormatter.string(
+            fromByteCount: summary.dataAdded ?? 0,
+            countStyle: .file
+        )
+        let counts = String(
+            localized: "\(summary.filesNew) new files and \(summary.filesChanged) changed, about \(added) to store."
+        )
+        return counts + "\n\n" + String(localized: "Nothing was written — this was only a preview.")
     }
 
     /// Both actions below are gated behind Touch ID (login password fallback
@@ -322,6 +375,19 @@ struct PlanStatusRow: View {
                 .controlSize(.small)
                 .padding(.top, 2)
                 .accessibilityLabel(String(localized: "Backup \(Int(progress * 100)) percent done"))
+        case .previewing(let progress):
+            // Deliberately not a bare progress bar like `.running`: the two
+            // would be indistinguishable, and someone glancing at the panel
+            // would think a backup was being written.
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Previewing what would be backed up…")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                ProgressView(value: progress)
+                    .controlSize(.small)
+            }
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(String(localized: "Backup preview \(Int(progress * 100)) percent done"))
         case .checking:
             HStack(spacing: 6) {
                 ProgressView()

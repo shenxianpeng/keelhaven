@@ -65,6 +65,54 @@ final class ResticMessageParsingTests: XCTestCase {
         XCTAssertNotNil(storedSummary.snapshotID)
     }
 
+    /// Unmodified `restic backup --dry-run --json` output from restic
+    /// 0.19.1: a previously backed-up source with files added and one
+    /// changed. Every line must decode, and the summary must carry the
+    /// counts the preview reports.
+    func testDecodeEveryDryRunLine() throws {
+        let lines = try fixtureLines("backup-dry-run.jsonl")
+        XCTAssertEqual(lines.count, 8)
+
+        var statusCount = 0
+        var summary: BackupSummary?
+        for line in lines {
+            switch try XCTUnwrap(ResticJSON.decodeProgressEvent(fromLine: line)) {
+            case .status(let status):
+                statusCount += 1
+                XCTAssertGreaterThanOrEqual(status.percentDone, 0)
+            case .summary(let value):
+                summary = value
+            }
+        }
+        XCTAssertEqual(statusCount, 7)
+
+        let final = try XCTUnwrap(summary)
+        XCTAssertEqual(final.filesNew, 2540)
+        XCTAssertEqual(final.filesChanged, 1)
+        XCTAssertEqual(final.dataAdded, 757_442_803)
+    }
+
+    /// The one field that tells a preview's summary from a real backup's.
+    ///
+    /// A dry run still reports a `snapshot_id` — restic computes one and
+    /// throws it away — so "no snapshot id" is *not* the signal here, unlike
+    /// the skipped run in `backup-skip-if-unchanged.jsonl` (issue #43).
+    func testDryRunSummaryIsMarkedAsSuchAndStillCarriesASnapshotID() throws {
+        let lines = try fixtureLines("backup-dry-run.jsonl")
+        guard case .summary(let dryRun)? = ResticJSON.decodeProgressEvent(fromLine: try XCTUnwrap(lines.last)) else {
+            return XCTFail("Expected the last line to be a summary")
+        }
+        XCTAssertEqual(dryRun.dryRun, true)
+        XCTAssertNotNil(dryRun.snapshotID, "restic reports a snapshot id even for a dry run")
+
+        // A real backup's summary has no such marker.
+        let stored = try fixtureLines("backup-incremental.jsonl")[0]
+        guard case .summary(let real)? = ResticJSON.decodeProgressEvent(fromLine: stored) else {
+            return XCTFail("Expected a summary")
+        }
+        XCTAssertNil(real.dryRun)
+    }
+
     func testDecodeEveryBackupProgressLine() throws {
         let lines = try fixtureLines("backup-progress.jsonl")
         XCTAssertEqual(lines.count, 10)
