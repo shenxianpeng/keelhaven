@@ -30,8 +30,8 @@ enum ScheduleKind: String, CaseIterable, Identifiable {
     var localizedTitle: String {
         switch self {
         case .hourly: return String(localized: "Every hour")
-        case .daily: return String(localized: "Once a day")
-        case .weekly: return String(localized: "Once a week")
+        case .daily: return String(localized: "Every day")
+        case .weekly: return String(localized: "Every week")
         }
     }
 }

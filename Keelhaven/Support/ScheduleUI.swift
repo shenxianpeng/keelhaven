@@ -48,19 +48,21 @@ extension Schedule {
         }
     }
 
-    /// "Every hour" / "Daily at 21:00" / "Weekly on Sunday at 21:00",
-    /// following the user's locale and 12/24-hour preference.
+    /// "Every hour" / "Every day at 21:00" / "Every week on Sunday at 21:00" —
+    /// the same three words the frequency picker uses, so the row and the
+    /// editor never describe one schedule two ways. Follows the user's locale
+    /// and 12/24-hour preference.
     var displayText: String {
         switch self {
         case .hourly:
             return String(localized: "Every hour")
         case .daily:
             let time = editorComponents.dailyTime.formatted(date: .omitted, time: .shortened)
-            return String(localized: "Daily at \(time)")
+            return String(localized: "Every day at \(time)")
         case .weekly(let weekday, _, _):
             let time = editorComponents.dailyTime.formatted(date: .omitted, time: .shortened)
             let day = Self.weekdayName(weekday)
-            return String(localized: "Weekly on \(day) at \(time)")
+            return String(localized: "Every week on \(day) at \(time)")
         }
     }
 
@@ -87,30 +89,41 @@ struct ScheduleEditor: View {
     }
 
     var body: some View {
-        Picker("Frequency", selection: $kind) {
-            ForEach(ScheduleKind.allCases) { kind in
-                Text(kind.localizedTitle).tag(kind)
-            }
-        }
-        .pickerStyle(.radioGroup)
-        .labelsHidden()
-
-        if kind == .weekly {
-            Picker("On", selection: $weekday) {
-                ForEach(orderedWeekdays, id: \.self) { day in
-                    Text(Schedule.weekdayName(day)).tag(day)
+        // The weekday and time-of-day controls sit in a column beside the
+        // radios rather than stacked under them. That saves a row — two in
+        // weekly mode — and, more usefully, keeps this section exactly three
+        // rows tall at every frequency, so changing the frequency no longer
+        // makes everything below it jump.
+        HStack(alignment: .center, spacing: 20) {
+            Picker("Frequency", selection: $kind) {
+                ForEach(ScheduleKind.allCases) { kind in
+                    Text(kind.localizedTitle).tag(kind)
                 }
             }
-            .frame(maxWidth: 200)
-        }
+            .pickerStyle(.radioGroup)
+            .labelsHidden()
 
-        if kind != .hourly {
-            DatePicker(
-                "At",
-                selection: $dailyTime,
-                displayedComponents: .hourAndMinute
-            )
-            .frame(maxWidth: 200)
+            // Hourly needs neither control, and they are removed from the
+            // hierarchy rather than disabled — so whenever this column is on
+            // screen, the frequency it qualifies is the one that is selected.
+            if kind != .hourly {
+                VStack(alignment: .leading, spacing: 8) {
+                    if kind == .weekly {
+                        Picker("On", selection: $weekday) {
+                            ForEach(orderedWeekdays, id: \.self) { day in
+                                Text(Schedule.weekdayName(day)).tag(day)
+                            }
+                        }
+                    }
+
+                    DatePicker(
+                        "At",
+                        selection: $dailyTime,
+                        displayedComponents: .hourAndMinute
+                    )
+                }
+                .fixedSize()
+            }
         }
     }
 }
