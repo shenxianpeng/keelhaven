@@ -25,7 +25,7 @@ public actor ResticRunner {
             throw ResticError.classify(exitCode: result.exitCode, stderr: result.stderrText)
         }
         do {
-            return try ResticJSON.decoder.decode(Output.self, from: result.stdout)
+            return try ResticJSON.decoder.decode(type, from: result.stdout)
         } catch {
             throw ResticError.outputDecodingFailed(message: String(describing: error))
         }
@@ -98,12 +98,7 @@ public actor ResticRunner {
 
             // Install the termination bridge before launching so an early exit
             // can never be missed.
-            let exitCodes = AsyncStream<Int32> { exitContinuation in
-                process.terminationHandler = { finished in
-                    exitContinuation.yield(finished.terminationStatus)
-                    exitContinuation.finish()
-                }
-            }
+            let exitCodes = Self.exitCodeStream(for: process)
 
             let worker = Task {
                 do {
@@ -174,12 +169,7 @@ public actor ResticRunner {
         process.standardOutput = stdoutPipe
         process.standardError = stderrPipe
 
-        let exitCodes = AsyncStream<Int32> { exitContinuation in
-            process.terminationHandler = { finished in
-                exitContinuation.yield(finished.terminationStatus)
-                exitContinuation.finish()
-            }
-        }
+        let exitCodes = Self.exitCodeStream(for: process)
 
         do {
             try process.run()
@@ -198,6 +188,18 @@ public actor ResticRunner {
         }
 
         return ExecutionResult(exitCode: exitCode, stdout: await stdoutData, stderr: await stderrData)
+    }
+
+    /// Bridges `Process`'s termination handler into an `AsyncStream` so the
+    /// exit status can be awaited alongside output collection. Must be
+    /// installed before `run()` so an early exit is never missed.
+    private static func exitCodeStream(for process: Process) -> AsyncStream<Int32> {
+        AsyncStream { continuation in
+            process.terminationHandler = { finished in
+                continuation.yield(finished.terminationStatus)
+                continuation.finish()
+            }
+        }
     }
 
     private static func collect(_ handle: FileHandle) async -> Data {

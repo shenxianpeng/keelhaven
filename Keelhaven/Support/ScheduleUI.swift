@@ -101,7 +101,10 @@ struct ScheduleEditor: View {
         // whatever is on screen reads as one sentence with the frequency it
         // belongs to.
         VStack(alignment: .leading, spacing: 8) {
-            frequencyRow(.hourly) {}
+            frequencyRow(.hourly) {
+                // Hourly schedules need nothing more than the radio itself —
+                // no time-of-day or weekday controls qualify it.
+            }
             frequencyRow(.daily) {
                 timePicker
             }
