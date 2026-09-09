@@ -191,9 +191,12 @@ export function light(lamp, { detail = true, spread = 190, reach = 62 } = {}) {
 export function water(horizon, lamp, { detail = true } = {}) {
   const y = horizon
   const edge = `M -8,${y} C 180,${y - 12} 348,${y + 9} 512,${y + 6} C 690,${y + 3} 852,${y - 14} 1032,${y + 1}`
-  // The fine highlight passes below the horizon turn to noise at 16–64 px,
-  // so `detail:false` drops them — the same rule as the app icon sizes.
-  const detailStrokes = detail ? `
+  return `
+  <path d="${edge} L 1032,1032 L -8,1032 Z" fill="url(#kh-water)"/>
+  <path d="${edge}" stroke="${C.foam}" stroke-width="4" opacity="0.22" fill="none"/>
+  <path d="M ${lamp.x - 36},${y} L ${lamp.x - 74},1032 L ${lamp.x + 74},1032 L ${lamp.x + 36},${y} Z"
+        fill="url(#kh-reflect)" ${detail ? 'filter="url(#kh-soft-sm)"' : ''} opacity="0.8"/>
+  ${detail ? `
   <g stroke="${C.beam}" stroke-linecap="round" opacity="0.55">
     <path d="M ${lamp.x - 52},${y + 46} h 104" stroke-width="11"/>
     <path d="M ${lamp.x - 36},${y + 96} h 72" stroke-width="10"/>
@@ -201,13 +204,7 @@ export function water(horizon, lamp, { detail = true } = {}) {
   </g>
   <g stroke="${C.foam}" stroke-width="11" stroke-linecap="round" opacity="0.15">
     <path d="M 178,${y + 62} h 104"/><path d="M 742,${y + 112} h 126"/><path d="M 246,${y + 166} h 80"/>
-  </g>` : ''
-  return `
-  <path d="${edge} L 1032,1032 L -8,1032 Z" fill="url(#kh-water)"/>
-  <path d="${edge}" stroke="${C.foam}" stroke-width="4" opacity="0.22" fill="none"/>
-  <path d="M ${lamp.x - 36},${y} L ${lamp.x - 74},1032 L ${lamp.x + 74},1032 L ${lamp.x + 36},${y} Z"
-        fill="url(#kh-reflect)" ${detail ? 'filter="url(#kh-soft-sm)"' : ''} opacity="0.8"/>
-  ${detailStrokes}`
+  </g>` : ''}`
 }
 
 /** Complete app icon. `detail:false` drops fine passes for 16–64 px art. */
