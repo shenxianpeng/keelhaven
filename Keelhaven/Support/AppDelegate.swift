@@ -4,7 +4,7 @@ import AppKit
 /// already running. The delegate can't see AppState or open SwiftUI windows,
 /// so it forwards the event; MenuBarLabelView decides what to show.
 final class AppDelegate: NSObject, NSApplicationDelegate {
-    func applicationDidFinishLaunching(_ notification: Notification) {
+    func applicationDidFinishLaunching(_ _: Notification) {
         // About and Welcome read NSApp.applicationIconImage, which resolves
         // through the system icon cache — and this bundle shipped many builds
         // *without* an icon, so the cache serves the generic one even though
@@ -16,8 +16,8 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     }
 
     func applicationShouldHandleReopen(
-        _ sender: NSApplication,
-        hasVisibleWindows flag: Bool
+        _ _: NSApplication,
+        hasVisibleWindows _: Bool
     ) -> Bool {
         NotificationCenter.default.post(name: .keelhavenReopen, object: nil)
         return false

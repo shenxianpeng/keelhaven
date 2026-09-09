@@ -186,7 +186,7 @@ struct MenuBarView: View {
 /// stuck visible instead of fading (#71 follow-up). Reaching into the real
 /// NSScrollView and disabling its scroller is the only fix that sticks.
 private struct ScrollerSuppressor: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSView {
+    func makeNSView(context _: Context) -> NSView {
         let probe = NSView(frame: .zero)
         DispatchQueue.main.async {
             var view: NSView? = probe
@@ -198,5 +198,8 @@ private struct ScrollerSuppressor: NSViewRepresentable {
         return probe
     }
 
-    func updateNSView(_ nsView: NSView, context: Context) {}
+    func updateNSView(_ _: NSView, context _: Context) {
+        // Nothing to update: the suppressor disables the scroller once, at
+        // creation, and SwiftUI has no state to sync back afterwards.
+    }
 }

@@ -323,12 +323,11 @@ struct PlanStatusRow: View {
 
     @ViewBuilder
     private var trailingControl: some View {
-        switch runState {
-        case .running:
+        if case .running = runState {
             // The linear progress bar below already says "running" —
             // a second spinner up here is noise.
             EmptyView()
-        default:
+        } else {
             Button("Back Up Now") {
                 appState.runBackup(plan)
             }
