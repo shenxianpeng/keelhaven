@@ -63,7 +63,7 @@ struct EditPlanWindowView: View {
 
                     VerificationSection(cadence: $model.options.checkCadence)
 
-                    RetentionSection(retention: $model.options.retention)
+                    RetentionSection(options: model.options)
 
                     destinationRow(for: plan)
 
@@ -93,7 +93,7 @@ struct EditPlanWindowView: View {
                         excludePatterns: model.options.excludePatterns,
                         schedule: model.builtSchedule(),
                         checkCadence: model.options.checkCadence,
-                        retention: model.options.retention,
+                        retention: model.options.builtRetention(),
                         performance: model.options.builtPerformance(),
                         backupOptions: model.options.builtBackupOptions()
                     )

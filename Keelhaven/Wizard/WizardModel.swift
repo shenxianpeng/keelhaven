@@ -374,7 +374,7 @@ final class WizardModel {
             schedule: schedule,
             excludePatterns: options.excludePatterns,
             checkCadence: options.checkCadence,
-            retention: options.retention,
+            retention: options.builtRetention(),
             performance: options.builtPerformance(),
             backupOptions: options.builtBackupOptions(),
             firstBackupStartsOnCreation: firstBackupStartsOnCreation,

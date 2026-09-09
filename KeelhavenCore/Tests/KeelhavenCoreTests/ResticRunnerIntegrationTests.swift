@@ -819,5 +819,71 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             XCTAssertEqual(status.percentDone, 0, "--no-scan must not report progress")
         }
     }
+
+    /// `keep the last N` against the real binary. A retention setting is the
+    /// only thing in the app that deletes, so "it renders the right flag" is
+    /// not enough — this makes five snapshots, keeps two, and counts what is
+    /// left (issue #52).
+    func testKeepLastActuallyLeavesOnlyThatManySnapshots() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+
+        let repoURL = workDirectory.appendingPathComponent("repo", isDirectory: true)
+        let sourceURL = workDirectory.appendingPathComponent("src", isDirectory: true)
+        try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
+
+        let destination = Destination.local(path: repoURL.path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        // Five distinct snapshots: each run changes a file, so none is skipped.
+        for index in 0..<5 {
+            try Data("revision \(index)\n".utf8)
+                .write(to: sourceURL.appendingPathComponent("a.txt"))
+            let stream = runner.backupStream(
+                .backup(
+                    sources: [sourceURL.path], excludes: [], tag: "keelhaven-test",
+                    performance: .off, options: .off
+                ),
+                destination: destination,
+                credentials: credentials
+            )
+            for try await _ in stream {}
+        }
+
+        func snapshotCount() async throws -> Int {
+            try await runner.run(
+                .snapshots,
+                destination: destination,
+                credentials: credentials,
+                decoding: [ResticSnapshot].self
+            ).count
+        }
+        let before = try await snapshotCount()
+        XCTAssertEqual(before, 5)
+
+        try await runner.runIgnoringOutput(
+            .forget(retention: .lastN(2), performance: .off),
+            destination: destination,
+            credentials: credentials
+        )
+
+        let after = try await snapshotCount()
+        XCTAssertEqual(after, 2, "keep the last 2 must leave exactly two snapshots")
+
+        // And the repository is still sound after the prune rewrote it.
+        try await runner.runIgnoringOutput(
+            .check,
+            destination: destination,
+            credentials: credentials
+        )
+    }
 }
 
