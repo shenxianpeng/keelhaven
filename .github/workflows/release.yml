@@ -166,7 +166,9 @@ jobs:
           SIGN_IDENTITY: ${{ steps.signing.outputs.identity }}
           SIGN_FLAGS: ${{ steps.signing.outputs.flags }}
           TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
-          VERSION: ${{ steps.version.outputs.version }}
+          # Not plain VERSION: every name here lands in xcodebuild's whole
+          # environment, where a build phase could pick it up as $(VERSION).
+          APP_VERSION: ${{ steps.version.outputs.version }}
         run: >
           xcodebuild
           -project Keelhaven.xcodeproj
@@ -178,7 +180,7 @@ jobs:
           CODE_SIGN_IDENTITY="$SIGN_IDENTITY"
           DEVELOPMENT_TEAM="$TEAM_ID"
           OTHER_CODE_SIGN_FLAGS="$SIGN_FLAGS"
-          MARKETING_VERSION="$VERSION"
+          MARKETING_VERSION="$APP_VERSION"
           CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER"
           ARCHS="arm64 x86_64"
           ONLY_ACTIVE_ARCH=NO
