@@ -63,6 +63,12 @@ public struct BackupSummary: Decodable, Sendable {
     public let backupStart: Date?
     public let backupEnd: Date?
     public let snapshotID: String?
+    /// `true` on the summary of a `--dry-run` backup. Absent otherwise.
+    ///
+    /// Note that a dry run still reports a `snapshot_id` — one is computed
+    /// and thrown away — so this is the only field that distinguishes a
+    /// preview's summary from a real backup's (issue #43).
+    public let dryRun: Bool?
 
     enum CodingKeys: String, CodingKey {
         case filesNew = "files_new"
@@ -79,6 +85,7 @@ public struct BackupSummary: Decodable, Sendable {
         case backupStart = "backup_start"
         case backupEnd = "backup_end"
         case snapshotID = "snapshot_id"
+        case dryRun = "dry_run"
     }
 }
 

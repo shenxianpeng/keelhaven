@@ -7,6 +7,9 @@ enum PlanRunState: Equatable {
     case idle
     case running(progress: Double)
     case checking
+    /// A dry run: restic is walking the sources to report what a backup
+    /// would store, writing nothing (issue #43).
+    case previewing(progress: Double)
     case pruning
     case unlocking
     case succeeded(Date)
@@ -20,7 +23,7 @@ enum PlanRunState: Equatable {
     /// hold the repository lock; everything else is a resting state.
     var isActive: Bool {
         switch self {
-        case .running, .checking, .pruning, .unlocking: return true
+        case .running, .checking, .previewing, .pruning, .unlocking: return true
         default: return false
         }
     }
@@ -409,6 +412,68 @@ final class AppState {
             plans[index].lastCheck = record
         }
         try? await planStore.save(plans)
+    }
+
+    // MARK: - Preview (dry run)
+
+    /// What a preview came back with. Deliberately not a `BackupRunRecord`:
+    /// a dry run is not a run, and must never reach `lastRun`, the health
+    /// dot, the check/prune chain or a "backup complete" notification
+    /// (issue #43).
+    enum PreviewOutcome {
+        case summary(BackupSummary)
+        case failed(String)
+        /// restic was busy or missing, so nothing was attempted.
+        case unavailable(String)
+    }
+
+    /// Runs `restic backup --dry-run` and hands the summary back to the
+    /// caller, which shows it. Nothing here writes to the plan or the
+    /// repository — the only lasting effect is the run state, which is put
+    /// back exactly as it was found.
+    func previewBackup(_ plan: BackupPlan) async -> PreviewOutcome {
+        guard !isResticBusy else {
+            return .unavailable(String(localized: "Another backup is running right now. Try again when it finishes."))
+        }
+        guard let binaryURL = resticBinaryURL else {
+            return .unavailable(ResticError.binaryNotFound.localizedDescription)
+        }
+
+        let stateBefore = runStates[plan.id] ?? .idle
+        runStates[plan.id] = .previewing(progress: 0)
+        defer { runStates[plan.id] = stateBefore }
+
+        do {
+            let credentials = try credentials(for: plan)
+            let runner = ResticRunner(binaryURL: binaryURL)
+            let stream = runner.backupStream(
+                .previewBackup(
+                    sources: plan.sourcePaths,
+                    excludes: plan.excludePatterns,
+                    tag: "keelhaven",
+                    performance: plan.performance,
+                    options: plan.backupOptions
+                ),
+                destination: plan.destination,
+                credentials: credentials
+            )
+            var summary: BackupSummary?
+            for try await event in stream {
+                switch event {
+                case .status(let status):
+                    runStates[plan.id] = .previewing(progress: status.percentDone)
+                case .summary(let value):
+                    summary = value
+                }
+            }
+            guard let summary else {
+                return .failed(String(localized: "restic finished without reporting what it would back up."))
+            }
+            return .summary(summary)
+        } catch {
+            let message = (error as? ResticError)?.localizedDescription ?? error.localizedDescription
+            return .failed(message)
+        }
     }
 
     // MARK: - Repository locks

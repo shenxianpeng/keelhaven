@@ -6,6 +6,15 @@ import Foundation
 public enum ResticCommand: Equatable, Sendable {
     case initRepository
     case backup(sources: [String], excludes: [String], tag: String?, performance: PerformanceOptions, options: BackupOptions)
+    /// Everything `backup` does except the writing: restic walks the sources,
+    /// reports what it would store, and leaves the repository untouched
+    /// (issue #43).
+    ///
+    /// A separate case rather than a flag on `backup`, because it is a
+    /// different intent, not a plan setting — nothing about a preview should
+    /// ever be persisted, and no call site that means "back up" can reach it
+    /// by getting a boolean wrong.
+    case previewBackup(sources: [String], excludes: [String], tag: String?, performance: PerformanceOptions, options: BackupOptions)
     case snapshots
     case stats
     case check
@@ -35,19 +44,15 @@ public enum ResticCommand: Equatable, Sendable {
         case .initRepository:
             return ["init", "--json"]
         case .backup(let sources, let excludes, let tag, let performance, let options):
-            var args = ["backup", "--json"]
-            args.append(contentsOf: performance.arguments(includingReadConcurrency: true))
-            args.append(contentsOf: options.arguments)
-            for pattern in excludes {
-                args.append("--exclude")
-                args.append(pattern)
-            }
-            if let tag, !tag.isEmpty {
-                args.append("--tag")
-                args.append(tag)
-            }
-            args.append(contentsOf: sources)
-            return args
+            return Self.backupArguments(
+                dryRun: false, sources: sources, excludes: excludes,
+                tag: tag, performance: performance, options: options
+            )
+        case .previewBackup(let sources, let excludes, let tag, let performance, let options):
+            return Self.backupArguments(
+                dryRun: true, sources: sources, excludes: excludes,
+                tag: tag, performance: performance, options: options
+            )
         case .snapshots:
             return ["snapshots", "--json"]
         case .stats:
@@ -68,5 +73,34 @@ public enum ResticCommand: Equatable, Sendable {
         case .unlock:
             return ["unlock"]
         }
+    }
+
+    /// One place that knows the shape of a backup command line, so a preview
+    /// can never drift from the real thing in excludes, tag or throughput —
+    /// which would make it a preview of a backup nobody is going to run.
+    private static func backupArguments(
+        dryRun: Bool,
+        sources: [String],
+        excludes: [String],
+        tag: String?,
+        performance: PerformanceOptions,
+        options: BackupOptions
+    ) -> [String] {
+        var args = ["backup", "--json"]
+        if dryRun {
+            args.append("--dry-run")
+        }
+        args.append(contentsOf: performance.arguments(includingReadConcurrency: true))
+        args.append(contentsOf: options.arguments)
+        for pattern in excludes {
+            args.append("--exclude")
+            args.append(pattern)
+        }
+        if let tag, !tag.isEmpty {
+            args.append("--tag")
+            args.append(tag)
+        }
+        args.append(contentsOf: sources)
+        return args
     }
 }
