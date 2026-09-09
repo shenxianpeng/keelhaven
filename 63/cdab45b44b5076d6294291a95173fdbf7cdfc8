@@ -1,0 +1,21 @@
+.github/workflows/release.yml
+  s_41962846a5439e::t_ddc63384f58e04 64-68,70-71,161-163,165-169,178-182
+.github/workflows/bench-remote.yml
+  s_41962846a5439e::t_68eacacefaa8ec 68-73,79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "63cdab45b44b5076d6294291a95173fdbf7cdfc8",
+  "prompts": {},
+  "sessions": {
+    "s_41962846a5439e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c0aa59a3-f8a6-45d8-b348-a542c570c751",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
