@@ -1,0 +1,41 @@
+Keelhaven/AppState.swift
+  s_1085d35454c91f::t_a8adbf45c3b388 8-11,15,243-254,279,306-309,461,482
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticMessageParsingTests.swift
+  s_1085d35454c91f::t_5ad85f4a122ac8 116-167
+Keelhaven/MenuBar/PlanStatusRow.swift
+  s_1085d35454c91f::t_9323302eb0d7fb 341-346,397-416,418-423,432-438,441-444
+KeelhavenCore/Tests/KeelhavenCoreTests/ModelRoundTripTests.swift
+  s_1085d35454c91f::t_a43684ea5e4a7b 217,223,227,229,241-243,249
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticCommandTests.swift
+  s_1085d35454c91f::t_a43684ea5e4a7b 125-135,151,155,167-169,176,191
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerIntegrationTests.swift
+  s_1085d35454c91f::t_e58753043acc6f 751-821
+KeelhavenCore/Tests/KeelhavenCoreTests/Fixtures/backup-no-scan.jsonl
+  s_1085d35454c91f::t_09c3d0a055c38d 1-17
+KeelhavenCore/Sources/KeelhavenCore/Models/BackupOptions.swift
+  s_1085d35454c91f::t_09c3d0a055c38d 11-16,27-38,53,58,72,79,96-97
+  s_1085d35454c91f::t_e964deca950d4e 98
+Keelhaven/Support/PlanOptionsUI.swift
+  s_1085d35454c91f::t_268f9f9ef3e131 198-208
+Keelhaven/Localizable.xcstrings
+  s_1085d35454c91f::t_18b2db201afee0 4-13,497-506,917-926,2616-2625
+Keelhaven/Support/PlanOptionsDraft.swift
+  s_1085d35454c91f::t_1f89a4c97bfe89 23
+  s_1085d35454c91f::t_268f9f9ef3e131 52,78
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "ab6a2dcd1df215040d6ed1871d5feb3b8eed891b",
+  "prompts": {},
+  "sessions": {
+    "s_1085d35454c91f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26ef7f1d-7223-416c-8bc4-4bd2164dae69",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
