@@ -86,8 +86,8 @@ const releases = computed(
 
 <!-- MenuBarDemo is an animated recreation of the popover, built from the
      SwiftUI sources rather than a screenshot, so it stays honest about what
-     the app shows — down to the percentage that rides beside the progress
-     bar while a backup runs. -->
+     the app shows — the spinner before the engine reports anything, then the
+     percentage that rides beside the progress bar. -->
 <ShotFrame><MenuBarDemo /></ShotFrame>
 
 </LandingSection>
