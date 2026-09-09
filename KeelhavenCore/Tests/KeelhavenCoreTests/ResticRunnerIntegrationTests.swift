@@ -748,5 +748,76 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             "A preview after a backup must still leave the snapshot count alone"
         )
     }
+
+    /// `--no-scan` against the real binary. Two things must both hold, and
+    /// they pull in opposite directions (issue #51): the progress fields the
+    /// row needs really do go missing, and the backup itself is otherwise
+    /// completely normal — the option must cost the estimate, not the data.
+    func testNoScanDropsTheEstimateButNotTheBackup() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+
+        let repoURL = workDirectory.appendingPathComponent("repo", isDirectory: true)
+        let sourceURL = workDirectory.appendingPathComponent("src", isDirectory: true)
+        try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
+        // Enough bytes that restic emits status lines at all; a handful of
+        // small files finishes before the first one is due.
+        for index in 0..<40 {
+            try Data(repeating: UInt8(index % 251), count: 2_000_000)
+                .write(to: sourceURL.appendingPathComponent("file\(index).bin"))
+        }
+
+        let destination = Destination.local(path: repoURL.path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        var statuses: [BackupStatusMessage] = []
+        var summary: BackupSummary?
+        let stream = runner.backupStream(
+            .backup(
+                sources: [sourceURL.path],
+                excludes: [],
+                tag: "keelhaven-test",
+                performance: .off,
+                options: BackupOptions(noScan: true)
+            ),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in stream {
+            switch event {
+            case .status(let status): statuses.append(status)
+            case .summary(let value): summary = value
+            }
+        }
+
+        // The backup is real: a snapshot exists and the summary is complete.
+        let final = try XCTUnwrap(summary)
+        XCTAssertEqual(final.filesNew, 40)
+        XCTAssertNotNil(final.snapshotID)
+        XCTAssertNotNil(final.dataAdded)
+        let snapshots = try await runner.run(
+            .snapshots,
+            destination: destination,
+            credentials: credentials,
+            decoding: [ResticSnapshot].self
+        )
+        XCTAssertEqual(snapshots.count, 1)
+
+        // And the estimate is gone, which is what the row has to handle.
+        // Status lines are timing-dependent, so assert on them only if restic
+        // emitted any — the summary assertions above carry the test otherwise.
+        for status in statuses {
+            XCTAssertNil(status.totalBytes, "--no-scan must not report a total")
+            XCTAssertEqual(status.percentDone, 0, "--no-scan must not report progress")
+        }
+    }
 }
 

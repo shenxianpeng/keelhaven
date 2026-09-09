@@ -20,6 +20,7 @@ final class PlanOptionsDraft {
     /// default, like every other advanced setting here.
     var excludeCaches = false
     var oneFileSystem = false
+    var noScan = false
     var skipIfUnchanged = false
     /// Scratch field for the exclude-pattern TextField.
     var newExcludePattern = ""
@@ -48,6 +49,7 @@ final class PlanOptionsDraft {
         retention = plan.retention
         excludeCaches = plan.backupOptions.excludeCaches
         oneFileSystem = plan.backupOptions.oneFileSystem
+        noScan = plan.backupOptions.noScan
         skipIfUnchanged = plan.backupOptions.skipIfUnchanged
         newExcludePattern = ""
         uploadLimitText = Self.text(plan.performance.uploadLimitKiBPerSecond)
@@ -73,6 +75,7 @@ final class PlanOptionsDraft {
         BackupOptions(
             excludeCaches: excludeCaches,
             oneFileSystem: oneFileSystem,
+            noScan: noScan,
             skipIfUnchanged: skipIfUnchanged
         )
     }

@@ -195,6 +195,17 @@ struct AdvancedPerformanceSection: View {
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
 
+                // The only setting in the app that trades away part of the
+                // interface, so the explanation says so outright — a progress
+                // bar that stops showing a percentage reads as a bug when
+                // nobody warned you (issue #51).
+                Toggle("Don't measure the backup first", isOn: $options.noScan)
+                    .toggleStyle(.checkbox)
+                Text("restic normally walks your folders a second time to work out how big the backup will be. Skipping that can help on a slow disk or a network share — but then the progress can only show how much has been copied, not how far along it is.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
                 Divider()
 
                 Text("Leave these empty unless a backup is too slow or takes too much of your connection. Empty means restic's own default.")
