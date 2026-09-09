@@ -37,9 +37,9 @@ BINARY="$VENDOR_DIR/restic"
 LICENSE="$VENDOR_DIR/restic-LICENSE.txt"
 MARKER="$VENDOR_DIR/.variant"
 
-if [ -x "$BINARY" ] \
-    && [ -s "$LICENSE" ] \
-    && [ "$(cat "$MARKER" 2>/dev/null)" = "$VERSION-$MODE" ] \
+if [[ -x "$BINARY" ]] \
+    && [[ -s "$LICENSE" ]] \
+    && [[ "$(cat "$MARKER" 2>/dev/null)" = "$VERSION-$MODE" ]] \
     && "$BINARY" version 2>/dev/null | grep -q "restic $VERSION"; then
     echo "restic $VERSION ($MODE) already vendored at $BINARY"
     exit 0
@@ -57,12 +57,13 @@ for arch in $ARCHES; do
     case "$arch" in
         amd64) expected="$SHA_AMD64" ;;
         arm64) expected="$SHA_ARM64" ;;
+        *) echo "Unknown architecture: $arch" >&2; exit 1 ;;
     esac
     echo "$expected  $file" | shasum -a 256 -c
     bunzip2 -kf "$file"
 done
 
-if [ "$MODE" = "universal" ]; then
+if [[ "$MODE" = "universal" ]]; then
     lipo -create -output restic \
         "restic_${VERSION}_darwin_amd64" \
         "restic_${VERSION}_darwin_arm64"

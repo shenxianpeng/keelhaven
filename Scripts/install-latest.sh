@@ -71,7 +71,7 @@ trigger_build() {
         sleep 3
         after=$(gh run list --repo "$REPO" --workflow "$WORKFLOW" --limit 1 \
             --json databaseId --jq '.[0].databaseId // 0')
-        if [ "$after" != "$before" ]; then
+        if [[ "$after" != "$before" ]]; then
             gh run watch "$after" --repo "$REPO" --exit-status
             RUN="$after"
             return 0
@@ -82,32 +82,32 @@ trigger_build() {
 }
 
 RUN=""
-if [ "$MODE" != "force" ]; then
+if [[ "$MODE" != "force" ]]; then
     # `read` returns 1 at EOF, which under `set -e` would kill the script on
     # the perfectly normal "no artifact built yet" path.
     FOUND_RUN=""; FOUND_SHA=""
     read -r FOUND_RUN FOUND_SHA <<<"$(find_artifact)" || true
-    if [ -n "${FOUND_RUN:-}" ]; then
-        if [ "$MODE" = "reuse" ]; then
+    if [[ -n "${FOUND_RUN:-}" ]]; then
+        if [[ "$MODE" = "reuse" ]]; then
             RUN="$FOUND_RUN"
             echo "Using existing build from run $RUN (${FOUND_SHA:0:7})."
         else
             MAIN_SHA=$(gh api "repos/$REPO/commits/main" --jq .sha)
-            if [ "$FOUND_SHA" = "$MAIN_SHA" ]; then
+            if [[ "$FOUND_SHA" = "$MAIN_SHA" ]]; then
                 RUN="$FOUND_RUN"
                 echo "Existing build matches main (${MAIN_SHA:0:7}) — no rebuild needed."
             else
                 echo "Newest build is ${FOUND_SHA:0:7}, main is at ${MAIN_SHA:0:7}."
             fi
         fi
-    elif [ "$MODE" = "reuse" ]; then
+    elif [[ "$MODE" = "reuse" ]]; then
         echo "No $VARIANT artifact available to reuse (they expire after 14 days)." >&2
         echo "Run without --no-build to build one." >&2
         exit 1
     fi
 fi
 
-if [ -z "$RUN" ]; then
+if [[ -z "$RUN" ]]; then
     trigger_build
 fi
 
@@ -115,7 +115,7 @@ echo "Downloading the $VARIANT build from run $RUN..."
 gh run download "$RUN" --repo "$REPO" --pattern "Keelhaven-*-$VARIANT" --dir "$TMP"
 
 INNER=$(find "$TMP" -name 'Keelhaven.app.zip' | head -1)
-if [ -z "$INNER" ]; then
+if [[ -z "$INNER" ]]; then
     echo "Artifact did not contain Keelhaven.app.zip." >&2
     exit 1
 fi

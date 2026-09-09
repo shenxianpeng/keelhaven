@@ -6,7 +6,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP="$REPO_ROOT/build/Build/Products/Release/Keelhaven.app"
 
-if [ ! -d "$APP" ]; then
+if [[ ! -d "$APP" ]]; then
     echo "No built app at $APP — run 'make build' first." >&2
     exit 1
 fi

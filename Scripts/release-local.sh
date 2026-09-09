@@ -34,7 +34,7 @@ if git rev-parse -q --verify "refs/tags/$TAG" >/dev/null; then
     exit 1
 fi
 branch=$(git branch --show-current)
-if [ "$branch" != "main" ]; then
+if [[ "$branch" != "main" ]]; then
     echo "⚠️  Releasing '$branch', not main."
 fi
 
