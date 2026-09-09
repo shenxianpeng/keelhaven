@@ -96,6 +96,9 @@ const CHIPS = [
 /** One card layout. Sizes are given outright — a single scale factor made the
  *  headline outrun the canvas on the taller cards. */
 function card({ w, h, icon, title, tag, chip, chips = CHIPS }) {
+  const chipList = chips.length
+    ? `<div class="chips">${chips.map(c => '<div class="chip">' + c + '</div>').join('')}</div>`
+    : ''
   return `<!doctype html><html><head><meta charset="utf-8"><style>${css}
   .stage { width: ${w}px; height: ${h}px; }
   .inner { padding: 0 ${Math.round(w * 0.06)}px; }
@@ -109,7 +112,7 @@ function card({ w, h, icon, title, tag, chip, chips = CHIPS }) {
     <img class="icon" src="data:image/png;base64,${iconData}">
     <h1>Keelhaven</h1>
     <p class="tag">${TAGLINE}</p>
-    ${chips.length ? `<div class="chips">${chips.map(c => `<div class="chip">${c}</div>`).join('')}</div>` : ''}
+    ${chipList}
   </div></div></body></html>`
 }
 

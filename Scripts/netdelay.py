@@ -28,29 +28,30 @@ LISTEN, UPSTREAM, RTT_MS = int(sys.argv[1]), int(sys.argv[2]), float(sys.argv[3]
 ONE_WAY = RTT_MS / 2000.0  # seconds, half the round trip per direction
 
 
+def _sender(q, dst):
+    """Hold loop: deliver queued chunks at their deadline, then half-close."""
+    while True:
+        item = q.get()
+        if item is None:
+            break
+        deadline, data = item
+        gap = deadline - time.time()
+        if gap > 0:
+            time.sleep(gap)
+        try:
+            dst.sendall(data)
+        except OSError:
+            break
+    try:
+        dst.shutdown(socket.SHUT_WR)
+    except OSError:
+        pass
+
+
 def pump(src, dst):
     """Forward src → dst, holding each chunk for one-way delay."""
     q = queue.Queue()
-
-    def sender():
-        while True:
-            item = q.get()
-            if item is None:
-                break
-            deadline, data = item
-            gap = deadline - time.time()
-            if gap > 0:
-                time.sleep(gap)
-            try:
-                dst.sendall(data)
-            except OSError:
-                break
-        try:
-            dst.shutdown(socket.SHUT_WR)
-        except OSError:
-            pass
-
-    thread = threading.Thread(target=sender, daemon=True)
+    thread = threading.Thread(target=_sender, args=(q, dst), daemon=True)
     thread.start()
     try:
         while True:

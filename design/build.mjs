@@ -19,7 +19,7 @@ import sharp from 'sharp'
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { appIcon, mark, menuBarGlyph, monoMark, SILHOUETTE, RAYS, C } from './icon.mjs'
+import { appIcon, mark, menuBarGlyph, monoMark, C } from './icon.mjs'
 
 const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SVG_DIR = join(ROOT, 'design/svg')
@@ -78,10 +78,10 @@ console.log(`· AppIcon.appiconset — ${images.length} sizes`)
 // ---------------------------------------------------------------------------
 // 3. Menu-bar template image (black + alpha; macOS recolours it per theme)
 // ---------------------------------------------------------------------------
-const glyphBlack = menuBarGlyph().replace(/currentColor/g, '#000000')
+const glyphBlack = menuBarGlyph().replaceAll('currentColor', '#000000')
 const menuImages = []
 for (const [scale, px] of [['1x', 18], ['2x', 36], ['3x', 54]]) {
-  const file = `menubar${scale === '1x' ? '' : `@${scale}`}.png`
+  const file = `menubar${scale === '1x' ? '' : '@' + scale}.png`
   await png(glyphBlack, px, join(MENUSET, file))
   menuImages.push({ idiom: 'mac', filename: file, scale })
 }
