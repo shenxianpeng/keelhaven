@@ -1,0 +1,27 @@
+site/index.md
+  s_d47267be473b6e::t_205fce15e3cb4f 89-90
+site/zh/index.md
+  s_d47267be473b6e::t_205fce15e3cb4f 49,54,112-113
+site/.vitepress/theme/components/MenuBarDemo.vue
+  s_d47267be473b6e::t_b33ee77894d13e 11,16,40-43,89-116
+  s_d47267be473b6e::t_0d219e2dba4c88 54-56
+site/.vitepress/theme/landing.css
+  s_d47267be473b6e::t_b5e6a61e9bff25 872-880
+  s_d47267be473b6e::t_06e0d043f9beb6 1072-1099,1113-1114,1135-1140,1170-1175
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "9b7278def2bbc574d22afd74d285005ca78d93c5",
+  "prompts": {},
+  "sessions": {
+    "s_d47267be473b6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a2ed8dcc-3e31-4dee-ac17-7375a53f8270",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
