@@ -11,7 +11,7 @@ REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 APP="${1:-$REPO_ROOT/build/Build/Products/Release/Keelhaven.app}"
 OUT="${2:-$REPO_ROOT/Keelhaven.dmg}"
 
-if [ ! -d "$APP" ]; then
+if [[ ! -d "$APP" ]]; then
     echo "No app bundle at $APP — build one first (make build)." >&2
     exit 1
 fi

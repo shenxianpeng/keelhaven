@@ -37,8 +37,9 @@ NO_CACHE="${BENCH_NO_CACHE:-0}"
 MINIO_PORT=9400
 SSHD_PORT=2400
 # Each RTT gets its own proxy: MinIO at 94xx, sshd at 24xx.
-proxy_port() { # backend, index
-    if [ "$1" = s3 ]; then echo $((9410 + $2)); else echo $((2410 + $2)); fi
+proxy_port() {
+    local backend="$1" index="$2"
+    if [[ "$backend" = "s3" ]]; then echo $((9410 + index)); else echo $((2410 + index)); fi
 }
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -54,7 +55,7 @@ trap cleanup EXIT
 
 say() { printf '\033[1m%s\033[0m\n' "$*"; }
 now() { python3 -c 'import time; print(time.time())'; }
-elapsed() { python3 -c "print(f'{($2-$1):6.2f}')"; }
+elapsed() { local start="$1" end="$2"; python3 -c "print(f'{($end-$start):6.2f}')"; }
 
 command -v restic >/dev/null || { echo "restic not found — brew install restic" >&2; exit 1; }
 command -v python3 >/dev/null || { echo "python3 not found" >&2; exit 1; }
@@ -110,9 +111,9 @@ start_sshd() {
     for candidate in /usr/libexec/sftp-server \
                      /usr/lib/openssh/sftp-server \
                      /usr/lib/ssh/sftp-server; do
-        [ -x "$candidate" ] && { sftp_server="$candidate"; break; }
+        [[ -x "$candidate" ]] && { sftp_server="$candidate"; break; }
     done
-    [ -n "$sftp_server" ] || { echo "no sftp-server binary found" >&2; exit 1; }
+    [[ -n "$sftp_server" ]] || { echo "no sftp-server binary found" >&2; exit 1; }
     mkdir -p "$d"; chmod 700 "$d"
     ssh-keygen -q -t ed25519 -f "$d/host_key" -N "" -C bench-host
     ssh-keygen -q -t ed25519 -f "$d/id_bench" -N "" -C bench-client
@@ -146,12 +147,12 @@ ssh_bench() { # port, then the remote command
     local port="$1"; shift
     ssh "${SSH_COMMON[@]}" -i "$WORK/sshd/id_bench" -p "$port" 127.0.0.1 "$@"
 }
-sftp_args() { echo "-p $1 -i $WORK/sshd/id_bench ${SSH_COMMON[*]}"; }
+sftp_args() { local port="$1"; echo "-p $port -i $WORK/sshd/id_bench ${SSH_COMMON[*]}"; }
 
 # restic invocation for a backend at a given port.
 restic_at() { # backend, port, then restic args
     local backend="$1" port="$2"; shift 2
-    if [ "$backend" = s3 ]; then
+    if [[ "$backend" = "s3" ]]; then
         AWS_ACCESS_KEY_ID=keelhaven-bench AWS_SECRET_ACCESS_KEY=keelhaven-bench-secret \
         RESTIC_PASSWORD=bench \
             restic -r "s3:http://127.0.0.1:$port/kh-bench/repo" "$@"
@@ -173,7 +174,7 @@ for backend in $BACKENDS; do
 done
 
 for backend in $BACKENDS; do
-    base_port=$([ "$backend" = s3 ] && echo "$MINIO_PORT" || echo "$SSHD_PORT")
+    base_port=$([[ "$backend" = "s3" ]] && echo "$MINIO_PORT" || echo "$SSHD_PORT")
     say "Seeding the $backend repository"
     restic_at "$backend" "$base_port" init >/dev/null 2>&1
     restic_at "$backend" "$base_port" backup "$WORK/src" --no-scan >/dev/null 2>&1
@@ -183,9 +184,9 @@ done
 # proxy's own overhead never hides in the baseline.
 index=0
 for rtt in $RTTS; do
-    [ "$rtt" = 0 ] && { index=$((index + 1)); continue; }
+    [[ "$rtt" = "0" ]] && { index=$((index + 1)); continue; }
     for backend in $BACKENDS; do
-        upstream=$([ "$backend" = s3 ] && echo "$MINIO_PORT" || echo "$SSHD_PORT")
+        upstream=$([[ "$backend" = "s3" ]] && echo "$MINIO_PORT" || echo "$SSHD_PORT")
         python3 "$SCRIPT_DIR/netdelay.py" "$(proxy_port "$backend" "$index")" "$upstream" "$rtt" \
             >/dev/null 2>&1 &
         PIDS+=($!)
@@ -207,8 +208,8 @@ printf '%s\n' "--------------------------------------------------------------"
 for backend in $BACKENDS; do
     index=0
     for rtt in $RTTS; do
-        if [ "$rtt" = 0 ]; then
-            port=$([ "$backend" = s3 ] && echo "$MINIO_PORT" || echo "$SSHD_PORT")
+        if [[ "$rtt" = "0" ]]; then
+            port=$([[ "$backend" = "s3" ]] && echo "$MINIO_PORT" || echo "$SSHD_PORT")
         else
             port="$(proxy_port "$backend" "$index")"
         fi
@@ -237,7 +238,7 @@ for backend in $BACKENDS; do
     done
 done
 
-if [ "$NO_CACHE" = 1 ]; then
+if [[ "$NO_CACHE" = "1" ]]; then
     printf '\n'
     say "With restic's cache disabled (--no-cache)"
     printf '%-16s %10s\n' "backend · rtt" "full"
@@ -245,8 +246,8 @@ if [ "$NO_CACHE" = 1 ]; then
     for backend in $BACKENDS; do
         index=0
         for rtt in $RTTS; do
-            if [ "$rtt" = 0 ]; then
-                port=$([ "$backend" = s3 ] && echo "$MINIO_PORT" || echo "$SSHD_PORT")
+            if [[ "$rtt" = "0" ]]; then
+                port=$([[ "$backend" = "s3" ]] && echo "$MINIO_PORT" || echo "$SSHD_PORT")
             else
                 port="$(proxy_port "$backend" "$index")"
             fi

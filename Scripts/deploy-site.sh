@@ -11,7 +11,7 @@ set -euo pipefail
 cd "$(dirname "$0")/.."
 
 branch=$(git branch --show-current)
-if [ "$branch" != "main" ]; then
+if [[ "$branch" != "main" ]]; then
   echo "⚠️  Deploying the working tree of '$branch', not main."
 fi
 
@@ -29,7 +29,7 @@ if info=$(gh release view --repo shenxianpeng/keelhaven --json tagName,assets \
     --jq '"\(.tagName)\t\([.assets[] | select(.name | endswith(".dmg"))][0].name // "")"' 2>/dev/null); then
   tag=${info%%$'\t'*}
   asset=${info#*$'\t'}
-  if [ -n "$asset" ]; then
+  if [[ -n "$asset" ]]; then
     echo "Mirroring $asset ($tag) into the deploy."
     gh release download "$tag" --repo shenxianpeng/keelhaven --pattern '*.dmg' --dir site/public/downloads --clobber
     printf '{"version": "%s", "dmgURL": "https://keelhaven.app/downloads/%s"}\n' \

@@ -12,7 +12,7 @@ set -euo pipefail
 
 VERSION="${1:-}"
 DMG="${2:-}"
-if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || [ ! -f "$DMG" ]; then
+if ! [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || [[ ! -f "$DMG" ]]; then
     echo "Usage: update-homebrew-tap.sh <version> <dmg-path>" >&2
     exit 1
 fi
@@ -21,7 +21,7 @@ SHA256=$(shasum -a 256 "$DMG" | awk '{print $1}')
 
 # The token rides in the remote URL; GitHub Actions masks the secret in logs.
 REMOTE="https://github.com/shenxianpeng/homebrew-tap.git"
-if [ -n "${HOMEBREW_TAP_TOKEN:-}" ]; then
+if [[ -n "${HOMEBREW_TAP_TOKEN:-}" ]]; then
     REMOTE="https://x-access-token:${HOMEBREW_TAP_TOKEN}@github.com/shenxianpeng/homebrew-tap.git"
 fi
 

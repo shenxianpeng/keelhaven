@@ -17,12 +17,12 @@ MANIFEST="https://keelhaven.app/latest.json"
 
 fail() { echo "Error: $*" >&2; exit 1; }
 
-[ "$(uname -s)" = "Darwin" ] || fail "Keelhaven is a macOS app — this installer only runs on a Mac."
+[[ "$(uname -s)" = "Darwin" ]] || fail "Keelhaven is a macOS app — this installer only runs on a Mac."
 
 TMP=$(mktemp -d /tmp/keelhaven-install.XXXXXX)
 MOUNT=""
 cleanup() {
-    [ -n "$MOUNT" ] && hdiutil detach "$MOUNT" -quiet 2>/dev/null
+    [[ -n "$MOUNT" ]] && hdiutil detach "$MOUNT" -quiet 2>/dev/null
     rm -rf "$TMP"
 }
 trap cleanup EXIT
@@ -34,19 +34,19 @@ trap cleanup EXIT
 # to plain HTTP and hand the installer a rewritten DMG.
 DMG_URL=$(curl --proto "=https" -fsSL "$MANIFEST" 2>/dev/null \
     | sed -n 's/.*"dmgURL": *"\([^"]*\)".*/\1/p' || true)
-if [ -z "$DMG_URL" ]; then
+if [[ -z "$DMG_URL" ]]; then
     DMG_URL=$(curl --proto "=https" -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
         | sed -n 's/.*"browser_download_url": *"\([^"]*\.dmg\)".*/\1/p' | head -1) \
         || true
 fi
-[ -n "$DMG_URL" ] || fail "could not find the latest release. Download it from https://keelhaven.app instead."
+[[ -n "$DMG_URL" ]] || fail "could not find the latest release. Download it from https://keelhaven.app instead."
 
 echo "Downloading ${DMG_URL##*/}..."
 curl --proto "=https" -fL --progress-bar "$DMG_URL" -o "$TMP/Keelhaven.dmg"
 
 MOUNT=$(hdiutil attach "$TMP/Keelhaven.dmg" -nobrowse -readonly \
     | sed -n 's/.*\(\/Volumes\/.*\)/\1/p' | tail -1)
-[ -n "$MOUNT" ] && [ -d "$MOUNT/Keelhaven.app" ] || fail "the DMG did not contain Keelhaven.app."
+[[ -n "$MOUNT" ]] && [[ -d "$MOUNT/Keelhaven.app" ]] || fail "the DMG did not contain Keelhaven.app."
 
 echo "Installing to /Applications..."
 # A running menu-bar app would keep files busy while we replace them.
