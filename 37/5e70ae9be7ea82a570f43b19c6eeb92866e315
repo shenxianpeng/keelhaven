@@ -1,0 +1,21 @@
+site/zh/index.md
+  s_d47267be473b6e::t_3756385bd8ed97 214-223
+site/index.md
+  s_d47267be473b6e::t_3756385bd8ed97 197-206
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "375e70ae9be7ea82a570f43b19c6eeb92866e315",
+  "prompts": {},
+  "sessions": {
+    "s_d47267be473b6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a2ed8dcc-3e31-4dee-ac17-7375a53f8270",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
