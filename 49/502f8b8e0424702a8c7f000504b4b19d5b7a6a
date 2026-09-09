@@ -1,0 +1,35 @@
+Keelhaven/Wizard/WizardWindowView.swift
+  s_c678cd1a11590a::t_894e0fe77daaaf 6-8
+  s_c678cd1a11590a::t_4d5c84ac8f293b 4-5,14-21,53-64
+  s_c678cd1a11590a::t_b11030da292a42 65
+Keelhaven/Localizable.xcstrings
+  s_c678cd1a11590a::t_2e4f2ae14d9290 2694-2733
+Keelhaven/MenuBar/PlanStatusRow.swift
+  s_c678cd1a11590a::t_b0f1027ab9892e 174-183
+Keelhaven/Wizard/WizardModel.swift
+  s_c678cd1a11590a::t_c46703c2868d9e 422-478
+Keelhaven/EditPlan/EditPlanWindowView.swift
+  s_c678cd1a11590a::t_cfe5319fc1841b 162
+Keelhaven/AppState.swift
+  s_c678cd1a11590a::t_cf0e22b8e130b6 611-614
+Keelhaven/KeelhavenApp.swift
+  s_c678cd1a11590a::t_c3ec5c700212ce 6,41-46
+  s_c678cd1a11590a::t_0a4657a6da7e00 47-49
+  s_c678cd1a11590a::t_268e63b6be88a1 50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "49502f8b8e0424702a8c7f000504b4b19d5b7a6a",
+  "prompts": {},
+  "sessions": {
+    "s_c678cd1a11590a": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a087e8-3eb5-7029-97cd-47480b311fdf",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
