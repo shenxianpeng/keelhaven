@@ -1,0 +1,25 @@
+design/materials.mjs
+  s_edc9b319b52399::t_56dcff129993f4 99-101,115
+Scripts/netdelay.py
+  s_edc9b319b52399::t_b3f4e6cec21cd2 31-40,42,44-49,51-54
+design/build.mjs
+  s_edc9b319b52399::t_39aa18433e79b5 22,81,84
+design/icon.mjs
+  s_edc9b319b52399::t_50ad87b86bc821 194-196,204-210
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "5205ad4380cc10edadd0c3059367e33507cb5f52",
+  "prompts": {},
+  "sessions": {
+    "s_edc9b319b52399": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a087c1-7864-749c-9201-0244cc5e9a1d",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
