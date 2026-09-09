@@ -407,6 +407,16 @@
         }
       }
     },
+    "Backing up…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在备份…"
+          }
+        }
+      }
+    },
     "Backup %lld percent done": {
       "localizations": {
         "zh-Hans": {
@@ -787,16 +797,6 @@
         }
       }
     },
-    "Daily at %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每天 %@"
-          }
-        }
-      }
-    },
     "Date": {
       "localizations": {
         "zh-Hans": {
@@ -1027,12 +1027,52 @@
         }
       }
     },
+    "Every day": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天"
+          }
+        }
+      }
+    },
+    "Every day at %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每天 %@"
+          }
+        }
+      }
+    },
     "Every hour": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "每小时"
+          }
+        }
+      }
+    },
+    "Every week": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每周"
+          }
+        }
+      }
+    },
+    "Every week on %@ at %@": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每%1$@ %2$@"
           }
         }
       }
@@ -1596,26 +1636,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "星期"
-          }
-        }
-      }
-    },
-    "Once a day": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每天一次"
-          }
-        }
-      }
-    },
-    "Once a week": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每周一次"
           }
         }
       }
@@ -2526,16 +2546,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "每周"
-          }
-        }
-      }
-    },
-    "Weekly on %@ at %@": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每%1$@ %2$@"
           }
         }
       }

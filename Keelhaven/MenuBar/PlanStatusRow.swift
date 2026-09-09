@@ -396,23 +396,42 @@ struct PlanStatusRow: View {
         switch runState {
         case .running(let progress, let bytesDone):
             if let progress {
-                ProgressView(value: progress)
-                    .controlSize(.small)
-                    .padding(.top, 2)
-                    .accessibilityLabel(String(localized: "Backup \(Int(progress * 100)) percent done"))
+                // A bar needs the row's whole width, so it keeps its own line
+                // — but the number it represents rides along on that line
+                // instead of leaving the bar to speak for itself.
+                HStack(spacing: 6) {
+                    ProgressView(value: progress)
+                        .controlSize(.small)
+                    Text(progress.formatted(.percent.precision(.fractionLength(0))))
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                        .monospacedDigit()
+                }
+                .padding(.top, 2)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(String(localized: "Backup \(Int(progress * 100)) percent done"))
             } else {
                 // No percentage to show — `--no-scan` means restic never
-                // measured the sources (issue #51). The bar spins and the
-                // amount copied stands in for it, which is the honest answer
-                // rather than a bar frozen at zero.
-                VStack(alignment: .leading, spacing: 4) {
-                    if let bytesDone {
-                        Text("\(Self.formatted(bytesDone)) backed up so far")
-                            .font(.callout)
-                            .foregroundStyle(.secondary)
-                    }
+                // measured the sources (issue #51). The spinner stands in for
+                // the bar and the amount copied for the percentage, which is
+                // the honest answer rather than a bar frozen at zero. It sits
+                // to the left of its caption, like `.checking` / `.pruning` /
+                // `.unlocking` below — a spinner is a glyph, not a row.
+                HStack(spacing: 6) {
                     ProgressView()
                         .controlSize(.small)
+                    Group {
+                        if let bytesDone {
+                            Text("\(Self.formatted(bytesDone)) backed up so far")
+                        } else {
+                            // The opening seconds of every run land here,
+                            // before restic has reported a byte. Say so rather
+                            // than leave the spinner captioned by nothing.
+                            Text("Backing up…")
+                        }
+                    }
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
                 }
                 .padding(.top, 2)
                 .accessibilityElement(children: .ignore)
@@ -422,19 +441,32 @@ struct PlanStatusRow: View {
                 )
             }
         case .previewing(let progress):
-            // Deliberately not a bare progress bar like `.running`: the two
-            // would be indistinguishable, and someone glancing at the panel
-            // would think a backup was being written.
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Previewing what would be backed up…")
-                    .font(.callout)
-                    .foregroundStyle(.secondary)
+            // Deliberately always captioned, unlike `.running`: an uncaptioned
+            // bar would be indistinguishable from a real backup, and someone
+            // glancing at the panel would think one was being written.
+            Group {
                 if let progress {
-                    ProgressView(value: progress)
-                        .controlSize(.small)
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Previewing what would be backed up…")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                        HStack(spacing: 6) {
+                            ProgressView(value: progress)
+                                .controlSize(.small)
+                            Text(progress.formatted(.percent.precision(.fractionLength(0))))
+                                .font(.callout)
+                                .foregroundStyle(.secondary)
+                                .monospacedDigit()
+                        }
+                    }
                 } else {
-                    ProgressView()
-                        .controlSize(.small)
+                    HStack(spacing: 6) {
+                        ProgressView()
+                            .controlSize(.small)
+                        Text("Previewing what would be backed up…")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .accessibilityElement(children: .ignore)
@@ -473,9 +505,13 @@ struct PlanStatusRow: View {
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(String(localized: "Unlocking repository"))
         case .failed(let message):
+            // restic's errors run to arbitrary length; three lines is enough
+            // to recognise one without letting it stretch the panel. The
+            // tooltip already carries the full text.
             Text(message)
                 .font(.callout)
                 .foregroundStyle(.red)
+                .lineLimit(3)
                 .help(message)
         case .failedLocked(let message):
             // restic's own three lines of PID-and-hostname detail stay in the
