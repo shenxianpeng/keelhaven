@@ -85,10 +85,10 @@ jobs:
           printf '{"version": "%s", "dmgURL": "https://keelhaven.app/downloads/%s"}\n' "$VERSION" "$ASSET" > site/public/latest.json
       - name: Build site
         run: |
-          npm ci --prefix site
+          npm ci --ignore-scripts --prefix site
           npm run build --prefix site
       - name: Publish to gh-pages
-        uses: peaceiris/actions-gh-pages@v4
+        uses: peaceiris/actions-gh-pages@84c30a85c19949d7eee79c4ff27748b70285e453 # v4.1.0
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages

@@ -249,7 +249,7 @@ jobs:
       # the bump step left main on.
       - name: Publish GitHub Release
         if: env.PUBLISHING == 'true'
-        uses: softprops/action-gh-release@v3
+        uses: softprops/action-gh-release@efb35369e0ad2afab669f228072c1b0d510eae64 # v3.0.3
         with:
           tag_name: v${{ steps.version.outputs.version }}
           target_commitish: ${{ steps.bump.outputs.sha || github.sha }}

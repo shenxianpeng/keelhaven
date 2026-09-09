@@ -71,7 +71,7 @@ jobs:
       # ResticS3IntegrationTests.swift.
       - name: Start MinIO (S3 integration tests)
         run: |
-          curl -fsSL -o "$RUNNER_TEMP/minio" \
+          curl --proto "=https" -fsSL -o "$RUNNER_TEMP/minio" \
             "https://dl.min.io/server/minio/release/darwin-$(uname -m | sed 's/x86_64/amd64/')/minio"
           chmod +x "$RUNNER_TEMP/minio"
           MINIO_ROOT_USER=keelhaven-test MINIO_ROOT_PASSWORD=keelhaven-test-secret \
@@ -95,7 +95,7 @@ jobs:
         run: |
           REST_SERVER_VERSION=0.14.0
           ARCH=$(uname -m | sed 's/x86_64/amd64/')
-          curl -fsSL -o "$RUNNER_TEMP/rest-server.tar.gz" \
+          curl --proto "=https" -fsSL -o "$RUNNER_TEMP/rest-server.tar.gz" \
             "https://github.com/restic/rest-server/releases/download/v${REST_SERVER_VERSION}/rest-server_${REST_SERVER_VERSION}_darwin_${ARCH}.tar.gz"
           tar -xzf "$RUNNER_TEMP/rest-server.tar.gz" -C "$RUNNER_TEMP"
           REST_SERVER_BIN="$RUNNER_TEMP/rest-server_${REST_SERVER_VERSION}_darwin_${ARCH}/rest-server"

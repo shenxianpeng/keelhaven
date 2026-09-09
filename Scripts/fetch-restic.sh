@@ -52,7 +52,7 @@ rm -f restic restic-LICENSE.txt "$MARKER"
 for arch in $ARCHES; do
     file="restic_${VERSION}_darwin_${arch}.bz2"
     echo "Downloading ${file}..."
-    curl -fsSL -o "$file" \
+    curl --proto "=https" -fsSL -o "$file" \
         "https://github.com/restic/restic/releases/download/v${VERSION}/${file}"
     case "$arch" in
         amd64) expected="$SHA_AMD64" ;;
@@ -74,7 +74,7 @@ rm -f restic_${VERSION}_darwin_*
 
 # Copyright notice for the binary we just vendored (see header comment).
 echo "Downloading restic-LICENSE.txt..."
-curl -fsSL -o restic-LICENSE.txt \
+curl --proto "=https" -fsSL -o restic-LICENSE.txt \
     "https://raw.githubusercontent.com/restic/restic/v${VERSION}/LICENSE"
 # A silent CDN error page would be worse than a hard failure: the build would
 # happily ship a bundle whose "license" is HTML.

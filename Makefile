@@ -38,7 +38,7 @@ update: ## Install the latest build of main from CI (builds on demand, no local 
 	./Scripts/install-latest.sh
 
 dev-site: ## Preview the website locally with live reload (http://localhost:5173/)
-	@[ -d site/node_modules ] || npm --prefix site install
+	@[ -d site/node_modules ] || npm --prefix site install --ignore-scripts
 	npm --prefix site run dev
 
 deploy-site: ## Build site/ and push it to keelhaven-site's gh-pages (manual deploy)

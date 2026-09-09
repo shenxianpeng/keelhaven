@@ -41,7 +41,7 @@ else
   echo "No published release found (or gh isn't authenticated) — deploying without a DMG mirror."
 fi
 
-npm --prefix site ci
+npm --prefix site ci --ignore-scripts
 npm --prefix site run build
 
 dist="site/.vitepress/dist"
