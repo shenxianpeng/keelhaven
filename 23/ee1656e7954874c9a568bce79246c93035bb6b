@@ -1,0 +1,19 @@
+.github/workflows/release.yml
+  s_41962846a5439e::t_5ba036dec7d821 169-171,183
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "23ee1656e7954874c9a568bce79246c93035bb6b",
+  "prompts": {},
+  "sessions": {
+    "s_41962846a5439e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c0aa59a3-f8a6-45d8-b348-a542c570c751",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
