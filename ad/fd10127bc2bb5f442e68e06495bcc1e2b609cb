@@ -1,0 +1,41 @@
+KeelhavenCore/Tests/KeelhavenCoreTests/PrunePolicyTests.swift
+  s_1085d35454c91f::t_055bcfecd7f377 59-120
+Keelhaven/Wizard/WizardModel.swift
+  s_1085d35454c91f::t_545cc0fecfe92f 377
+Keelhaven/Wizard/ScheduleStepView.swift
+  s_1085d35454c91f::t_545cc0fecfe92f 100
+KeelhavenCore/Sources/KeelhavenCore/Models/BackupPlan.swift
+  s_1085d35454c91f::t_6c00a974c97f67 88-93
+Keelhaven/Support/PlanOptionsDraft.swift
+  s_1085d35454c91f::t_2a2c5c469da666 5-17,31-38,63-88,94
+KeelhavenCore/Tests/KeelhavenCoreTests/ModelRoundTripTests.swift
+  s_1085d35454c91f::t_24d98dc7a8877b 281-360,362
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerIntegrationTests.swift
+  s_1085d35454c91f::t_21fc2af4a2d99a 822-887
+Keelhaven/Localizable.xcstrings
+  s_1085d35454c91f::t_ffd69e30f9615a 137-139,860-869,1243-1252,1263-1272,2603-2608,2612
+  s_1085d35454c91f::t_b6ea851ffa559f 2609-2611
+Keelhaven/EditPlan/EditPlanWindowView.swift
+  s_1085d35454c91f::t_545cc0fecfe92f 66,96
+Keelhaven/Support/PlanOptionsUI.swift
+  s_1085d35454c91f::t_545cc0fecfe92f 89-94,96,102-106,109-124,130-138
+  s_1085d35454c91f::t_1b61bbb49657c1 139-140
+KeelhavenCore/Sources/KeelhavenCore/Models/RetentionPolicy.swift
+  s_1085d35454c91f::t_6756386108863c 3-22,29-39,61-62,65-114
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "adfd10127bc2bb5f442e68e06495bcc1e2b609cb",
+  "prompts": {},
+  "sessions": {
+    "s_1085d35454c91f": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "26ef7f1d-7223-416c-8bc4-4bd2164dae69",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
