@@ -1,0 +1,21 @@
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerProcessTests.swift
+  s_edc9b319b52399::t_b7812aabbc670e 99-102,158-162,201-204
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerIntegrationTests.swift
+  s_edc9b319b52399::t_3dd5b6b8c5e4a1 200-203,263-266,864-867
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "a6e99f764b75dee7a07dce11d53e38ef918bb777",
+  "prompts": {},
+  "sessions": {
+    "s_edc9b319b52399": {
+      "agent_id": {
+        "tool": "pi",
+        "id": "01a087c1-7864-749c-9201-0244cc5e9a1d",
+        "model": "deepseek-v4-flash"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
