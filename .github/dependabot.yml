@@ -1,0 +1,9 @@
+# The workflows pin third-party actions to commit SHAs so a moved tag can't
+# swap the code under us. A pin without an updater is just a frozen version,
+# so Dependabot opens the bump PRs that keep those SHAs current.
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
