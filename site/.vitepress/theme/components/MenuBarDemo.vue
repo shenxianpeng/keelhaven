@@ -8,10 +8,10 @@ import { useData, withBase } from 'vitepress'
 // recreation honest in every language.
 const defaults = {
   ariaLabel:
-    'Animated demo of the Keelhaven menu bar app running a backup: a plan named Documents is backed up to an external drive, showing only a small progress bar while running, then a Backup complete notification.',
+    'Animated demo of the Keelhaven menu bar app running a backup: a plan named Documents is backed up to an external drive, showing a small progress bar and its percentage while running, then a Backup complete notification.',
   clock: 'Mon 9:41 AM',
   plan1Name: 'Documents',
-  plan1Sched: 'Daily at 9:00 AM',
+  plan1Sched: 'Every day at 9:00 AM',
   plan1StatusIdle: 'Backed up 2 hours ago',
   plan1StatusDone: 'Backed up 1 second ago',
   plan2Name: 'Photos',
@@ -36,9 +36,9 @@ const t = computed(() => ({
   <!-- An animated recreation of the real menu bar popover, drawn from the
        SwiftUI sources (MenuBarView / PlanStatusRow) so it can't drift into
        showing UI the app doesn't have. Pure CSS, one ~12s loop: idle → the
-       cursor clicks Back Up Now → the quiet progress bar runs → done, with
-       the completion notification the app actually posts. All timing lives
-       in landing.css under .kh-demo-*. -->
+       cursor clicks Back Up Now → the progress bar and its percentage run →
+       done, with the completion notification the app actually posts. All
+       timing lives in landing.css under .kh-demo-*. -->
   <div class="kh-demo" role="img"
        :aria-label="t.ariaLabel">
 
@@ -83,7 +83,13 @@ const t = computed(() => ({
           <div class="kh-demo-statusline">
             <span class="kh-demo-status kh-demo-status-idle">{{ t.plan1StatusIdle }}</span>
             <span class="kh-demo-status kh-demo-status-done">{{ t.plan1StatusDone }}</span>
-            <span class="kh-demo-progress"><span class="kh-demo-progress-fill"></span></span>
+            <!-- The bar and the number it stands for share a line, as they
+                 do in PlanStatusRow: a determinate bar that never says how
+                 far along it is leaves the reader guessing. -->
+            <span class="kh-demo-running">
+              <span class="kh-demo-progress"><span class="kh-demo-progress-fill"></span></span>
+              <span class="kh-demo-pct"></span>
+            </span>
           </div>
         </div>
       </div>

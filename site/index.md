@@ -86,7 +86,8 @@ const releases = computed(
 
 <!-- MenuBarDemo is an animated recreation of the popover, built from the
      SwiftUI sources rather than a screenshot, so it stays honest about what
-     the app shows — including the quiet no-numbers progress bar. -->
+     the app shows — down to the percentage that rides beside the progress
+     bar while a backup runs. -->
 <ShotFrame><MenuBarDemo /></ShotFrame>
 
 </LandingSection>

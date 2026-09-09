@@ -868,9 +868,9 @@ body:has(.kh-landing) .VPLocalNav {
 /* ---------------------------------------------------------------- demo --
    MenuBarDemo.vue — an animated recreation of the menu bar popover, kept
    faithful to Keelhaven/MenuBar/*.swift: Apple system colors for the status
-   dot and progress bar, no percentage text while running (the app shows
-   none), the real strings. One 12s loop; every element animates on the same
-   12s clock so the choreography reads as percentages of that loop:
+   dot and progress bar, the percentage the app prints beside the bar, the
+   real strings. One 12s loop; every element animates on the same 12s clock
+   so the choreography reads as percentages of that loop:
      0–20%  idle           21.5%  click Back Up Now
      24–74% backup runs    76–91% done + notification
      92–96% crossfade back to the idle frame for a clean loop seam.
@@ -1068,15 +1068,16 @@ body:has(.kh-landing) .VPLocalNav {
   76%, 91% { opacity: 1; }
   95%, 100% { opacity: 0; }
 }
-.kh-landing .kh-demo-progress {
+/* The bar and its percentage are one line, as in PlanStatusRow: the row
+   carries the number the bar stands for rather than leaving the bar to
+   speak for itself. The line as a whole fades in and out; the bar and the
+   number animate inside it. */
+.kh-landing .kh-demo-running {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 6px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   opacity: 0;
   animation: kh-demo-progress 12s infinite;
 }
@@ -1084,6 +1085,13 @@ body:has(.kh-landing) .VPLocalNav {
   0%, 23% { opacity: 0; }
   24.5%, 74% { opacity: 1; }
   75.5%, 100% { opacity: 0; }
+}
+.kh-landing .kh-demo-progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 .kh-landing .kh-demo-progress-fill {
   display: block;
@@ -1105,6 +1113,41 @@ body:has(.kh-landing) .VPLocalNav {
   71% { width: 96%; }
   74%, 90% { width: 100%; }
   91%, 100% { width: 0; }
+}
+
+/* The number is driven by one custom property counted out through a CSS
+   counter, on the same keyframes as the fill above — so the digits and the
+   bar can't drift apart the way two hand-written timelines would. Registering
+   it lets the count run smoothly between steps; where @property is not
+   understood the property still animates, just stepping between them. */
+@property --kh-demo-pct {
+  syntax: '<integer>';
+  initial-value: 0;
+  inherits: false;
+}
+.kh-landing .kh-demo-pct {
+  font-size: 13px;
+  color: rgba(60, 60, 67, 0.6);
+  font-variant-numeric: tabular-nums;
+  animation: kh-demo-pct 12s infinite;
+  /* The counter is reset here rather than on ::after: the property is
+     registered as non-inheriting, so the pseudo-element would read the
+     initial 0 instead of whatever the animation currently holds. */
+  counter-reset: kh-demo-pct var(--kh-demo-pct);
+}
+.kh-landing .kh-demo-pct::after {
+  content: counter(kh-demo-pct) '%';
+}
+@keyframes kh-demo-pct {
+  0%, 24% { --kh-demo-pct: 0; }
+  30% { --kh-demo-pct: 21; }
+  38% { --kh-demo-pct: 36; }
+  46% { --kh-demo-pct: 41; }
+  56% { --kh-demo-pct: 68; }
+  64% { --kh-demo-pct: 87; }
+  71% { --kh-demo-pct: 96; }
+  74%, 90% { --kh-demo-pct: 100; }
+  91%, 100% { --kh-demo-pct: 0; }
 }
 
 /* --- footer rows -------------------------------------------------------- */
