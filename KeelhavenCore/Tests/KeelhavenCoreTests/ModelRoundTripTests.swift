@@ -278,4 +278,85 @@ final class ModelRoundTripTests: XCTestCase {
         XCTAssertNil(record.skippedUnchanged)
         XCTAssertNotEqual(record.skippedUnchanged, true)
     }
+
+    /// Every value written before `lastN` existed must still read back
+    /// exactly, and the new one must survive a save/load (issue #52).
+    func testRetentionPolicyCodingCoversOldAndNewValues() throws {
+        let decoder = JSONDecoder()
+        let encoder = JSONEncoder()
+
+        for (json, expected) in [
+            (#""off""#, RetentionPolicy.off),
+            (#""year""#, RetentionPolicy.year),
+            (#""month""#, RetentionPolicy.month),
+            (#""last:10""#, RetentionPolicy.lastN(10)),
+        ] {
+            let data = try XCTUnwrap(json.data(using: .utf8))
+            XCTAssertEqual(try decoder.decode(RetentionPolicy.self, from: data), expected)
+        }
+
+        // The presets keep the exact strings they have always been written
+        // as, so a plans.json written by this build stays readable by hand.
+        for (policy, json) in [
+            (RetentionPolicy.off, #""off""#),
+            (RetentionPolicy.year, #""year""#),
+            (RetentionPolicy.month, #""month""#),
+            (RetentionPolicy.lastN(10), #""last:10""#),
+        ] {
+            XCTAssertEqual(String(decoding: try encoder.encode(policy), as: UTF8.self), json)
+        }
+
+        // A count out of range is clamped on the way in, not carried.
+        let wild = try XCTUnwrap(#""last:0""#.data(using: .utf8))
+        XCTAssertEqual(try decoder.decode(RetentionPolicy.self, from: wild), .lastN(1))
+    }
+
+    func testUnrecognisedRetentionPolicyIsRejectedByTheType() throws {
+        let decoder = JSONDecoder()
+        for json in [#""weekly""#, #""last:""#, #""last:abc""#, #""""#] {
+            let data = try XCTUnwrap(json.data(using: .utf8))
+            XCTAssertThrowsError(try decoder.decode(RetentionPolicy.self, from: data), json)
+        }
+    }
+
+    /// …but a plan carrying one must still load. Retention is the one field
+    /// whose valid values can grow, so an unreadable one degrades to "keep
+    /// everything" rather than taking the whole plan list down.
+    func testAPlanWithAnUnreadableRetentionStillLoadsAsKeepEverything() throws {
+        let plan = BackupPlan(
+            name: "Documents",
+            sourcePaths: ["/Users/me/Documents"],
+            destination: .local(path: "/Volumes/Backup/repo"),
+            schedule: .daily(hour: 21, minute: 30),
+            retention: .month,
+            createdAt: date
+        )
+        let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        var object = try XCTUnwrap(
+            try JSONSerialization.jsonObject(with: encoder.encode(plan)) as? [String: Any]
+        )
+        // What a build two versions from now might write here.
+        object["retention"] = "keep-hourly:24"
+        let data = try JSONSerialization.data(withJSONObject: object)
+
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        let decoded = try decoder.decode(BackupPlan.self, from: data)
+        XCTAssertEqual(decoded.retention, .off, "The safe direction: never delete")
+        XCTAssertEqual(decoded.name, plan.name, "The rest of the plan must survive")
+    }
+
+    func testKeepLastSurvivesAPlanRoundTrip() throws {
+        let plan = BackupPlan(
+            name: "Documents",
+            sourcePaths: ["/Users/me/Documents"],
+            destination: .local(path: "/Volumes/Backup/repo"),
+            schedule: .hourly,
+            retention: .lastN(25),
+            createdAt: date
+        )
+        XCTAssertEqual(try roundTrip(plan).retention, .lastN(25))
+    }
 }
+

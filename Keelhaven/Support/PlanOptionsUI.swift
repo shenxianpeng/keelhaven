@@ -86,27 +86,56 @@ struct VerificationSection: View {
 }
 
 /// How much snapshot history to keep. `off` — never delete — is the default.
+///
+/// A radio group rather than the segmented control the other choices use: a
+/// fourth option does not fit four readable English labels across one row,
+/// and one of them carries a number field beside it (issue #52). The same
+/// shape as the schedule step's frequency picker, which is the app's existing
+/// answer to "several choices, one of them parameterised".
 struct RetentionSection: View {
-    @Binding var retention: RetentionPolicy
+    @Bindable var options: PlanOptionsDraft
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Text("Retention")
                 .font(.headline)
-            Picker("Retention", selection: $retention) {
-                Text("Keep everything").tag(RetentionPolicy.off)
-                Text("A year of history").tag(RetentionPolicy.year)
-                Text("A month of history").tag(RetentionPolicy.month)
+            Picker("Retention", selection: $options.retentionKind) {
+                Text("Keep everything").tag(RetentionKind.off)
+                Text("A year of history").tag(RetentionKind.year)
+                Text("A month of history").tag(RetentionKind.month)
+                Text("Keep a set number of backups").tag(RetentionKind.lastN)
             }
             .labelsHidden()
-            .pickerStyle(.segmented)
-            // Same reason as Verification above. English fills the 380 and
-            // hides it; Chinese ("保留全部" and friends) does not.
-            .frame(maxWidth: 380, alignment: .leading)
-            Text("Thins older snapshots to daily, weekly and monthly keepers and reclaims the space — after a backup, at most once a week. Keep everything never deletes a snapshot.")
+            .pickerStyle(.radioGroup)
+
+            // Only when it is the choice being made: an always-visible number
+            // beside three time presets would read as a fifth setting.
+            if options.retentionKind == .lastN {
+                HStack(spacing: 8) {
+                    Text("Keep the last")
+                    TextField("10", text: $options.keepLastText)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 70)
+                    Text("backups")
+                }
+                .padding(.leading, 20)
+            }
+
+            Text(explanation)
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// The presets and the count delete on different principles, so one
+    /// sentence cannot honestly cover both.
+    private var explanation: LocalizedStringKey {
+        switch options.retentionKind {
+        case .lastN:
+            return "Deletes everything older than that, however recent it is — a burst of backups in one day can push out the whole of last month. The space is reclaimed after a backup, at most once a week."
+        case .off, .year, .month:
+            return "Thins older snapshots to daily, weekly and monthly keepers and reclaims the space — after a backup, at most once a week. Keep everything never deletes a snapshot."
         }
     }
 }

@@ -85,7 +85,12 @@ public struct BackupPlan: Codable, Identifiable, Hashable, Sendable {
         schedule = try container.decode(Schedule.self, forKey: .schedule)
         excludePatterns = try container.decode([String].self, forKey: .excludePatterns)
         checkCadence = try container.decodeIfPresent(CheckCadence.self, forKey: .checkCadence) ?? .weekly
-        retention = try container.decodeIfPresent(RetentionPolicy.self, forKey: .retention) ?? .off
+        // `try?`, unlike its neighbours: retention is the one field whose
+        // set of valid values can grow (issue #52 added `last:N`), so a plan
+        // written by a newer build must degrade to "keep everything" here
+        // rather than take the whole plan list down with it. Falling back to
+        // `.off` is the safe direction — it never deletes anything.
+        retention = (try? container.decodeIfPresent(RetentionPolicy.self, forKey: .retention)) ?? .off
         performance = try container.decodeIfPresent(PerformanceOptions.self, forKey: .performance) ?? .off
         backupOptions = try container.decodeIfPresent(BackupOptions.self, forKey: .backupOptions) ?? .off
         // Absent on every plan written before this flag existed — and those

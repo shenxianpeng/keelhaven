@@ -134,6 +134,9 @@
         }
       }
     },
+    "10": {
+      "shouldTranslate": false
+    },
     "1–32": {
       "localizations": {
         "zh-Hans": {
@@ -854,6 +857,16 @@
         }
       }
     },
+    "Deletes everything older than that, however recent it is — a burst of backups in one day can push out the whole of last month. The space is reclaimed after a backup, at most once a week.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "超出份数的一律删除，无论它有多新——某一天集中备份多次，就可能把上个月的记录整批挤掉。空间在备份完成后回收，每周最多清一次。"
+          }
+        }
+      }
+    },
     "Desktop": {
       "localizations": {
         "zh-Hans": {
@@ -1227,12 +1240,32 @@
         }
       }
     },
+    "Keep a set number of backups": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留固定份数的备份"
+          }
+        }
+      }
+    },
     "Keep everything": {
       "localizations": {
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "保留全部"
+          }
+        }
+      }
+    },
+    "Keep the last": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保留最近"
           }
         }
       }
@@ -2563,6 +2596,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "请现在就把密码抄下来或存进密码管理器——没有它就无法恢复备份。"
+          }
+        }
+      }
+    },
+    "backups": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "份备份"
           }
         }
       }

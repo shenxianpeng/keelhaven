@@ -97,7 +97,7 @@ struct ScheduleStepView: View {
             if customizeExpanded {
                 VStack(alignment: .leading, spacing: 14) {
                     VerificationSection(cadence: $model.options.checkCadence)
-                    RetentionSection(retention: $model.options.retention)
+                    RetentionSection(options: model.options)
                     ExcludePatternsSection(options: model.options)
                     AdvancedPerformanceSection(options: model.options)
                 }
