@@ -2240,16 +2240,6 @@
         }
       }
     },
-    "The destination can't be changed. To back up somewhere else, create a new backup plan.": {
-      "localizations": {
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "备份目的地无法更改。若要备份到其他位置，请新建一个备份计划。"
-          }
-        }
-      }
-    },
     "The destination can't be inside a folder you're backing up.": {
       "localizations": {
         "zh-Hans": {
@@ -2701,6 +2691,46 @@
     },
     "⌘Q": {
       "shouldTranslate": false
+    },
+    "Duplicate Plan…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制计划…"
+          }
+        }
+      }
+    },
+    "Duplicate Backup Plan": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复制备份计划"
+          }
+        }
+      }
+    },
+    "%@ copy": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 副本"
+          }
+        }
+      }
+    },
+    "The destination can't be changed. To back up somewhere else, choose Duplicate Plan… from the plan's action menu — everything else carries over.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份目的地无法更改。如需备份到其他位置，请从该计划的操作菜单中选择“复制计划…”，其余设置都会一并带过去。"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

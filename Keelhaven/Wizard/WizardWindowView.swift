@@ -1,10 +1,23 @@
 import SwiftUI
 import KeelhavenCore
 
+/// The three-step flow for creating a plan. Serves both windows that create
+/// one: the New Backup Plan window from an empty draft, and the Duplicate
+/// Backup Plan window seeded from an existing plan (issue #62). Same steps,
+/// same destination forms and conflict rules — only the starting draft
+/// differs, so one view drives both.
 struct WizardWindowView: View {
     @Environment(AppState.self) private var appState
     @Environment(\.dismiss) private var dismiss
     @State private var model = WizardModel()
+
+    /// True in the Duplicate Backup Plan window: the model is seeded from the
+    /// plan named by `appState.duplicatePlanID` instead of starting blank.
+    let isDuplicate: Bool
+
+    init(isDuplicate: Bool = false) {
+        self.isDuplicate = isDuplicate
+    }
 
     private let stepTitles = [
         String(localized: "What to back up"),
@@ -36,6 +49,19 @@ struct WizardWindowView: View {
         .frame(width: 560, height: 560)
         .onAppear {
             model.existingRepositoryLocations = appState.plans.map { $0.destination.repositoryLocation }
+        }
+        // Seeds the duplicate from its source plan. `.task(id:)`, not
+        // `onAppear`: it also re-seeds when the user picks another plan's
+        // Duplicate Plan… while this window stays open — the same handoff the
+        // Edit Plan window uses for `editPlanID`. Runs on first appearance
+        // regardless of the id, so a reopened window re-seeds even when
+        // `duplicatePlanID` did not change.
+        .task(id: appState.duplicatePlanID) {
+            guard isDuplicate,
+                  let id = appState.duplicatePlanID,
+                  let plan = appState.plans.first(where: { $0.id == id })
+            else { return }
+            model.loadForDuplicate(from: plan)
         }
     }
 
