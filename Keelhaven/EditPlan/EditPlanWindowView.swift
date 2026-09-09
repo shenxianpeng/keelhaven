@@ -159,7 +159,7 @@ struct EditPlanWindowView: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
             }
-            Text("The destination can't be changed. To back up somewhere else, create a new backup plan.")
+            Text("The destination can't be changed. To back up somewhere else, choose Duplicate Plan… from the plan's action menu — everything else carries over.")
                 .font(.callout)
                 .foregroundStyle(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -608,6 +608,10 @@ final class AppState {
     /// Which plan the Edit Plan window is editing — same handoff as restore.
     var editPlanID: UUID?
 
+    /// The plan a Duplicate window copies, set by the plan's Duplicate Plan…
+    /// action before opening it — same handoff as editPlanID (issue #62).
+    var duplicatePlanID: UUID?
+
     func restoreCredentials(for plan: BackupPlan) throws -> RepoCredentials {
         try credentials(for: plan)
     }

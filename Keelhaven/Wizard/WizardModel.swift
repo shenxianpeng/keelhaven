@@ -419,4 +419,61 @@ final class WizardModel {
         creationError = fresh.creationError
         lastAutofilledName = fresh.lastAutofilledName
     }
+
+    // MARK: - Duplicating a plan (issue #62)
+
+    /// The name a duplicated plan starts with — Finder-style, so two rows can
+    /// never be indistinguishable: "Documents copy". Editable on the When
+    /// step's summary like any plan name.
+    static func duplicateName(of name: String) -> String {
+        String(localized: "\(name) copy")
+    }
+
+    /// Seeds this draft from an existing plan for the Duplicate window — every
+    /// non-secret setting: name, folders, schedule, verification, retention,
+    /// excludes and the advanced knobs. What is deliberately left behind:
+    ///
+    /// - Secrets. Repository passwords and S3/REST secrets are Keychain
+    ///   entries keyed by plan UUID, and a duplicate is a new plan with a new
+    ///   UUID — the wizard collects a fresh password (or adopts the existing
+    ///   repository's) exactly as it does for a plan created from scratch.
+    /// - Run history and the "first backup" anchor. Those belong to the
+    ///   source plan's past; the duplicate starts as any new plan does, with
+    ///   the first-backup-now checkbox at its default.
+    ///
+    /// The destination is copied as-is so the duplicate window shows what the
+    /// source has — the unchanged location trips the destination step's own
+    /// "already used" conflict, which is what tells the user to change it or
+    /// connect to the existing repository (the two things a duplicate is for).
+    func loadForDuplicate(from plan: BackupPlan) {
+        reset()
+        name = Self.duplicateName(of: plan.name)
+        sourcePaths = plan.sourcePaths
+        let components = plan.schedule.editorComponents
+        scheduleKind = components.kind
+        dailyTime = components.dailyTime
+        weekday = components.weekday
+        options.load(from: plan)
+        switch plan.destination {
+        case .local(let path):
+            destinationType = .local
+            localPath = path
+        case .s3(let config):
+            destinationType = .s3
+            s3Endpoint = config.endpoint
+            s3Bucket = config.bucket
+            s3Prefix = config.pathPrefix
+            s3AccessKey = config.accessKeyID
+        case .sftp(let config):
+            destinationType = .sftp
+            sftpUser = config.user
+            sftpHost = config.host
+            sftpPort = String(config.port)
+            sftpPath = config.path
+        case .rest(let config):
+            destinationType = .rest
+            restURL = config.url
+            restUsername = config.username
+        }
+    }
 }

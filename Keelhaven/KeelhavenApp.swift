@@ -3,6 +3,7 @@ import KeelhavenCore
 
 enum WindowID {
     static let wizard = "wizard"
+    static let duplicatePlan = "duplicatePlan"
     static let about = "about"
     static let restore = "restore"
     static let welcome = "welcome"
@@ -33,6 +34,16 @@ struct KeelhavenApp: App {
 
         Window("New Backup Plan", id: WindowID.wizard) {
             WizardWindowView()
+                .environment(appState)
+        }
+        .windowResizability(.contentSize)
+
+        // The same wizard, prefilled from an existing plan: duplicating is
+        // "same plan, new destination", and the destination step already
+        // owns every destination form, its conflict rules and the adopt flow
+        // (issue #62). Seeded from `appState.duplicatePlanID`.
+        Window("Duplicate Backup Plan", id: WindowID.duplicatePlan) {
+            WizardWindowView(isDuplicate: true)
                 .environment(appState)
         }
         .windowResizability(.contentSize)

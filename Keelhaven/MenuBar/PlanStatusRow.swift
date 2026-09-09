@@ -171,6 +171,16 @@ struct PlanStatusRow: View {
             openWindow(id: WindowID.editPlan)
             NSApp.activate(ignoringOtherApps: true)
         }
+        // New plan with this one's folders, schedule, excludes, retention and
+        // verification — only the destination (and password) need deciding
+        // (issue #62). Opening the seeded wizard window beats inventing a
+        // destination form here: the wizard already owns every destination
+        // type, its conflict rules and the connect-to-existing flow.
+        Button("Duplicate Plan…") {
+            appState.duplicatePlanID = plan.id
+            openWindow(id: WindowID.duplicatePlan)
+            NSApp.activate(ignoringOtherApps: true)
+        }
         Button("Rename…") {
             promptRename()
         }
