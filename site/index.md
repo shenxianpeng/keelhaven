@@ -195,6 +195,16 @@ Nice scope — restic plus a menu bar UI is exactly the missing piece, and keepi
 No Dock icon, no main window. Pick the folders, the storage and the schedule, and it runs quietly in the background, speaking up only when something fails. The password is kept in the macOS Keychain, and it writes a standard restic repository, so you can restore from the restic command line without this app.
 
 </VoiceCard>
+<VoiceCard name="An_yhl" handle="@An_yhl" source="X" href="https://x.com/An_yhl/status/2096486139725070835" note="translated from Chinese">
+
+A backup tool in the menu bar really is less to think about. Worth a look if you already use restic.
+
+</VoiceCard>
+<VoiceCard name="小众软件" handle="@appinn" source="X" href="https://x.com/appinn/status/2096408933376065669" note="translated from Chinese">
+
+Keelhaven: a restic backup tool for the macOS menu bar. Free and open source.
+
+</VoiceCard>
 </div>
 
 </LandingSection>
