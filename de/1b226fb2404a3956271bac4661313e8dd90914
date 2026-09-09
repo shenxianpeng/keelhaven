@@ -1,0 +1,27 @@
+.github/dependabot.yml
+  s_cabc8227211937::t_2970b61cd05646 1-9
+Scripts/deploy-site.sh
+  s_cabc8227211937::t_605ae32001e532 44
+Makefile
+  s_cabc8227211937::t_605ae32001e532 41
+.github/workflows/release.yml
+  s_cabc8227211937::t_605ae32001e532 252
+.github/workflows/website.yml
+  s_cabc8227211937::t_605ae32001e532 88,91
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "de1b226fb2404a3956271bac4661313e8dd90914",
+  "prompts": {},
+  "sessions": {
+    "s_cabc8227211937": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "1501c7fe-cf26-405d-b498-be66d5f55b40",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
