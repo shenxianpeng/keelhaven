@@ -46,11 +46,12 @@ landing:
   # 演示动画的界面文案，取自 App 自带的简体中文本地化
   # （Keelhaven/Localizable.xcstrings），保证演示与真实应用一字不差。
   demo:
-    ariaLabel: Keelhaven 菜单栏应用执行备份的动画演示：名为「文稿」的计划备份到外置硬盘，运行时只显示一个小小的进度条，然后弹出「备份完成」通知。
+    ariaLabel: Keelhaven 菜单栏应用执行备份的动画演示：名为「文稿」的计划备份到外置硬盘，运行时先转圈等待备份引擎，随后显示一个小小的进度条和它的百分比，然后弹出「备份完成」通知。
     clock: 周一 9:41
     plan1Name: 文稿
     plan1Sched: 每天 9:00
     plan1StatusIdle: 2 小时前完成备份
+    plan1StatusStarting: 正在备份…
     plan1StatusDone: 1 秒钟前完成备份
     plan2Name: 照片
     plan2Sched: 每小时
@@ -108,7 +109,8 @@ const releases = computed(
 <LandingSection id="tour" eyebrow="00 · 看一眼" title="一个菜单栏图标，就是整个应用。">
 
 <!-- MenuBarDemo 是弹窗界面的动画复刻，按 SwiftUI 源码绘制而非截图，
-     保证展示的和应用实际拥有的一致——包括那个安静的、不报数字的进度条。 -->
+     保证展示的和应用实际拥有的一致——包括备份刚开始时的转圈，
+     以及 restic 报出总量之后进度条旁边的那个百分比。 -->
 <ShotFrame><MenuBarDemo /></ShotFrame>
 
 </LandingSection>

@@ -8,11 +8,12 @@ import { useData, withBase } from 'vitepress'
 // recreation honest in every language.
 const defaults = {
   ariaLabel:
-    'Animated demo of the Keelhaven menu bar app running a backup: a plan named Documents is backed up to an external drive, showing only a small progress bar while running, then a Backup complete notification.',
+    'Animated demo of the Keelhaven menu bar app running a backup: a plan named Documents is backed up to an external drive, showing a spinner while the engine starts, then a small progress bar with its percentage, then a Backup complete notification.',
   clock: 'Mon 9:41 AM',
   plan1Name: 'Documents',
-  plan1Sched: 'Daily at 9:00 AM',
+  plan1Sched: 'Every day at 9:00 AM',
   plan1StatusIdle: 'Backed up 2 hours ago',
+  plan1StatusStarting: 'Backing up…',
   plan1StatusDone: 'Backed up 1 second ago',
   plan2Name: 'Photos',
   plan2Sched: 'Every hour',
@@ -36,9 +37,10 @@ const t = computed(() => ({
   <!-- An animated recreation of the real menu bar popover, drawn from the
        SwiftUI sources (MenuBarView / PlanStatusRow) so it can't drift into
        showing UI the app doesn't have. Pure CSS, one ~12s loop: idle → the
-       cursor clicks Back Up Now → the quiet progress bar runs → done, with
-       the completion notification the app actually posts. All timing lives
-       in landing.css under .kh-demo-*. -->
+       cursor clicks Back Up Now → the spinner the app shows before restic
+       reports anything → the bar and its percentage → done, with the
+       completion notification the app actually posts. All timing lives in
+       landing.css under .kh-demo-*. -->
   <div class="kh-demo" role="img"
        :aria-label="t.ariaLabel">
 
@@ -49,8 +51,9 @@ const t = computed(() => ({
       <span class="kh-demo-mb-slot">
         <!-- design/svg/menubar.svg — the app's template glyph, verbatim -->
         <svg class="kh-demo-mb-idle" width="17" height="17" viewBox="0 0 36 36"><g fill="currentColor"><path d="M 11.8,12.4 C 12.2,8.3 14.7,5.2 18,5.2 C 21.3,5.2 23.8,8.3 24.2,12.4 Z"/><rect x="13.7" y="12.4" width="8.6" height="6.4"/><rect x="10.2" y="18.8" width="15.6" height="3.1" rx="1.3"/><path d="M 13.9,21.9 h 8.2 C 22.6,25.2 23.4,28.2 24.2,30.4 h -12.4 C 12.6,28.2 13.4,25.2 13.9,21.9 Z"/><rect x="8.6" y="30.1" width="18.8" height="3.4" rx="1.5"/></g></svg>
-        <!-- arrow.triangle.2.circlepath stand-in while a backup runs -->
-        <svg class="kh-demo-mb-busy" width="17" height="17" viewBox="0 0 24 24"><g class="kh-demo-mb-busy-spin" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M 20 12 A 8 8 0 1 1 12 4"/><path d="M 8.6 1.6 L 12.6 4.1 L 9.6 7.6"/></g></svg>
+        <!-- arrow.triangle.2.circlepath stand-in while a backup runs. Still,
+             like the symbol the app swaps in: it changes, it doesn't spin. -->
+        <svg class="kh-demo-mb-busy" width="17" height="17" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M 20 12 A 8 8 0 1 1 12 4"/><path d="M 8.6 1.6 L 12.6 4.1 L 9.6 7.6"/></g></svg>
       </span>
       <span class="kh-demo-mb-clock">{{ t.clock }}</span>
     </div>
@@ -83,7 +86,38 @@ const t = computed(() => ({
           <div class="kh-demo-statusline">
             <span class="kh-demo-status kh-demo-status-idle">{{ t.plan1StatusIdle }}</span>
             <span class="kh-demo-status kh-demo-status-done">{{ t.plan1StatusDone }}</span>
-            <span class="kh-demo-progress"><span class="kh-demo-progress-fill"></span></span>
+            <!-- Where every run starts. `runBackup` sets the row running
+                 before restic has said anything, and restic reports nothing
+                 until it has measured something to divide by — so there is
+                 no percentage yet, and the app says so with a spinner and
+                 this caption rather than a bar sitting at zero. A short
+                 incremental run never gets past this state. -->
+            <span class="kh-demo-starting">
+              <!-- The indeterminate spinner, spokes and all, as ProgressView()
+                   draws it at .controlSize(.small). -->
+              <svg class="kh-demo-spinner" width="13" height="13" viewBox="0 0 16 16"
+                   fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round">
+                <g class="kh-demo-spinner-spokes">
+                  <path d="M8 1.7V4.3" opacity="1"/>
+                  <path d="M8 1.7V4.3" opacity="0.88" transform="rotate(45 8 8)"/>
+                  <path d="M8 1.7V4.3" opacity="0.76" transform="rotate(90 8 8)"/>
+                  <path d="M8 1.7V4.3" opacity="0.64" transform="rotate(135 8 8)"/>
+                  <path d="M8 1.7V4.3" opacity="0.52" transform="rotate(180 8 8)"/>
+                  <path d="M8 1.7V4.3" opacity="0.4" transform="rotate(225 8 8)"/>
+                  <path d="M8 1.7V4.3" opacity="0.28" transform="rotate(270 8 8)"/>
+                  <path d="M8 1.7V4.3" opacity="0.16" transform="rotate(315 8 8)"/>
+                </g>
+              </svg>
+              {{ t.plan1StatusStarting }}
+            </span>
+            <!-- Once restic can divide bytes done by bytes to do, the bar and
+                 the number it stands for share a line, as they do in
+                 PlanStatusRow: a determinate bar that never says how far
+                 along it is leaves the reader guessing. -->
+            <span class="kh-demo-running">
+              <span class="kh-demo-progress"><span class="kh-demo-progress-fill"></span></span>
+              <span class="kh-demo-pct"></span>
+            </span>
           </div>
         </div>
       </div>

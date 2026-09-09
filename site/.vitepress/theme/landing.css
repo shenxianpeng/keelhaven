@@ -868,11 +868,16 @@ body:has(.kh-landing) .VPLocalNav {
 /* ---------------------------------------------------------------- demo --
    MenuBarDemo.vue — an animated recreation of the menu bar popover, kept
    faithful to Keelhaven/MenuBar/*.swift: Apple system colors for the status
-   dot and progress bar, no percentage text while running (the app shows
-   none), the real strings. One 12s loop; every element animates on the same
-   12s clock so the choreography reads as percentages of that loop:
-     0–20%  idle           21.5%  click Back Up Now
-     24–74% backup runs    76–91% done + notification
+   dot and progress bar, the percentage the app prints beside the bar, the
+   real strings. The running row is shown in both of the states the code can
+   produce, in the order it produces them: the spinner while restic has yet
+   to report anything (all a short incremental run ever shows), then the bar
+   and its percentage once there is a total to divide by. One 12s loop; every
+   element animates on the same 12s clock so the choreography reads as
+   percentages of that loop:
+     0–20%  idle              21.5%  click Back Up Now
+     24–32% engine starting   33–74% backup runs with a percentage
+     76–91% done + notification
      92–96% crossfade back to the idle frame for a clean loop seam.
    Colors here are macOS chrome, not brand tokens — the popover must look
    like the Mac app, not like the website. The frame around it stays brand. */
@@ -919,10 +924,6 @@ body:has(.kh-landing) .VPLocalNav {
 }
 .kh-landing .kh-demo-mb-idle { animation: kh-demo-mb-idle 12s infinite; }
 .kh-landing .kh-demo-mb-busy { opacity: 0; animation: kh-demo-mb-busy 12s infinite; }
-.kh-landing .kh-demo-mb-busy-spin {
-  transform-origin: 12px 12px;
-  animation: kh-demo-spin 1.4s linear infinite;
-}
 @keyframes kh-demo-mb-idle {
   0%, 22% { opacity: 1; }
   24%, 74% { opacity: 0; }
@@ -1068,22 +1069,57 @@ body:has(.kh-landing) .VPLocalNav {
   76%, 91% { opacity: 1; }
   95%, 100% { opacity: 0; }
 }
-.kh-landing .kh-demo-progress {
+/* The first thing a run shows: a spinner and a caption, because restic has
+   reported nothing yet and a bar would have to sit at zero to pretend
+   otherwise. It holds for about a second here; in a short incremental run,
+   where restic finishes before it ever reports a total, it is the whole of
+   what the row shows. */
+.kh-landing .kh-demo-starting {
   position: absolute;
-  left: 0;
-  right: 0;
-  top: 6px;
-  height: 4px;
-  border-radius: 2px;
-  background: rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: rgba(60, 60, 67, 0.6);
+  opacity: 0;
+  animation: kh-demo-starting 12s infinite;
+}
+@keyframes kh-demo-starting {
+  0%, 23% { opacity: 0; }
+  24.5%, 31% { opacity: 1; }
+  32.5%, 100% { opacity: 0; }
+}
+.kh-landing .kh-demo-spinner { flex: none; }
+/* Eight spokes stepped round, not swept: the macOS spinner ticks. */
+.kh-landing .kh-demo-spinner-spokes {
+  transform-origin: 8px 8px;
+  animation: kh-demo-spin 0.9s steps(8) infinite;
+}
+
+/* Then the bar and its percentage, one line, as in PlanStatusRow: the row
+   carries the number the bar stands for rather than leaving the bar to
+   speak for itself. The line as a whole fades in and out; the bar and the
+   number animate inside it. */
+.kh-landing .kh-demo-running {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
   opacity: 0;
   animation: kh-demo-progress 12s infinite;
 }
 @keyframes kh-demo-progress {
-  0%, 23% { opacity: 0; }
-  24.5%, 74% { opacity: 1; }
+  0%, 31.5% { opacity: 0; }
+  33%, 74% { opacity: 1; }
   75.5%, 100% { opacity: 0; }
+}
+.kh-landing .kh-demo-progress {
+  flex: 1;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.1);
+  overflow: hidden;
 }
 .kh-landing .kh-demo-progress-fill {
   display: block;
@@ -1096,15 +1132,50 @@ body:has(.kh-landing) .VPLocalNav {
 /* Uneven steps on purpose — real backups scan, stall on a big file, then
    sprint. A linear sweep reads as fake. */
 @keyframes kh-demo-fill {
-  0%, 24% { width: 0; }
-  30% { width: 21%; }
-  38% { width: 36%; }
-  46% { width: 41%; }
-  56% { width: 68%; }
-  64% { width: 87%; }
+  0%, 33% { width: 0; }
+  38% { width: 21%; }
+  44% { width: 36%; }
+  50% { width: 41%; }
+  58% { width: 68%; }
+  65% { width: 87%; }
   71% { width: 96%; }
   74%, 90% { width: 100%; }
   91%, 100% { width: 0; }
+}
+
+/* The number is driven by one custom property counted out through a CSS
+   counter, on the same keyframes as the fill above — so the digits and the
+   bar can't drift apart the way two hand-written timelines would. Registering
+   it lets the count run smoothly between steps; where @property is not
+   understood the property still animates, just stepping between them. */
+@property --kh-demo-pct {
+  syntax: '<integer>';
+  initial-value: 0;
+  inherits: false;
+}
+.kh-landing .kh-demo-pct {
+  font-size: 13px;
+  color: rgba(60, 60, 67, 0.6);
+  font-variant-numeric: tabular-nums;
+  animation: kh-demo-pct 12s infinite;
+  /* The counter is reset here rather than on ::after: the property is
+     registered as non-inheriting, so the pseudo-element would read the
+     initial 0 instead of whatever the animation currently holds. */
+  counter-reset: kh-demo-pct var(--kh-demo-pct);
+}
+.kh-landing .kh-demo-pct::after {
+  content: counter(kh-demo-pct) '%';
+}
+@keyframes kh-demo-pct {
+  0%, 33% { --kh-demo-pct: 0; }
+  38% { --kh-demo-pct: 21; }
+  44% { --kh-demo-pct: 36; }
+  50% { --kh-demo-pct: 41; }
+  58% { --kh-demo-pct: 68; }
+  65% { --kh-demo-pct: 87; }
+  71% { --kh-demo-pct: 96; }
+  74%, 90% { --kh-demo-pct: 100; }
+  91%, 100% { --kh-demo-pct: 0; }
 }
 
 /* --- footer rows -------------------------------------------------------- */
