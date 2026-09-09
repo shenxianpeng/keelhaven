@@ -96,7 +96,10 @@ final class ResticRunnerProcessTests: XCTestCase {
             destination: destination, credentials: credentials
         )
         do {
-            for try await _ in stream {}
+            for try await _ in stream {
+                // Nothing to consume: launching the missing binary must throw
+                // binaryNotFound on the first iteration.
+            }
             XCTFail("Expected binaryNotFound")
         } catch let error as ResticError {
             XCTAssertEqual(error, .binaryNotFound)
@@ -152,7 +155,11 @@ final class ResticRunnerProcessTests: XCTestCase {
                     // Got the first event; cancel from within.
                     withUnsafeCurrentTask { $0?.cancel() }
                 }
-            } catch {}
+            } catch {
+                // Cancelling the consumer ends the stream in an error on
+                // purpose — the events seen before the cancel are what this
+                // test asserts.
+            }
             return count
         }
 
@@ -191,7 +198,10 @@ final class ResticRunnerProcessTests: XCTestCase {
                     count += 1
                     withUnsafeCurrentTask { $0?.cancel() }
                 }
-            } catch {}
+            } catch {
+                // The SIGINT-immune child only unwinds via task cancellation,
+                // so the error that ends the stream is expected, not a failure.
+            }
             return count
         }
 

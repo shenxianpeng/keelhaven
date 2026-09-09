@@ -197,7 +197,10 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off, options: .off),
             destination: destination,
             credentials: credentials
-        ) {}
+        ) {
+            // Draining is the point: the backup must finish cleanly so the
+            // lock is released before the kill test below.
+        }
 
         let holder = Process()
         holder.executableURL = binary
@@ -257,7 +260,10 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off, options: .off),
             destination: destination,
             credentials: credentials
-        ) {}
+        ) {
+            // Draining is the point: a full run proves the repo still accepts
+            // writes while the SIGKILLed process's lock is left behind.
+        }
 
         // Retention is not: exclusive lock, so exit code 11.
         do {
@@ -855,7 +861,10 @@ final class ResticRunnerIntegrationTests: XCTestCase {
                 destination: destination,
                 credentials: credentials
             )
-            for try await _ in stream {}
+            for try await _ in stream {
+                // Drain each run fully before the next revision overwrites the
+                // source file — the five snapshots must stay distinct.
+            }
         }
 
         func snapshotCount() async throws -> Int {
