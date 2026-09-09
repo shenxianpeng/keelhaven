@@ -464,6 +464,16 @@
         }
       }
     },
+    "Backup preview running": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份预览进行中"
+          }
+        }
+      }
+    },
     "Backup running": {
       "localizations": {
         "zh-Hans": {

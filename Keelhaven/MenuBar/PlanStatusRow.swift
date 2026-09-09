@@ -21,12 +21,30 @@ struct PlanStatusRow: View {
         }
     }
 
+    /// The dot is blue for anything in flight, but only one of those things
+    /// is a backup. Saying "Backup running" during a preview would tell a
+    /// VoiceOver user that data is being written when a dry run writes
+    /// nothing — the one claim this feature must never make (issue #43).
+    /// The other three in-flight states were reading as backups too.
     private var statusAccessibilityLabel: String {
-        switch plan.health(runState: runState) {
-        case .running: return String(localized: "Backup running")
-        case .ok: return String(localized: "Backed up")
-        case .neverBackedUp: return String(localized: "Not backed up yet")
-        case .needsAttention: return String(localized: "Last backup failed")
+        switch runState {
+        case .running:
+            return String(localized: "Backup running")
+        case .previewing:
+            return String(localized: "Backup preview running")
+        case .checking:
+            return String(localized: "Backup verification running")
+        case .pruning:
+            return String(localized: "Retention cleanup running")
+        case .unlocking:
+            return String(localized: "Unlocking repository")
+        case .idle, .succeeded, .failed, .failedLocked:
+            switch plan.health(runState: runState) {
+            case .running: return String(localized: "Backup running")
+            case .ok: return String(localized: "Backed up")
+            case .neverBackedUp: return String(localized: "Not backed up yet")
+            case .needsAttention: return String(localized: "Last backup failed")
+            }
         }
     }
 
