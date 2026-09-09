@@ -29,18 +29,20 @@ trap cleanup EXIT
 
 # The site mirrors each release's DMG next to a small manifest. Read the
 # manifest for the download URL; if the site is unreachable fall back to
-# the GitHub release the mirror was made from.
-DMG_URL=$(curl -fsSL "$MANIFEST" 2>/dev/null \
+# the GitHub release the mirror was made from. Every fetch pins the scheme
+# with --proto "=https", so a redirect can't quietly downgrade the transfer
+# to plain HTTP and hand the installer a rewritten DMG.
+DMG_URL=$(curl --proto "=https" -fsSL "$MANIFEST" 2>/dev/null \
     | sed -n 's/.*"dmgURL": *"\([^"]*\)".*/\1/p' || true)
 if [ -z "$DMG_URL" ]; then
-    DMG_URL=$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
+    DMG_URL=$(curl --proto "=https" -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
         | sed -n 's/.*"browser_download_url": *"\([^"]*\.dmg\)".*/\1/p' | head -1) \
         || true
 fi
 [ -n "$DMG_URL" ] || fail "could not find the latest release. Download it from https://keelhaven.app instead."
 
 echo "Downloading ${DMG_URL##*/}..."
-curl -fL --progress-bar "$DMG_URL" -o "$TMP/Keelhaven.dmg"
+curl --proto "=https" -fL --progress-bar "$DMG_URL" -o "$TMP/Keelhaven.dmg"
 
 MOUNT=$(hdiutil attach "$TMP/Keelhaven.dmg" -nobrowse -readonly \
     | sed -n 's/.*\(\/Volumes\/.*\)/\1/p' | tail -1)

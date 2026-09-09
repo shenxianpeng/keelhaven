@@ -86,7 +86,7 @@ start_minio() {
         local arch os
         arch="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')"
         os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-        curl -fsSL -o "$WORK/minio" "https://dl.min.io/server/minio/release/${os}-${arch}/minio"
+        curl --proto "=https" -fsSL -o "$WORK/minio" "https://dl.min.io/server/minio/release/${os}-${arch}/minio"
         chmod +x "$WORK/minio"
         minio_bin="$WORK/minio"
     fi
