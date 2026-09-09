@@ -68,7 +68,7 @@ const releases = computed(
     <span>macOS 14+</span>
     <span>Free &amp; open source</span>
     <span>No telemetry</span>
-    <span>Restores with open tools</span>
+    <span>Restore from the menu bar</span>
   </p>
   <div class="kh-hero-actions">
     <CommandBlock
@@ -110,9 +110,9 @@ Lives in the menu bar — no Dock icon, no windows to manage. Set a schedule onc
 </div>
 <div class="kh-feature">
 
-### No lock-in
+### Restore, with or without it
 
-Backups are written in a standard, open format — restorable with free open-source tools on any machine, with or without Keelhaven.
+Pick a point in time in the menu bar and Keelhaven puts the files back in a new folder, overwriting nothing. The backups are a standard restic repository too, so the same snapshots restore with free open-source tools on any machine.
 
 </div>
 <div class="kh-feature">
@@ -225,6 +225,15 @@ Nothing is wrong — beta builds aren't notarised with Apple yet, so macOS shows
 No — run both. Time Machine is excellent at putting a whole Mac back the way it was, from a drive on your desk. Keelhaven is for the second copy: the folders you can't lose, encrypted, somewhere that isn't your desk.
 
 </FaqItem>
+<FaqItem question="How do I get my files back?">
+
+The plan's **⋯** menu has **Restore…** — it lists every snapshot that plan has taken (date, number of files, size, newest first), and you pick the point in time you want and where to put it. It restores into a new folder named for the plan and the moment, so nothing you have now is overwritten and a restore can never cost you the version you're standing on.
+
+It restores a whole snapshot rather than letting you open one up and pull a single file out — take what you need from the restored folder afterwards. Browsing inside a snapshot is on the list, not in the app yet.
+
+None of it depends on Keelhaven being there: the repository is standard restic, so `restic restore` from any Mac or Linux box does the same job.
+
+</FaqItem>
 <FaqItem question="It's free — what's the catch?">
 
 There isn't one. Keelhaven's backup engine is [restic](https://restic.net) — free, open source, and excellent — and Keelhaven adds everything a command-line tool deliberately leaves to you: a schedule that actually runs, passwords held in the macOS Keychain and never written to disk or logs, and a menu bar that stays quiet until something needs you. There are no servers to pay for and no company behind it, and the whole thing is open source — it doesn't need a business model to stay alive. If it earns a place on your Mac, telling a friend is all the support it needs.
@@ -261,7 +270,11 @@ Expect the space to come back over the next day or two rather than straight away
 </FaqItem>
 <FaqItem question="Do backups grow forever?">
 
-Only if you leave retention off — which is the default, because deleting your data is never something Keelhaven decides on its own. Every run adds a deduplicated snapshot, storing only what changed. When a plan should stop growing, pick a retention preset in Edit Plan — a year of history or a month of history — and older snapshots are thinned to daily, weekly and monthly keepers, with the space reclaimed after a backup at most once a week. The repository stays standard restic throughout, so `restic forget --prune` with a policy of your own still works from any machine.
+Only if you leave retention off — which is the default, because deleting your data is never something Keelhaven decides on its own. Every run adds a deduplicated snapshot, storing only what changed.
+
+When a plan should stop growing, **Edit Plan → Retention** has three ways to stop it. *A year of history* and *a month of history* thin older snapshots down to daily, weekly and monthly keepers, so the further back you go the sparser it gets. *Keep a set number of backups* is blunter and easier to reason about: the last N runs survive and everything older goes, however recent it is — a burst of backups in one afternoon can push out the whole of last month, which is the trade you're making when you pick it.
+
+Either way the space is reclaimed after a backup, at most once a week. The repository stays standard restic throughout, so `restic forget --prune` with a policy of your own still works from any machine.
 
 </FaqItem>
 <FaqItem question="A backup is eating my whole upload. Can I slow it down?">
