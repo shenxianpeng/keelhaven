@@ -1,0 +1,25 @@
+site/index.md
+  s_d47267be473b6e::t_808c4d7e617aee 220
+  s_d47267be473b6e::t_b5885cc655258c 71,113,115,217-219,221-225,263-267
+site/zh/index.md
+  s_d47267be473b6e::t_1ce67a5d8376d4 287
+  s_d47267be473b6e::t_762b5fd4c926d7 242
+  s_d47267be473b6e::t_52099d103103e2 92,135,137,239-241,243-247,285-286,289
+  s_d47267be473b6e::t_5d5356d67d1d1b 288
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.2",
+  "base_commit_sha": "e25861bc137a95a02e6fe861d03cfb8f4b37646e",
+  "prompts": {},
+  "sessions": {
+    "s_d47267be473b6e": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "a2ed8dcc-3e31-4dee-ac17-7375a53f8270",
+        "model": "claude-opus-5"
+      },
+      "human_author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
