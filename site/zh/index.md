@@ -212,6 +212,16 @@ Beta 版还没做 Apple 公证，第一次打开要多点一次确认，[下面�
 无 Dock 图标，没有主窗口。选定文件夹、备份存储介质、定时策略，后台静默执行，出错才推送通知。密码仅保存在 macOS 钥匙串，生成标准 restic 仓库，脱离本软件也能用 restic 命令行恢复。
 
 </VoiceCard>
+<VoiceCard name="An_yhl" handle="@An_yhl" source="X" href="https://x.com/An_yhl/status/2096486139725070835">
+
+菜单栏备份工具确实省心，restic 用户可以试试
+
+</VoiceCard>
+<VoiceCard name="小众软件" handle="@appinn" source="X" href="https://x.com/appinn/status/2096408933376065669">
+
+Keelhaven：macOS 菜单栏的 restic 备份工具，免费开源
+
+</VoiceCard>
 <VoiceCard name="mao mao" handle="@maomao000211" source="X" href="https://x.com/maomao000211/status/2095382774874267938" note="译自英文">
 
 思路很对，restic 配上菜单栏界面，正好补上了缺的那一块。仓库保持标准格式，用户就不会被你的软件绑住。不要账号、不做遥测，光这一条就够说服不少人了。
