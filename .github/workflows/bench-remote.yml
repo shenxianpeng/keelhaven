@@ -65,12 +65,18 @@ jobs:
           ./Scripts/bench-remote-ls.sh 2>&1 | tee "$RUNNER_TEMP/bench.txt"
       - name: Publish results to the run summary
         if: always()
+        # Same reason the step above passes the inputs as env: whoever clicks
+        # Run types these, and `${{ inputs.x }}` inlined here would be spliced
+        # into the script itself rather than read as a value.
+        env:
+          BENCH_FILES: ${{ inputs.files }}
+          BENCH_RTTS: ${{ inputs.rtts }}
         run: |
           {
             echo "## restic ls latency"
             echo
             echo "restic: \`$(restic version)\`"
-            echo "dataset: ${{ inputs.files }} files · rtts: ${{ inputs.rtts }} ms"
+            echo "dataset: $BENCH_FILES files · rtts: $BENCH_RTTS ms"
             echo
             echo '```'
             # Strip the bold escape sequences the script prints for terminals.

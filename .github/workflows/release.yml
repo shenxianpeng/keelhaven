@@ -61,9 +61,14 @@ jobs:
 
       - name: Resolve version
         id: version
+        # inputs.version is free text typed by whoever clicked Run, so it
+        # arrives as an env value rather than inlined into the script — the
+        # regex below is what makes it trustworthy for every later step.
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
         run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            VERSION="${{ inputs.version }}"
+          if [ "$GITHUB_EVENT_NAME" = "workflow_dispatch" ]; then
+            VERSION="$INPUT_VERSION"
           else
             VERSION="${GITHUB_REF_NAME#v}"
           fi
@@ -153,7 +158,15 @@ jobs:
             echo "flags=" >> "$GITHUB_OUTPUT"
           fi
 
+      # The team ID is a secret, so it reaches xcodebuild through the
+      # environment rather than being pasted into the command line — the same
+      # rule the app itself follows for restic's credentials.
       - name: Build Release
+        env:
+          SIGN_IDENTITY: ${{ steps.signing.outputs.identity }}
+          SIGN_FLAGS: ${{ steps.signing.outputs.flags }}
+          TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          VERSION: ${{ steps.version.outputs.version }}
         run: >
           xcodebuild
           -project Keelhaven.xcodeproj
@@ -162,11 +175,11 @@ jobs:
           -derivedDataPath build
           build
           CODE_SIGN_STYLE=Manual
-          CODE_SIGN_IDENTITY="${{ steps.signing.outputs.identity }}"
-          DEVELOPMENT_TEAM="${{ secrets.APPLE_TEAM_ID }}"
-          OTHER_CODE_SIGN_FLAGS="${{ steps.signing.outputs.flags }}"
-          MARKETING_VERSION=${{ steps.version.outputs.version }}
-          CURRENT_PROJECT_VERSION=${{ github.run_number }}
+          CODE_SIGN_IDENTITY="$SIGN_IDENTITY"
+          DEVELOPMENT_TEAM="$TEAM_ID"
+          OTHER_CODE_SIGN_FLAGS="$SIGN_FLAGS"
+          MARKETING_VERSION="$VERSION"
+          CURRENT_PROJECT_VERSION="$GITHUB_RUN_NUMBER"
           ARCHS="arm64 x86_64"
           ONLY_ACTIVE_ARCH=NO
 
