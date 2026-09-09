@@ -8,10 +8,12 @@ import Foundation
 /// `Int?`. These change *what gets backed up* and *whether a snapshot is
 /// written* — different question, different type (issue #46).
 ///
-/// Every field here must be a flag that leaves restic's `--json` event stream
-/// intact, since the progress UI and every run record are parsed from it.
-/// `--no-scan` is the counter-example and is deliberately not here: it holds
-/// `percent_done` at 0 for the whole run (issue #51).
+/// Every field here must be a flag the `--json` event stream survives, since
+/// the progress UI and every run record are parsed from it. The rule is not
+/// "changes nothing" but "breaks nothing the app reads": `--no-scan` drops
+/// `total_bytes` and pins `percent_done` at 0, which the row already has to
+/// tolerate and now handles explicitly (issue #51), while `--quiet` and
+/// `--verbose` change which message types arrive at all and stay ruled out.
 public struct BackupOptions: Codable, Hashable, Sendable {
     /// `--exclude-caches`: skip directories tagged with `CACHEDIR.TAG`.
     public var excludeCaches: Bool
@@ -22,6 +24,18 @@ public struct BackupOptions: Codable, Hashable, Sendable {
     /// is *mounted* underneath — on a Mac routinely an external drive or a
     /// network share sitting inside the source tree (issue #50).
     public var oneFileSystem: Bool
+    /// `--no-scan`: skip the concurrent scan that measures the sources up
+    /// front, purely so restic can report a percentage.
+    ///
+    /// The scan is a second walk of the tree running alongside the backup, so
+    /// it costs contention rather than a phase — free on an SSD, seek
+    /// contention on a spinning disk, a round trip per file on a network
+    /// share, which is the case restic added the flag for.
+    ///
+    /// Callers must handle the consequence: restic then omits `total_bytes`
+    /// from every status line and holds `percent_done` at 0, so a percentage
+    /// cannot be computed and the row falls back to how much has been copied.
+    public var noScan: Bool
     /// `--skip-if-unchanged`: write no snapshot when the content is identical
     /// to the parent snapshot.
     ///
@@ -36,10 +50,12 @@ public struct BackupOptions: Codable, Hashable, Sendable {
     public init(
         excludeCaches: Bool = false,
         oneFileSystem: Bool = false,
+        noScan: Bool = false,
         skipIfUnchanged: Bool = false
     ) {
         self.excludeCaches = excludeCaches
         self.oneFileSystem = oneFileSystem
+        self.noScan = noScan
         self.skipIfUnchanged = skipIfUnchanged
     }
 
@@ -53,13 +69,14 @@ public struct BackupOptions: Codable, Hashable, Sendable {
         self.init(
             excludeCaches: try container.decodeIfPresent(Bool.self, forKey: .excludeCaches) ?? false,
             oneFileSystem: try container.decodeIfPresent(Bool.self, forKey: .oneFileSystem) ?? false,
+            noScan: try container.decodeIfPresent(Bool.self, forKey: .noScan) ?? false,
             skipIfUnchanged: try container.decodeIfPresent(Bool.self, forKey: .skipIfUnchanged) ?? false
         )
     }
 
     /// True when restic is left entirely to its own behaviour.
     public var isDefault: Bool {
-        !excludeCaches && !oneFileSystem && !skipIfUnchanged
+        !excludeCaches && !oneFileSystem && !noScan && !skipIfUnchanged
     }
 
     /// The flags for this configuration, empty when nothing is set.
@@ -75,6 +92,9 @@ public struct BackupOptions: Codable, Hashable, Sendable {
         // a rule about what not to read — and the UI groups them together.
         if oneFileSystem {
             args.append("--one-file-system")
+        }
+        if noScan {
+            args.append("--no-scan")
         }
         if skipIfUnchanged {
             args.append("--skip-if-unchanged")

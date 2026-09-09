@@ -113,6 +113,58 @@ final class ResticMessageParsingTests: XCTestCase {
         XCTAssertNil(real.dryRun)
     }
 
+    /// Unmodified `restic backup --json --no-scan` output from restic 0.19.1.
+    ///
+    /// This fixture exists to pin the exact shape the progress row has to cope
+    /// with (issue #51): `percent_done` never moves off 0 and `total_bytes` is
+    /// gone, so no percentage can be computed — but `bytes_done` keeps
+    /// climbing, which is what the row shows instead.
+    func testDecodeEveryNoScanLine() throws {
+        let lines = try fixtureLines("backup-no-scan.jsonl")
+        XCTAssertEqual(lines.count, 17)
+
+        var statusCount = 0
+        var lastBytesDone: Int64 = 0
+        var summary: BackupSummary?
+        for line in lines {
+            switch try XCTUnwrap(ResticJSON.decodeProgressEvent(fromLine: line)) {
+            case .status(let status):
+                statusCount += 1
+                XCTAssertEqual(status.percentDone, 0, "--no-scan never reports progress")
+                XCTAssertNil(status.totalBytes, "--no-scan omits the total it could not measure")
+                XCTAssertNil(status.totalFiles)
+                let bytesDone = try XCTUnwrap(status.bytesDone)
+                XCTAssertGreaterThan(bytesDone, lastBytesDone, "bytes_done must keep climbing")
+                lastBytesDone = bytesDone
+            case .summary(let value):
+                summary = value
+            }
+        }
+        XCTAssertEqual(statusCount, 16)
+
+        // The summary is untouched, which is why the run record, the
+        // notification and the history are unaffected by the option.
+        let final = try XCTUnwrap(summary)
+        XCTAssertEqual(final.filesNew, 2500)
+        XCTAssertEqual(final.dataAdded, 751_137_658)
+        XCTAssertNotNil(final.snapshotID)
+        XCTAssertNil(final.dryRun)
+    }
+
+    /// The contrast that makes the fallback necessary: an ordinary backup
+    /// reports both the total and a moving percentage.
+    func testAnOrdinaryBackupReportsTheTotalNoScanOmits() throws {
+        let lines = try fixtureLines("backup-progress.jsonl")
+        var sawTotal = false
+        for line in lines {
+            if case .status(let status)? = ResticJSON.decodeProgressEvent(fromLine: line),
+               status.totalBytes != nil {
+                sawTotal = true
+            }
+        }
+        XCTAssertTrue(sawTotal, "A scanned backup must carry the total a --no-scan run lacks")
+    }
+
     func testDecodeEveryBackupProgressLine() throws {
         let lines = try fixtureLines("backup-progress.jsonl")
         XCTAssertEqual(lines.count, 10)

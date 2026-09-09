@@ -1,6 +1,16 @@
 {
   "sourceLanguage": "en",
   "strings": {
+    "%@ backed up so far": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已备份 %@"
+          }
+        }
+      }
+    },
     "%@ finished successfully.": {
       "localizations": {
         "zh-Hans": {
@@ -484,6 +494,16 @@
         }
       }
     },
+    "Backup running, %@ so far": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "备份进行中，已备份 %@"
+          }
+        }
+      }
+    },
     "Backup verification failed": {
       "localizations": {
         "zh-Hans": {
@@ -890,6 +910,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "不要备份挂载在这些文件夹里的其它磁盘"
+          }
+        }
+      }
+    },
+    "Don't measure the backup first": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不要先测量备份大小"
           }
         }
       }
@@ -2579,6 +2609,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "restic 许可证（BSD 2-Clause）"
+          }
+        }
+      }
+    },
+    "restic normally walks your folders a second time to work out how big the backup will be. Skipping that can help on a slow disk or a network share — but then the progress can only show how much has been copied, not how far along it is.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "restic 通常会再遍历一遍你的文件夹，算出这次备份有多大。跳过这一步在慢速磁盘或网络共享上会更快——但之后进度只能显示已经复制了多少，无法显示进行到了哪一步。"
           }
         }
       }

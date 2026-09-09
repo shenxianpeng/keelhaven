@@ -338,6 +338,12 @@ struct PlanStatusRow: View {
         }
     }
 
+    /// Same formatter the completion notification uses, so "48 MB" in the
+    /// row and "48 MB" in the notification never disagree.
+    private static func formatted(_ bytes: Int64) -> String {
+        ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+
     /// Secondary, not orange or red: nothing is wrong. The plan checked, the
     /// folders were identical to the last snapshot, and nothing needed
     /// storing — which is the whole point of the option.
@@ -388,11 +394,33 @@ struct PlanStatusRow: View {
     @ViewBuilder
     private var statusLine: some View {
         switch runState {
-        case .running(let progress):
-            ProgressView(value: progress)
-                .controlSize(.small)
+        case .running(let progress, let bytesDone):
+            if let progress {
+                ProgressView(value: progress)
+                    .controlSize(.small)
+                    .padding(.top, 2)
+                    .accessibilityLabel(String(localized: "Backup \(Int(progress * 100)) percent done"))
+            } else {
+                // No percentage to show — `--no-scan` means restic never
+                // measured the sources (issue #51). The bar spins and the
+                // amount copied stands in for it, which is the honest answer
+                // rather than a bar frozen at zero.
+                VStack(alignment: .leading, spacing: 4) {
+                    if let bytesDone {
+                        Text("\(Self.formatted(bytesDone)) backed up so far")
+                            .font(.callout)
+                            .foregroundStyle(.secondary)
+                    }
+                    ProgressView()
+                        .controlSize(.small)
+                }
                 .padding(.top, 2)
-                .accessibilityLabel(String(localized: "Backup \(Int(progress * 100)) percent done"))
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(
+                    bytesDone.map { String(localized: "Backup running, \(Self.formatted($0)) so far") }
+                        ?? String(localized: "Backup running")
+                )
+            }
         case .previewing(let progress):
             // Deliberately not a bare progress bar like `.running`: the two
             // would be indistinguishable, and someone glancing at the panel
@@ -401,11 +429,19 @@ struct PlanStatusRow: View {
                 Text("Previewing what would be backed up…")
                     .font(.callout)
                     .foregroundStyle(.secondary)
-                ProgressView(value: progress)
-                    .controlSize(.small)
+                if let progress {
+                    ProgressView(value: progress)
+                        .controlSize(.small)
+                } else {
+                    ProgressView()
+                        .controlSize(.small)
+                }
             }
             .accessibilityElement(children: .ignore)
-            .accessibilityLabel(String(localized: "Backup preview \(Int(progress * 100)) percent done"))
+            .accessibilityLabel(
+                progress.map { String(localized: "Backup preview \(Int($0 * 100)) percent done") }
+                    ?? String(localized: "Backup preview running")
+            )
         case .checking:
             HStack(spacing: 6) {
                 ProgressView()

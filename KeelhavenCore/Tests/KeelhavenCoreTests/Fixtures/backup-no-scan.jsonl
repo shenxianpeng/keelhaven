@@ -1,0 +1,17 @@
+{"message_type":"status","percent_done":0,"files_done":194,"bytes_done":58500000,"current_files":["/ns/src/f0195.bin","/ns/src/f0196.bin"]}
+{"message_type":"status","percent_done":0,"files_done":293,"bytes_done":90300000,"current_files":["/ns/src/f0299.bin","/ns/src/f0301.bin"]}
+{"message_type":"status","percent_done":0,"files_done":491,"bytes_done":147900000,"current_files":["/ns/src/f0493.bin","/ns/src/f0494.bin"]}
+{"message_type":"status","percent_done":0,"files_done":637,"bytes_done":193500000,"current_files":["/ns/src/f0645.bin","/ns/src/f0646.bin"]}
+{"message_type":"status","percent_done":0,"files_done":815,"bytes_done":244800000,"current_files":["/ns/src/f0816.bin","/ns/src/f0817.bin"]}
+{"message_type":"status","percent_done":0,"files_done":969,"bytes_done":292200000,"current_files":["/ns/src/f0970.bin","/ns/src/f0973.bin"]}
+{"message_type":"status","percent_done":0,"files_done":1149,"bytes_done":345900000,"current_files":["/ns/src/f1153.bin"]}
+{"message_type":"status","percent_done":0,"files_done":1301,"bytes_done":391800000,"current_files":["/ns/src/f1303.bin","/ns/src/f1305.bin"]}
+{"message_type":"status","percent_done":0,"files_done":1466,"bytes_done":442200000,"current_files":["/ns/src/f1474.bin","/ns/src/f1475.bin"]}
+{"message_type":"status","seconds_elapsed":1,"percent_done":0,"files_done":1601,"bytes_done":481800000,"current_files":["/ns/src/f1606.bin","/ns/src/f1607.bin"]}
+{"message_type":"status","seconds_elapsed":1,"percent_done":0,"files_done":1780,"bytes_done":534900000,"current_files":["/ns/src/f1783.bin","/ns/src/f1784.bin"]}
+{"message_type":"status","seconds_elapsed":1,"percent_done":0,"files_done":1934,"bytes_done":582600000,"current_files":["/ns/src/f1942.bin","/ns/src/f1943.bin"]}
+{"message_type":"status","seconds_elapsed":1,"percent_done":0,"files_done":2086,"bytes_done":628200000,"current_files":["/ns/src/f2094.bin","/ns/src/f2095.bin"]}
+{"message_type":"status","seconds_elapsed":1,"percent_done":0,"files_done":2262,"bytes_done":679500000,"current_files":["/ns/src/f2265.bin"]}
+{"message_type":"status","seconds_elapsed":1,"percent_done":0,"files_done":2446,"bytes_done":735000000,"current_files":["/ns/src/f2450.bin","/ns/src/f2451.bin"]}
+{"message_type":"status","seconds_elapsed":1,"percent_done":0,"files_done":2500,"bytes_done":750000000}
+{"message_type":"summary","files_new":2500,"files_changed":0,"files_unmodified":0,"dirs_new":2,"dirs_changed":0,"dirs_unmodified":0,"data_blobs":2500,"tree_blobs":3,"data_added":751137658,"data_added_packed":750369607,"total_files_processed":2500,"total_bytes_processed":750000000,"total_duration":2.2957895,"backup_start":"2026-09-09T08:19:27.06902+03:00","backup_end":"2026-09-09T08:19:29.364792+03:00","snapshot_id":"25a086702a091207b2ba95d075a59018c204923884b710832464ca456c404c64"}

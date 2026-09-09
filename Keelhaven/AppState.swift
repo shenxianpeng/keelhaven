@@ -5,11 +5,14 @@ import KeelhavenCore
 
 enum PlanRunState: Equatable {
     case idle
-    case running(progress: Double)
+    /// `progress` is nil when restic cannot say how far along it is —
+    /// `--no-scan` omits `total_bytes`, so there is nothing to divide by
+    /// (issue #51). `bytesDone` is what the row shows instead.
+    case running(progress: Double?, bytesDone: Int64?)
     case checking
     /// A dry run: restic is walking the sources to report what a backup
     /// would store, writing nothing (issue #43).
-    case previewing(progress: Double)
+    case previewing(progress: Double?)
     case pruning
     case unlocking
     case succeeded(Date)
@@ -237,6 +240,18 @@ final class AppState {
         return nil
     }
 
+    /// How far along restic says it is, or nil when it cannot say.
+    ///
+    /// Keyed on `total_bytes` rather than on the plan's `noScan` setting: that
+    /// field's absence is what actually makes a percentage uncomputable, so
+    /// the row stays honest even if restic changes when it omits it. A zero
+    /// total is treated the same way — an empty source has no percentage to
+    /// report either, and dividing by it would be worse.
+    private static func progress(from status: BackupStatusMessage) -> Double? {
+        guard let totalBytes = status.totalBytes, totalBytes > 0 else { return nil }
+        return status.percentDone
+    }
+
     // MARK: - Running backups
 
     /// True while any plan has a restic process going — a backup, a
@@ -261,7 +276,7 @@ final class AppState {
             return
         }
 
-        runStates[plan.id] = .running(progress: 0)
+        runStates[plan.id] = .running(progress: nil, bytesDone: nil)
         Task {
             await self.performBackup(plan, binaryURL: binaryURL)
         }
@@ -288,7 +303,10 @@ final class AppState {
             for try await event in stream {
                 switch event {
                 case .status(let status):
-                    runStates[plan.id] = .running(progress: status.percentDone)
+                    runStates[plan.id] = .running(
+                        progress: Self.progress(from: status),
+                        bytesDone: status.bytesDone
+                    )
                 case .summary(let value):
                     summary = value
                 }
@@ -440,7 +458,7 @@ final class AppState {
         }
 
         let stateBefore = runStates[plan.id] ?? .idle
-        runStates[plan.id] = .previewing(progress: 0)
+        runStates[plan.id] = .previewing(progress: nil)
         defer { runStates[plan.id] = stateBefore }
 
         do {
@@ -461,7 +479,7 @@ final class AppState {
             for try await event in stream {
                 switch event {
                 case .status(let status):
-                    runStates[plan.id] = .previewing(progress: status.percentDone)
+                    runStates[plan.id] = .previewing(progress: Self.progress(from: status))
                 case .summary(let value):
                     summary = value
                 }

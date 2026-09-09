@@ -122,6 +122,17 @@ final class ResticCommandTests: XCTestCase {
         XCTAssertEqual(withoutDryRun, backup.arguments)
     }
 
+    /// A preview of a `--no-scan` plan must itself be `--no-scan`: the whole
+    /// point of `previewBackup` is that it is the command that will actually
+    /// run (issue #43), and dropping the flag would preview a different one.
+    func testPreviewInheritsNoScanFromThePlan() {
+        let command = ResticCommand.previewBackup(
+            sources: ["/tmp/data"], excludes: [], tag: nil,
+            performance: .off, options: BackupOptions(noScan: true)
+        )
+        XCTAssertEqual(command.arguments, ["backup", "--json", "--dry-run", "--no-scan", "/tmp/data"])
+    }
+
     func testPreviewBackupArgumentOrder() {
         let command = ResticCommand.previewBackup(
             sources: ["/tmp/data"], excludes: [], tag: nil,
@@ -137,9 +148,11 @@ final class ResticCommandTests: XCTestCase {
         XCTAssertTrue(BackupOptions.off.isDefault)
         XCTAssertEqual(BackupOptions(excludeCaches: true).arguments, ["--exclude-caches"])
         XCTAssertEqual(BackupOptions(oneFileSystem: true).arguments, ["--one-file-system"])
+        XCTAssertEqual(BackupOptions(noScan: true).arguments, ["--no-scan"])
         XCTAssertEqual(BackupOptions(skipIfUnchanged: true).arguments, ["--skip-if-unchanged"])
         XCTAssertFalse(BackupOptions(excludeCaches: true).isDefault)
         XCTAssertFalse(BackupOptions(oneFileSystem: true).isDefault)
+        XCTAssertFalse(BackupOptions(noScan: true).isDefault)
         XCTAssertFalse(BackupOptions(skipIfUnchanged: true).isDefault)
     }
 
@@ -151,13 +164,16 @@ final class ResticCommandTests: XCTestCase {
             excludes: ["*.log"],
             tag: "keelhaven",
             performance: PerformanceOptions(packSizeMiB: 64),
-            options: BackupOptions(excludeCaches: true, oneFileSystem: true, skipIfUnchanged: true)
+            options: BackupOptions(
+                excludeCaches: true, oneFileSystem: true, noScan: true, skipIfUnchanged: true
+            )
         )
         XCTAssertEqual(command.arguments, [
             "backup", "--json",
             "--pack-size", "64",
             "--exclude-caches",
             "--one-file-system",
+            "--no-scan",
             "--skip-if-unchanged",
             "--exclude", "*.log",
             "--tag", "keelhaven",
@@ -172,6 +188,7 @@ final class ResticCommandTests: XCTestCase {
         let command = ResticCommand.forget(retention: .month, performance: .off)
         XCTAssertFalse(command.arguments.contains("--exclude-caches"))
         XCTAssertFalse(command.arguments.contains("--one-file-system"))
+        XCTAssertFalse(command.arguments.contains("--no-scan"))
         XCTAssertFalse(command.arguments.contains("--skip-if-unchanged"))
     }
 
