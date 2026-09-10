@@ -343,4 +343,96 @@ final class ResticMessageParsingTests: XCTestCase {
         XCTAssertNil(ResticJSON.decodeProgressEvent(fromLine: "not json"))
         XCTAssertNil(ResticJSON.decodeProgressEvent(fromLine: #"{"message_type":"verbose_status","action":"scan"}"#))
     }
+
+    /// Unmodified `restic backup --json` stdout from restic 0.19.1 against a
+    /// source tree holding two files with mode 000. The run ends on exit code
+    /// 3, yet this summary proves restic wrote a snapshot anyway: one file
+    /// archived, and `snapshot_id` present. That combination — a real snapshot
+    /// missing whatever could not be read — is why exit code 3 gets its own
+    /// case instead of a generic "command failed".
+    func testPermissionDeniedRunStillWritesASnapshot() throws {
+        let lines = try fixtureLines("backup-permission-denied.jsonl")
+        XCTAssertEqual(lines.count, 1)
+
+        let event = try XCTUnwrap(ResticJSON.decodeProgressEvent(fromLine: lines[0]))
+        guard case .summary(let summary) = event else {
+            return XCTFail("Expected a summary event")
+        }
+        XCTAssertEqual(summary.totalFilesProcessed, 1)
+        XCTAssertNotNil(summary.snapshotID, "restic stores what it could read, then exits 3")
+    }
+
+    /// The stderr half of the same run: one `message_type: "error"` line per
+    /// unreadable file, then the `exit_error` summary. This is the only place
+    /// restic names the files, so it is what `unreadableItems` exists for.
+    func testUnreadableItemsComeFromThePerFileErrorLines() throws {
+        let stderr = String(decoding: try fixtureData("backup-permission-denied.stderr.jsonl"), as: UTF8.self)
+
+        let items = ResticJSON.unreadableItems(inStderr: stderr)
+        XCTAssertEqual(
+            items,
+            ["/tmp/keelhaven-fixture/src/b.txt", "/tmp/keelhaven-fixture/src/sub/c.txt"],
+            "One item per unreadable file, in restic's own order"
+        )
+    }
+
+    /// The closing `exit_error` line is not an item, and a human-readable
+    /// `warning:` line (what the same run prints without `--json`) must not
+    /// turn into a phantom path either.
+    func testUnreadableItemsIgnoreEverythingThatIsNotAnErrorLine() {
+        let stderr = """
+        {"message_type":"exit_error","code":3,"message":"Warning: at least one source file could not be read"}
+        warning: open /tmp/x.txt: permission denied
+        not json at all
+        """
+        XCTAssertEqual(ResticJSON.unreadableItems(inStderr: stderr), [])
+    }
+
+    /// Some restic errors carry no `item`; the nested sentence is then the
+    /// fallback, because a caller showing nothing is worse than showing a
+    /// slightly wordy line.
+    func testUnreadableItemFallsBackToTheErrorMessage() {
+        let line = #"{"message_type":"error","error":{"message":"open /tmp/gone.txt: permission denied"}}"#
+        let error = try? ResticJSON.decoder.decode(ResticSourceErrorMessage.self, from: Data(line.utf8))
+        XCTAssertEqual(error?.unreadableItem, "open /tmp/gone.txt: permission denied")
+    }
+    func testClassifyExitCode3FromRealStderr() throws {
+        let stderr = String(decoding: try fixtureData("backup-permission-denied.stderr.jsonl"), as: UTF8.self)
+
+        let error = ResticError.classify(exitCode: 3, stderr: stderr)
+        guard case .someSourcesUnreadable(let paths, let totalUnreadable, let message) = error else {
+            return XCTFail("Expected someSourcesUnreadable, got \(error)")
+        }
+        XCTAssertEqual(paths, ["/tmp/keelhaven-fixture/src/b.txt", "/tmp/keelhaven-fixture/src/sub/c.txt"])
+        XCTAssertEqual(totalUnreadable, 2)
+        XCTAssertEqual(message, "Warning: at least one source file could not be read")
+    }
+
+    /// A denied folder yields one line per file, so the error payload is
+    /// capped — but the count stays honest, which is what the row turns into
+    /// "…and N more".
+    func testClassifyCapsReportedPathsButNotTheCount() {
+        let lines = (0..<50).map {
+            #"{"message_type":"error","error":{"message":"open /tmp/f\#($0): permission denied"},"item":"/tmp/f\#($0)"}"#
+        }
+        let stderr = lines.joined(separator: "\n")
+
+        let error = ResticError.classify(exitCode: 3, stderr: stderr)
+        guard case .someSourcesUnreadable(let paths, let totalUnreadable, _) = error else {
+            return XCTFail("Expected someSourcesUnreadable, got \(error)")
+        }
+        XCTAssertEqual(paths.count, ResticError.maxReportedUnreadablePaths)
+        XCTAssertEqual(totalUnreadable, 50)
+    }
+
+    /// Exit code 3 with nothing parseable on stderr still has to be reported
+    /// as what it is. `ResticRunnerProcessTests` covers the same shape through
+    /// a fake binary that prints a non-JSON fatal line.
+    func testClassifyExitCode3WithoutParseableItems() {
+        let error = ResticError.classify(exitCode: 3, stderr: "Fatal: something went wrong")
+        XCTAssertEqual(
+            error,
+            .someSourcesUnreadable(paths: [], totalUnreadable: 0, message: "something went wrong")
+        )
+    }
 }

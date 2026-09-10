@@ -123,11 +123,45 @@ final class ResticRunnerProcessTests: XCTestCase {
             for try await event in stream {
                 events.append(event)
             }
-            XCTFail("Expected commandFailed")
+            XCTFail("Expected someSourcesUnreadable")
         } catch let error as ResticError {
-            XCTAssertEqual(error, .commandFailed(exitCode: 3, message: "disk gone"))
+            // Exit code 3 with nothing parseable on stderr is still reported as
+            // an unreadable-source failure, just with no names to show.
+            XCTAssertEqual(
+                error,
+                .someSourcesUnreadable(paths: [], totalUnreadable: 0, message: "disk gone")
+            )
         }
         XCTAssertEqual(events.count, 1)
+    }
+
+    /// The same exit code through the real streaming path, this time with the
+    /// per-file `message_type: "error"` lines restic actually writes — the
+    /// ones the UI turns into "these files could not be read".
+    func testBackupStreamCarriesUnreadableItemsThroughFromStderr() async throws {
+        let binary = try fakeBinary(script: """
+        echo '{"message_type":"summary","files_new":0,"files_changed":0,"files_unmodified":0,"snapshot_id":"abc"}'
+        echo '{"message_type":"error","error":{"message":"open /tmp/b.txt: permission denied"},"item":"/tmp/b.txt"}' >&2
+        echo '{"message_type":"exit_error","code":3,"message":"Warning: at least one source file could not be read"}' >&2
+        exit 3
+        """)
+        let runner = ResticRunner(binaryURL: binary)
+        let stream = runner.backupStream(
+            .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off, options: .off),
+            destination: destination, credentials: credentials
+        )
+
+        do {
+            for try await _ in stream {}
+            XCTFail("Expected someSourcesUnreadable")
+        } catch let error as ResticError {
+            guard case .someSourcesUnreadable(let paths, let total, let message) = error else {
+                return XCTFail("Expected someSourcesUnreadable, got \(error)")
+            }
+            XCTAssertEqual(paths, ["/tmp/b.txt"])
+            XCTAssertEqual(total, 1)
+            XCTAssertEqual(message, "Warning: at least one source file could not be read")
+        }
     }
 
     func testBackupStreamCancellationInterruptsProcess() async throws {

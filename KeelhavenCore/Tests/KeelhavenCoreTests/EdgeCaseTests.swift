@@ -9,7 +9,8 @@ final class ResticErrorDescriptionTests: XCTestCase {
 
     /// The lock is the only failure the app offers a fix for, so every other
     /// case must stay out of that branch — a stray true would put an unlock
-    /// button on a failure unlocking cannot help.
+    /// button on a failure unlocking cannot help. That includes the
+    /// unreadable-source case, whose fix is a permission, not an unlock.
     func testOnlyRepositoryLockedIsUnlockable() {
         XCTAssertTrue(ResticError.repositoryLocked(message: "m").isRepositoryLocked)
         let others: [ResticError] = [
@@ -17,6 +18,7 @@ final class ResticErrorDescriptionTests: XCTestCase {
             .repositoryDoesNotExist(message: "m"),
             .repositoryAlreadyExists(message: "m"),
             .wrongPassword(message: "m"),
+            .someSourcesUnreadable(paths: ["/tmp/x"], totalUnreadable: 1, message: "m"),
             .commandFailed(exitCode: 3, message: "m"),
             .outputDecodingFailed(message: "m"),
         ]
@@ -32,6 +34,7 @@ final class ResticErrorDescriptionTests: XCTestCase {
             (.repositoryAlreadyExists(message: "m"), "already contains a backup repository"),
             (.repositoryLocked(message: "m"), "locked by another process"),
             (.wrongPassword(message: "m"), "password is incorrect"),
+            (.someSourcesUnreadable(paths: ["/tmp/x"], totalUnreadable: 1, message: "m"), "Full Disk Access"),
             (.commandFailed(exitCode: 3, message: "m"), "exit code 3"),
             (.outputDecodingFailed(message: "m"), "restic's output"),
         ]
@@ -42,6 +45,22 @@ final class ResticErrorDescriptionTests: XCTestCase {
                 "\(error) description missing “\(expectedFragment)”: \(description)"
             )
         }
+    }
+
+    /// The unreadable-source sentence is what survives into the run record and
+    /// the notification, so it has to name the fix rather than restate restic.
+    /// It deliberately does not quote restic's "at least one source file could
+    /// not be read", which names no file and no remedy.
+    func testUnreadableSourceDescriptionPointsAtFullDiskAccess() throws {
+        let error = ResticError.someSourcesUnreadable(
+            paths: ["/Users/someone/Documents"],
+            totalUnreadable: 1,
+            message: "Warning: at least one source file could not be read"
+        )
+        let description = try XCTUnwrap(error.errorDescription)
+        XCTAssertTrue(description.contains("Full Disk Access"))
+        XCTAssertTrue(description.contains("Privacy & Security"))
+        XCTAssertFalse(description.contains("at least one source file"))
     }
 }
 
