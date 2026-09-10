@@ -18,6 +18,16 @@ final class RestoreModel {
     var phase: Phase = .loadingSnapshots
     var snapshots: [ResticSnapshot] = []
     var selectedSnapshotID: ResticSnapshot.ID?
+    /// Snapshots a failed run left behind. restic stores what it could read and
+    /// then exits 3, so these are real points in time that are missing files —
+    /// the restore window says so instead of presenting them as ordinary ones.
+    private(set) var incompleteSnapshotIDs: Set<String> = []
+
+    /// True when the snapshot the user is about to restore is one of those.
+    var selectedSnapshotIsIncomplete: Bool {
+        guard let selectedSnapshotID else { return false }
+        return incompleteSnapshotIDs.contains(selectedSnapshotID)
+    }
 
     func loadSnapshots(appState: AppState, plan: BackupPlan) async {
         phase = .loadingSnapshots
@@ -36,6 +46,7 @@ final class RestoreModel {
             // Newest first — the most likely restore point on top.
             snapshots = loaded.sorted { $0.time > $1.time }
             selectedSnapshotID = snapshots.first?.id
+            incompleteSnapshotIDs = await appState.incompleteSnapshotIDs(for: plan.id)
             phase = .selecting
         } catch {
             phase = .failed(errorText(error))

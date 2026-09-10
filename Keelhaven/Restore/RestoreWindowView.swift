@@ -67,6 +67,20 @@ struct RestoreWindowView: View {
                         }
                         .width(90)
                     }
+                    // A snapshot restic wrote before it gave up on unreadable
+                    // files is a real point in time that is missing them.
+                    // Restoring it is still the right thing to offer — half a
+                    // backup beats none — but not silently, and not after the
+                    // button that acts on it.
+                    if model.selectedSnapshotIsIncomplete {
+                        Label(
+                            "This snapshot is incomplete: some files could not be read when it was made.",
+                            systemImage: "exclamationmark.triangle.fill"
+                        )
+                        .font(.callout)
+                        .foregroundStyle(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                    }
                     HStack {
                         Spacer()
                         Button("Cancel") { dismiss() }

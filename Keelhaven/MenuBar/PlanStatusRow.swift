@@ -38,7 +38,7 @@ struct PlanStatusRow: View {
             return String(localized: "Retention cleanup running")
         case .unlocking:
             return String(localized: "Unlocking repository")
-        case .idle, .succeeded, .failed, .failedLocked:
+        case .idle, .succeeded, .failed, .failedLocked, .failedUnreadable:
             switch plan.health(runState: runState) {
             case .running: return String(localized: "Backup running")
             case .ok: return String(localized: "Backed up")
@@ -538,6 +538,29 @@ struct PlanStatusRow: View {
                 .disabled(appState.isResticBusy || appState.resticBinaryURL == nil)
             }
             .help(message)
+        case .failedUnreadable(let paths, let totalUnreadable, let message):
+            // The one failure whose fix is a system setting rather than a
+            // retry. restic's own line ("at least one source file could not be
+            // read") names no file, so the row leads with the files and keeps
+            // restic's sentence in the tooltip.
+            VStack(alignment: .leading, spacing: 4) {
+                Text("Some files could not be read")
+                    .font(.callout)
+                    .foregroundStyle(.red)
+                if !unreadableDetail(paths: paths, totalUnreadable: totalUnreadable).isEmpty {
+                    Text(unreadableDetail(paths: paths, totalUnreadable: totalUnreadable))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                        .lineLimit(3)
+                        .truncationMode(.middle)
+                }
+                Button("Open Full Disk Access Settings…") {
+                    openFullDiskAccessSettings()
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+            .help(unreadableHelp(paths: paths, totalUnreadable: totalUnreadable, message: message))
         case .succeeded(let date):
             // "Backed up just now" would be a lie when the run stored
             // nothing: the newest snapshot is still the older one, which is
@@ -574,6 +597,50 @@ struct PlanStatusRow: View {
                     .help(nextRunText)
             }
         }
+    }
+
+    // MARK: - Unreadable sources
+
+    /// The paths restic could not read, one per line, with the count restic
+    /// stopped short of spelled out. Empty when there is nothing to name —
+    /// exit code 3 with no parseable stderr, where restic's own sentence in
+    /// the tooltip is all there is.
+    ///
+    /// "…and N more" is deliberately phrased so it reads correctly for any N:
+    /// the list is capped at `ResticError.maxReportedUnreadablePaths` because
+    /// a denied home folder produces one entry per file.
+    private func unreadableDetail(paths: [String], totalUnreadable: Int) -> String {
+        guard !paths.isEmpty else { return "" }
+        let remainder = totalUnreadable - paths.count
+        let list = paths.joined(separator: "\n")
+        guard remainder > 0 else { return list }
+        return list + "\n" + String(localized: "…and \(remainder) more")
+    }
+
+    private func unreadableHelp(paths: [String], totalUnreadable: Int, message: String) -> String {
+        let guidance = ResticError.someSourcesUnreadable(
+            paths: paths,
+            totalUnreadable: totalUnreadable,
+            message: message
+        ).localizedDescription
+        // restic's own closing line adds nothing once the row has named the
+        // files, so it only appears in the case where it is all we have.
+        let detail = unreadableDetail(paths: paths, totalUnreadable: totalUnreadable)
+        if !detail.isEmpty {
+            return "\(guidance)\n\n\(detail)"
+        }
+        return message.isEmpty ? guidance : "\(guidance)\n\n\(message)"
+    }
+
+    /// Opens the Full Disk Access pane, not the Privacy & Security root: the
+    /// user is here because of one specific switch, and the pane is where it
+    /// lives. macOS ignores an unknown deep link rather than failing the call,
+    /// so there is nothing to handle.
+    private func openFullDiskAccessSettings() {
+        guard let url = URL(
+            string: "x-apple.systempreferences:com.apple.settings.PrivacySecurity.extension?Privacy_AllFiles"
+        ) else { return }
+        NSWorkspace.shared.open(url)
     }
 }
 

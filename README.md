@@ -17,6 +17,8 @@ Privacy-first Mac backup to your own storage. Free and open source (GPLv3) — n
 
 Keelhaven wraps the battle-tested [restic](https://restic.net) engine in a native SwiftUI menu bar app: pick folders, pick a destination you own (external drive, any S3-compatible bucket, SFTP/NAS, or a restic REST server), set a schedule — your files are encrypted on your Mac before they leave it.
 
+Being a real app bundle rather than a script matters for one macOS permission in particular: `~/Desktop`, `~/Documents` and `~/Downloads` are closed to every process until the user grants **Full Disk Access**, which a command-line tool cannot ask for on its own behalf. Keelhaven checks its source folders before a run, and when macOS does deny access it names the files it could not read — and marks the resulting snapshot as incomplete — instead of reporting a vague failure.
+
 **Status: public beta.** The engine, wizard, scheduled backups, whole-snapshot restore, periodic repository verification, and retention presets all work — app and website in English and Simplified Chinese; file-level browsing inside snapshots is next.
 
 <p align="center">

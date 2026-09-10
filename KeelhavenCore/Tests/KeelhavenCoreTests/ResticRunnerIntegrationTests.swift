@@ -885,5 +885,75 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             credentials: credentials
         )
     }
+
+    /// The macOS first-run failure, end to end against the real binary: a
+    /// source file this process cannot open makes restic exit 3 — and restic
+    /// still writes a snapshot containing everything it *could* read. Two
+    /// things are being pinned here, both of which the app depends on:
+    ///
+    /// 1. the error names the file that failed, not just "some source file";
+    /// 2. the summary event arrives *before* the failure, which is the only
+    ///    reason a failed run can record the id of the incomplete snapshot it
+    ///    left behind (see `AppState.performBackup`).
+    func testUnreadableSourceFileFailsTheRunButStillWritesASnapshot() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+        try XCTSkipIf(getuid() == 0, "mode bits do not restrict root")
+
+        let repoURL = workDirectory.appendingPathComponent("repo", isDirectory: true)
+        let sourceURL = workDirectory.appendingPathComponent("src", isDirectory: true)
+        try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
+        let readable = sourceURL.appendingPathComponent("readable.txt")
+        let locked = sourceURL.appendingPathComponent("locked.txt")
+        try Data("readable\n".utf8).write(to: readable)
+        try Data("locked\n".utf8).write(to: locked)
+        try FileManager.default.setAttributes([.posixPermissions: 0o000], ofItemAtPath: locked.path)
+
+        let destination = Destination.local(path: repoURL.path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        var summary: BackupSummary?
+        let stream = runner.backupStream(
+            .backup(
+                sources: [sourceURL.path], excludes: [], tag: "keelhaven-test",
+                performance: .off, options: .off
+            ),
+            destination: destination,
+            credentials: credentials
+        )
+        do {
+            for try await event in stream {
+                if case .summary(let value) = event { summary = value }
+            }
+            XCTFail("Expected the run to fail on the unreadable file")
+        } catch let error as ResticError {
+            guard case .someSourcesUnreadable(let paths, let total, _) = error else {
+                return XCTFail("Expected someSourcesUnreadable, got \(error)")
+            }
+            XCTAssertEqual(paths, [locked.path])
+            XCTAssertEqual(total, 1)
+        }
+
+        let incomplete = try XCTUnwrap(summary?.snapshotID, "The summary precedes the failure")
+        XCTAssertEqual(summary?.totalFilesProcessed, 1, "Only the readable file was archived")
+
+        // And the snapshot really is in the repository, missing the file it
+        // could not read — which is why the restore window marks it.
+        let snapshots = try await runner.run(
+            .snapshots,
+            destination: destination,
+            credentials: credentials,
+            decoding: [ResticSnapshot].self
+        )
+        XCTAssertEqual(snapshots.map(\.id), [incomplete])
+    }
 }
 

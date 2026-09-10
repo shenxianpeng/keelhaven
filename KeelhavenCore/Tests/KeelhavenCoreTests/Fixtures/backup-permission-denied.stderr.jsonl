@@ -1,0 +1,3 @@
+{"message_type":"error","error":{"message":"open /tmp/keelhaven-fixture/src/b.txt: permission denied"},"during":"archival","item":"/tmp/keelhaven-fixture/src/b.txt"}
+{"message_type":"error","error":{"message":"open /tmp/keelhaven-fixture/src/sub/c.txt: permission denied"},"during":"archival","item":"/tmp/keelhaven-fixture/src/sub/c.txt"}
+{"message_type":"exit_error","code":3,"message":"Warning: at least one source file could not be read"}

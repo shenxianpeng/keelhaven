@@ -18,9 +18,18 @@ enum PlanRunState: Equatable {
     case succeeded(Date)
     case failed(String)
     /// A failure restic blames on a repository lock (exit code 11). Separate
-    /// from `failed` for one reason: it is the only failure the row can offer
-    /// a fix for, so it carries an unlock button instead of dead red text.
+    /// from `failed` for one reason: it is a failure the row can offer a fix
+    /// for, so it carries an unlock button instead of dead red text.
     case failedLocked(String)
+    /// A run that could not read part of what it was asked to back up: restic
+    /// exit code 3, or a source folder this process cannot open at all, which
+    /// the pre-flight catches before restic is even spawned.
+    ///
+    /// Split off `failed` for the same reason as `failedLocked` — it is a
+    /// failure with a fix, and the fix is a macOS setting rather than
+    /// anything restic can retry. It carries the paths because "at least one
+    /// source file could not be read" is not something a person can act on.
+    case failedUnreadable(paths: [String], totalUnreadable: Int, message: String)
 
     /// A restic process is going for this plan right now. The four cases that
     /// hold the repository lock; everything else is a resting state.
@@ -140,7 +149,7 @@ final class AppState {
         }
         if states.contains(where: {
             switch $0 {
-            case .failed, .failedLocked: return true
+            case .failed, .failedLocked, .failedUnreadable: return true
             default: return false
             }
         }) {
@@ -284,7 +293,33 @@ final class AppState {
 
     private func performBackup(_ plan: BackupPlan, binaryURL: URL) async {
         let startedAt = Date()
+        // Declared outside the `do` so a run that fails *after* restic has
+        // already stored something can still say which snapshot it left
+        // behind. Exit code 3 is exactly that shape: the summary arrives, and
+        // only then does restic report that some files were unreadable.
+        var summary: BackupSummary?
         do {
+            // Pre-flight. A source folder this process cannot open is the one
+            // failure the app can see coming without spending minutes inside
+            // restic, so failing here costs a second instead of a whole
+            // backup.
+            //
+            // What it can and cannot see: `SourceAccess` asks the filesystem
+            // (`access(2)`), which reliably catches a folder whose POSIX mode
+            // or ACLs shut this process out. TCC is enforced nearer `open(2)`,
+            // so a folder the user has not granted access to may well pass
+            // this check and only fail inside restic. Exit code 3 stays the
+            // authoritative report; this is a head start, not the answer.
+            let unreadableSources = SourceAccess.unreadableExistingPaths(plan.sourcePaths)
+            guard unreadableSources.isEmpty else {
+                throw ResticError.someSourcesUnreadable(
+                    paths: Array(unreadableSources.prefix(ResticError.maxReportedUnreadablePaths)),
+                    totalUnreadable: unreadableSources.count,
+                    // Nothing came from restic: it was never spawned.
+                    message: ""
+                )
+            }
+
             let credentials = try credentials(for: plan)
             let runner = ResticRunner(binaryURL: binaryURL)
             let stream = runner.backupStream(
@@ -299,7 +334,6 @@ final class AppState {
                 credentials: credentials
             )
 
-            var summary: BackupSummary?
             for try await event in stream {
                 switch event {
                 case .status(let status):
@@ -357,11 +391,28 @@ final class AppState {
         } catch {
             let resticError = error as? ResticError
             let message = resticError?.localizedDescription ?? error.localizedDescription
-            let record = BackupRunRecord(date: startedAt, success: false, errorMessage: message)
+            let record = BackupRunRecord(
+                date: startedAt,
+                success: false,
+                // Only non-nil when restic stored a snapshot and *then* failed —
+                // the exit-code-3 shape. An incomplete snapshot is a real point
+                // in time that is missing files, so its id is what lets the
+                // restore window warn instead of offering it as an ordinary one.
+                snapshotID: summary?.snapshotID,
+                errorMessage: message
+            )
             await finishRun(plan, record: record)
-            runStates[plan.id] = resticError?.isRepositoryLocked == true
-                ? .failedLocked(message)
-                : .failed(message)
+            if case .someSourcesUnreadable(let paths, let total, let detail)? = resticError {
+                runStates[plan.id] = .failedUnreadable(
+                    paths: paths,
+                    totalUnreadable: total,
+                    message: detail
+                )
+            } else {
+                runStates[plan.id] = resticError?.isRepositoryLocked == true
+                    ? .failedLocked(message)
+                    : .failed(message)
+            }
             await NotificationService.postBackupFailed(planName: plan.name, message: message)
         }
     }
@@ -614,6 +665,18 @@ final class AppState {
 
     func restoreCredentials(for plan: BackupPlan) throws -> RepoCredentials {
         try credentials(for: plan)
+    }
+
+    /// The snapshot ids of runs that failed *after* restic stored something.
+    ///
+    /// Only exit code 3 leaves that particular trap: the repository holds a
+    /// snapshot, it looks like every other point in time, and it is missing
+    /// whatever restic could not read. A history file the app cannot read
+    /// means no warnings rather than a restore window that refuses to open,
+    /// so a decode failure is swallowed here.
+    func incompleteSnapshotIDs(for planID: UUID) async -> Set<String> {
+        let records = (try? await historyStore.history(for: planID)) ?? []
+        return Set(records.filter { !$0.success }.compactMap(\.snapshotID))
     }
 
     private func credentials(for plan: BackupPlan) throws -> RepoCredentials {

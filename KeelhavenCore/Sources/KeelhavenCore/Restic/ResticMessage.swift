@@ -193,6 +193,44 @@ public struct ResticExitError: Decodable, Sendable {
     }
 }
 
+/// A `message_type: "error"` JSON line on restic's stderr — one per item it
+/// could not read, written *before* the run ends. This is the only place
+/// restic says **which** file it choked on; the trailing `exit_error` line
+/// only carries a summary that names no file at all.
+///
+/// Captured from restic 0.19.1 (`Fixtures/backup-permission-denied.stderr.jsonl`):
+///
+///     {"message_type":"error","error":{"message":"open /…/b.txt: permission denied"},
+///      "during":"archival","item":"/…/b.txt"}
+///
+/// `item` is absent on some errors, which is why the nested message is the
+/// fallback — uglier, but never empty.
+public struct ResticSourceErrorMessage: Decodable, Sendable {
+    public struct Payload: Decodable, Sendable {
+        public let message: String
+
+        enum CodingKeys: String, CodingKey {
+            case message
+        }
+    }
+
+    public let messageType: String
+    public let error: Payload?
+    public let item: String?
+
+    enum CodingKeys: String, CodingKey {
+        case messageType = "message_type"
+        case error
+        case item
+    }
+
+    /// The path restic could not read, or its raw sentence when restic named
+    /// no item.
+    public var unreadableItem: String? {
+        item ?? error?.message
+    }
+}
+
 /// A decoded event from the `restic backup --json` stream.
 public enum BackupProgressEvent: Sendable {
     case status(BackupStatusMessage)
@@ -256,6 +294,25 @@ public enum ResticJSON {
             return (try? decoder.decode(BackupSummary.self, from: data)).map { .summary($0) }
         default:
             return nil
+        }
+    }
+
+    /// Every item restic reported as unreadable on stderr, in the order it
+    /// reported them. Non-JSON lines (a human reading the same run sees
+    /// `warning: …` in a terminal) are ignored, as is the closing
+    /// `exit_error` line, which names no item.
+    ///
+    /// A run that cannot read a whole protected folder can produce one of
+    /// these per file, so callers must expect a long list — and thousands of
+    /// files means thousands of lines here, all of which restic writes before
+    /// it exits.
+    public static func unreadableItems(inStderr stderr: String) -> [String] {
+        stderr.split(separator: "\n").compactMap { line in
+            guard let data = line.data(using: .utf8),
+                  let error = try? decoder.decode(ResticSourceErrorMessage.self, from: data),
+                  error.messageType == "error"
+            else { return nil }
+            return error.unreadableItem
         }
     }
 }

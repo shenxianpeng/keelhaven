@@ -3,23 +3,46 @@ import Foundation
 /// Typed failures from the restic layer.
 ///
 /// Exit codes verified against restic 0.19.1 (see Tests/…/Fixtures):
-///   10 = repository does not exist, 12 = wrong password,
+///   3 = some source files could not be read, 10 = repository does not exist,
 ///   11 = repository already locked (reproduced end to end in
-///   ResticRunnerIntegrationTests, which races two real restic processes).
+///   ResticRunnerIntegrationTests, which races two real restic processes),
+///   12 = wrong password.
 public enum ResticError: Error, Equatable, Sendable {
     case binaryNotFound
     case repositoryDoesNotExist(message: String)
     case repositoryAlreadyExists(message: String)
     case repositoryLocked(message: String)
     case wrongPassword(message: String)
+    /// restic exit code 3: the run is over and a snapshot may well have been
+    /// written, but at least one source item could not be read.
+    ///
+    /// On macOS this is nearly always TCC rather than file permissions:
+    /// `~/Desktop`, `~/Documents`, `~/Downloads`, iCloud Drive and the
+    /// protected corners of `~/Library` are closed to any process the user
+    /// has not granted access to. A command-line tool cannot ask for that
+    /// access — the workaround is handing Full Disk Access to the terminal
+    /// that runs it — so an app bundle is the shape that gets it granted
+    /// without opening a much larger door. It is also the failure a
+    /// first-time user is most likely to meet, because those are exactly the
+    /// folders a person puts in their first plan.
+    ///
+    /// `paths` is capped at `maxReportedUnreadablePaths`, because a denied
+    /// home folder produces one of these per file; `totalUnreadable` is the
+    /// honest count. `message` is restic's own closing line, and is empty
+    /// when Keelhaven reached this conclusion itself, before spawning restic.
+    case someSourcesUnreadable(paths: [String], totalUnreadable: Int, message: String)
     case commandFailed(exitCode: Int, message: String)
     case outputDecodingFailed(message: String)
 
-    /// True for the one failure the app can offer a way out of. Two things
-    /// produce it: a stale lock from an interrupted run, which `unlock`
-    /// clears, and a live lock from another machine backing up to the same
-    /// repository, which simply needs waiting out. Everything else needs the
-    /// user to change something.
+    /// Long enough to be useful in a tooltip, short enough that a denied
+    /// home folder cannot hand the UI a hundred thousand paths.
+    public static let maxReportedUnreadablePaths = 20
+
+    /// True for a failure the app can offer a way out of. Two things produce
+    /// it: a stale lock from an interrupted run, which `unlock` clears, and a
+    /// live lock from another machine backing up to the same repository,
+    /// which simply needs waiting out. Everything else needs the user to
+    /// change something.
     public var isRepositoryLocked: Bool {
         if case .repositoryLocked = self { return true }
         return false
@@ -43,6 +66,17 @@ public enum ResticError: Error, Equatable, Sendable {
         }
 
         switch exitCode {
+        case 3:
+            // The per-file lines live alongside the exit_error line on the
+            // same stderr stream, and are the whole reason this is a case of
+            // its own: "at least one source file could not be read" without
+            // the names is not something a person can act on.
+            let items = ResticJSON.unreadableItems(inStderr: stderr)
+            return .someSourcesUnreadable(
+                paths: Array(items.prefix(maxReportedUnreadablePaths)),
+                totalUnreadable: items.count,
+                message: message
+            )
         case 10:
             return .repositoryDoesNotExist(message: message)
         case 11:
@@ -75,6 +109,21 @@ extension ResticError: LocalizedError {
             return String(localized: "The backup repository is locked by another process. \(message)", bundle: .module)
         case .wrongPassword(let message):
             return String(localized: "The repository password is incorrect. \(message)", bundle: .module)
+        case .someSourcesUnreadable:
+            // Deliberately does not interpolate restic's "at least one source
+            // file could not be read": it names no file, and the count and the
+            // names are carried separately, in `paths` / `totalUnreadable`,
+            // where the row can lay them out. This sentence is what survives
+            // into the run record and the notification, so it has to carry the
+            // one thing restic never says — how to fix it.
+            //
+            // "Quit and reopen" is not padding. macOS applies a newly granted
+            // Full Disk Access on the next launch, not to the process that was
+            // already running when the switch was flipped — System Settings
+            // offers a "Quit & Reopen" button for exactly this reason. Without
+            // it the instruction sends someone back to a backup that fails the
+            // same way, which is the experience this whole case exists to end.
+            return String(localized: "Keelhaven could not read some of the files in this plan's folders. Open System Settings › Privacy & Security › Full Disk Access, turn on Keelhaven, quit and reopen Keelhaven, then run the backup again.", bundle: .module)
         case .commandFailed(let exitCode, let message):
             return String(localized: "Backup command failed (exit code \(exitCode)). \(message)", bundle: .module)
         case .outputDecodingFailed(let message):
