@@ -1,0 +1,30 @@
+GAP_ANALYSIS_REPORT.md
+  h_95e33fbd4ab2d9 1-242
+Keelhaven/AppState.swift
+  h_95e33fbd4ab2d9 304-312
+KeelhavenCore/Sources/KeelhavenCore/Resources/Localizable.xcstrings
+  h_95e33fbd4ab2d9 5,7
+KeelhavenCore/Sources/KeelhavenCore/Restic/ResticError.swift
+  h_95e33fbd4ab2d9 119-126
+KeelhavenCore/Sources/KeelhavenCore/Restic/SourceAccess.swift
+  h_95e33fbd4ab2d9 7-16
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerProcessTests.swift
+  h_95e33fbd4ab2d9 154,156-158,168-170
+docs/ARCHITECTURE.md
+  h_95e33fbd4ab2d9 94,97-114
+site/index.md
+  h_95e33fbd4ab2d9 295
+site/zh/index.md
+  h_95e33fbd4ab2d9 318
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "db33ea4d2dcbb3b9692f822499ff36cce5a3d508",
+  "prompts": {},
+  "humans": {
+    "h_95e33fbd4ab2d9": {
+      "author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
