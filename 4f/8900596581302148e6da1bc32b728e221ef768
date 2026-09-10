@@ -1,0 +1,24 @@
+Keelhaven/AppState.swift
+  h_95e33fbd4ab2d9 21-22,24-32,152,296-300,302-316,388-397,399-409,664-675
+Keelhaven/Localizable.xcstrings
+  h_95e33fbd4ab2d9 2133-2142,2193-2202,2333-2342,2764-2773
+Keelhaven/MenuBar/PlanHealth.swift
+  h_95e33fbd4ab2d9 18
+Keelhaven/MenuBar/PlanStatusRow.swift
+  h_95e33fbd4ab2d9 41,541-563,601-644
+Keelhaven/Restore/RestoreModel.swift
+  h_95e33fbd4ab2d9 21-30,49
+Keelhaven/Restore/RestoreWindowView.swift
+  h_95e33fbd4ab2d9 70-83
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "4f8900596581302148e6da1bc32b728e221ef768",
+  "prompts": {},
+  "humans": {
+    "h_95e33fbd4ab2d9": {
+      "author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
