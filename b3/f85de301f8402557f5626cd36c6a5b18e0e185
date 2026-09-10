@@ -1,0 +1,14 @@
+project.yml
+  h_95e33fbd4ab2d9 56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "b3f85de301f8402557f5626cd36c6a5b18e0e185",
+  "prompts": {},
+  "humans": {
+    "h_95e33fbd4ab2d9": {
+      "author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
