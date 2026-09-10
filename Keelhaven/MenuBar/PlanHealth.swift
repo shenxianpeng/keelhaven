@@ -15,7 +15,7 @@ extension BackupPlan {
         switch runState {
         case .running, .checking, .previewing, .pruning, .unlocking:
             return .running
-        case .failed, .failedLocked:
+        case .failed, .failedLocked, .failedUnreadable:
             return .needsAttention
         case .succeeded:
             return .ok

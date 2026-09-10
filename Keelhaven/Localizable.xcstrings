@@ -2130,6 +2130,16 @@
         }
       }
     },
+    "Open Full Disk Access Settings…": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开“完全磁盘访问权限”设置…"
+          }
+        }
+      }
+    },
     "Show in Finder": {
       "localizations": {
         "zh-Hans": {
@@ -2176,6 +2186,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "跳过被应用标记为缓存的文件夹。这些内容会自动重建，备份它们只会白白占用空间和时间。"
+          }
+        }
+      }
+    },
+    "Some files could not be read": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有文件读不到"
           }
         }
       }
@@ -2306,6 +2326,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "这个备份计划已经不存在了。"
+          }
+        }
+      }
+    },
+    "This snapshot is incomplete: some files could not be read when it was made.": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这个快照不完整：创建时有文件读不到。"
           }
         }
       }
@@ -2728,6 +2758,16 @@
           "stringUnit": {
             "state": "translated",
             "value": "备份目的地无法更改。如需备份到其他位置，请从该计划的操作菜单中选择“复制计划…”，其余设置都会一并带过去。"
+          }
+        }
+      }
+    },
+    "…and %lld more": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "……另有 %lld 项"
           }
         }
       }
