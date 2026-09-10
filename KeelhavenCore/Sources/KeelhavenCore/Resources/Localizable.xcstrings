@@ -2,9 +2,9 @@
   "sourceLanguage" : "en",
   "version" : "1.0",
   "strings" : {
-    "Keelhaven could not read some of the files in this plan's folders. Open System Settings › Privacy & Security › Full Disk Access, turn on Keelhaven, then run the backup again." : {
+    "Keelhaven could not read some of the files in this plan's folders. Open System Settings › Privacy & Security › Full Disk Access, turn on Keelhaven, quit and reopen Keelhaven, then run the backup again." : {
       "localizations" : {
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Keelhaven 读不到这个计划里的一些文件。请打开「系统设置 › 隐私与安全性 › 完全磁盘访问权限」，打开 Keelhaven 的开关，然后重新运行备份。" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Keelhaven 读不到这个计划里的一些文件。请打开「系统设置 › 隐私与安全性 › 完全磁盘访问权限」，打开 Keelhaven 的开关，然后退出并重新打开 Keelhaven，再运行备份。" } }
       }
     },
     "Keelhaven's backup engine is missing from the app. Reinstalling Keelhaven from keelhaven.app restores it." : {

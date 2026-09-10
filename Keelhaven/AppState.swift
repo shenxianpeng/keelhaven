@@ -301,9 +301,15 @@ final class AppState {
         do {
             // Pre-flight. A source folder this process cannot open is the one
             // failure the app can see coming without spending minutes inside
-            // restic, and on macOS it is the likeliest first-run failure there
-            // is: the folders a person picks first are the ones TCC protects.
-            // Failing here costs a second instead of a whole backup.
+            // restic, so failing here costs a second instead of a whole
+            // backup.
+            //
+            // What it can and cannot see: `SourceAccess` asks the filesystem
+            // (`access(2)`), which reliably catches a folder whose POSIX mode
+            // or ACLs shut this process out. TCC is enforced nearer `open(2)`,
+            // so a folder the user has not granted access to may well pass
+            // this check and only fail inside restic. Exit code 3 stays the
+            // authoritative report; this is a head start, not the answer.
             let unreadableSources = SourceAccess.unreadableExistingPaths(plan.sourcePaths)
             guard unreadableSources.isEmpty else {
                 throw ResticError.someSourcesUnreadable(

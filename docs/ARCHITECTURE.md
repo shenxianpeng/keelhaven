@@ -91,16 +91,27 @@ The likeliest first-run failure is not a restic problem at all. `~/Desktop`,
 `~/Library` are guarded by TCC — and those are exactly the folders a person
 picks for their first plan.
 
-Two places handle it, and the split matters:
+Two places handle it, and they answer *different* questions:
 
 - **Before spawning restic**, `SourceAccess.unreadableExistingPaths` checks the
-  plan's source folders, so a folder that exists but cannot be read fails the
-  run in a second rather than after minutes of work. A folder that does not
-  exist is deliberately *not* reported: an unplugged drive has a different
-  cause and a different fix, and pointing someone at Full Disk Access because
-  their backup disk is on a desk would be a lie.
-- **After restic exits 3**, the error carries the paths it named and the plan
-  row offers a deep link to the Full Disk Access pane.
+  plan's source folders so an unreadable one fails the run in a second instead
+  of after minutes of work. That is an `access(2)` question: it reliably
+  catches a folder whose POSIX mode or ACLs shut the process out. TCC is
+  enforced nearer `open(2)`, so a folder the user has not granted access to can
+  pass this check and only fail inside restic. A folder that does not exist is
+  deliberately *not* reported either: an unplugged drive has a different cause
+  and a different fix, and pointing someone at Full Disk Access because their
+  backup disk is on a desk would be a lie.
+- **After restic exits 3**, the error carries the paths restic named and the
+  plan row offers a deep link to the Full Disk Access pane. This is the
+  authoritative report, and the reason the pre-flight is allowed to be
+  approximate.
+
+Granting Full Disk Access does not reach a process that is already running:
+macOS applies it on the next launch (System Settings offers a "Quit & Reopen"
+button for exactly this). The error text therefore tells the user to quit and
+reopen Keelhaven, not merely to run the backup again — a fix that has to be
+applied twice is the failure mode this case exists to remove.
 
 This is also why the app's shape is load-bearing rather than cosmetic: a shell
 script cannot ask macOS for this permission, and the usual workaround — giving

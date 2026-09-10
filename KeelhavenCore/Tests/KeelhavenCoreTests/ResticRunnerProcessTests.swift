@@ -151,8 +151,11 @@ final class ResticRunnerProcessTests: XCTestCase {
             destination: destination, credentials: credentials
         )
 
+        var events: [BackupProgressEvent] = []
         do {
-            for try await _ in stream {}
+            for try await event in stream {
+                events.append(event)
+            }
             XCTFail("Expected someSourcesUnreadable")
         } catch let error as ResticError {
             guard case .someSourcesUnreadable(let paths, let total, let message) = error else {
@@ -162,6 +165,9 @@ final class ResticRunnerProcessTests: XCTestCase {
             XCTAssertEqual(total, 1)
             XCTAssertEqual(message, "Warning: at least one source file could not be read")
         }
+        // The summary reaches the consumer before the process fails, which is
+        // what lets a failed run record the incomplete snapshot it left behind.
+        XCTAssertEqual(events.count, 1)
     }
 
     func testBackupStreamCancellationInterruptsProcess() async throws {

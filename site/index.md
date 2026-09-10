@@ -292,7 +292,7 @@ A failed or incomplete run is never silent — errors from the engine surface im
 
 That is macOS protecting your files, not the backup engine misbehaving. **Desktop**, **Documents**, **Downloads**, iCloud Drive and parts of your Library are closed to every app until you allow it — and those are exactly the folders people put in their first backup plan. Keelhaven names the files it could not read instead of failing with a generic error, and the plan's row has a button that opens the right settings pane.
 
-Fix it once: open **System Settings › Privacy & Security › Full Disk Access**, turn on Keelhaven, and run the backup again.
+Fix it once: open **System Settings › Privacy & Security › Full Disk Access** and turn on Keelhaven — then **quit and reopen Keelhaven** before running the backup again, because macOS only hands the new permission to a freshly launched process. (System Settings offers the same "Quit & Reopen" button for this reason.)
 
 One thing worth knowing: the run may have stored a snapshot anyway, holding everything it *could* read — restic writes what it can and then reports the rest. Those snapshots are marked **incomplete** in the restore window, so you are never shown a file as backed up when it isn't.
 

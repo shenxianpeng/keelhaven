@@ -4,11 +4,16 @@ import Foundation
 /// restic is spawned so an obviously hopeless run fails in a second rather
 /// than after several minutes of reading.
 ///
-/// This is a pre-flight, not a proof. It can see that a folder is present but
-/// closed to this process; it cannot promise that everything *inside* a
-/// readable folder is readable too. When it is wrong in that direction, the
-/// run ends in `ResticError.someSourcesUnreadable` anyway, which is where the
-/// authoritative list comes from.
+/// This is a pre-flight, not a proof, and the distinction is worth being
+/// precise about. It answers "can this process open that folder", which is the
+/// filesystem's own question (`access(2)`) — **not** the question TCC answers.
+/// TCC is enforced nearer `open(2)`, so a folder guarded by Desktop/Documents/
+/// Downloads consent can pass this check and still fail inside restic. It also
+/// cannot promise that everything *inside* a readable folder is readable too.
+///
+/// Both of those gaps end in the same place: `ResticError.someSourcesUnreadable`
+/// from restic's exit code 3, which is the authoritative report and names the
+/// files. This exists so the cheap, obvious cases never get that far.
 public enum SourceAccess {
     /// The paths that exist but cannot be read by this process right now.
     ///

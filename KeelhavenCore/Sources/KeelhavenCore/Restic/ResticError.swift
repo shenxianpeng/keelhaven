@@ -116,7 +116,14 @@ extension ResticError: LocalizedError {
             // where the row can lay them out. This sentence is what survives
             // into the run record and the notification, so it has to carry the
             // one thing restic never says — how to fix it.
-            return String(localized: "Keelhaven could not read some of the files in this plan's folders. Open System Settings › Privacy & Security › Full Disk Access, turn on Keelhaven, then run the backup again.", bundle: .module)
+            //
+            // "Quit and reopen" is not padding. macOS applies a newly granted
+            // Full Disk Access on the next launch, not to the process that was
+            // already running when the switch was flipped — System Settings
+            // offers a "Quit & Reopen" button for exactly this reason. Without
+            // it the instruction sends someone back to a backup that fails the
+            // same way, which is the experience this whole case exists to end.
+            return String(localized: "Keelhaven could not read some of the files in this plan's folders. Open System Settings › Privacy & Security › Full Disk Access, turn on Keelhaven, quit and reopen Keelhaven, then run the backup again.", bundle: .module)
         case .commandFailed(let exitCode, let message):
             return String(localized: "Backup command failed (exit code \(exitCode)). \(message)", bundle: .module)
         case .outputDecodingFailed(let message):
