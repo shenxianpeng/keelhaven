@@ -288,6 +288,17 @@ Yes. **Edit Plan → Advanced** has an upload limit in KiB/s: set it and restic 
 A failed or incomplete run is never silent — errors from the engine surface immediately in the menu bar and as a notification. Keelhaven also verifies each plan's repository with restic's own integrity check on a schedule — weekly by default, adjustable per plan — and a quiet "Verified" line in the plan row shows the last time it passed; only a problem speaks up. And restoring a file now and then remains the gold standard for any backup tool, ours included.
 
 </FaqItem>
+<FaqItem question="A backup failed saying some files could not be read. What do I do?">
+
+That is macOS protecting your files, not the backup engine misbehaving. **Desktop**, **Documents**, **Downloads**, iCloud Drive and parts of your Library are closed to every app until you allow it — and those are exactly the folders people put in their first backup plan. Keelhaven names the files it could not read instead of failing with a generic error, and the plan's row has a button that opens the right settings pane.
+
+Fix it once: open **System Settings › Privacy & Security › Full Disk Access**, turn on Keelhaven, and run the backup again.
+
+One thing worth knowing: the run may have stored a snapshot anyway, holding everything it *could* read — restic writes what it can and then reports the rest. Those snapshots are marked **incomplete** in the restore window, so you are never shown a file as backed up when it isn't.
+
+This is also why Keelhaven is an app rather than a script. Granting this permission to a shell script means granting it to your terminal, which is a much bigger door than one app.
+
+</FaqItem>
 <FaqItem question="Do I need to install anything else?">
 
 No. Everything Keelhaven needs ships inside the app bundle, including its backup engine — no separate install step, no Homebrew requirement, nothing to keep up to date.
@@ -305,7 +316,7 @@ The backup is unrecoverable, by design — repositories are encrypted end to end
 </FaqItem>
 <FaqItem question="Why isn't it on the Mac App Store?">
 
-App Store apps must run in the sandbox, and the backup engine needs to read the folders you point it at and open network and SSH connections. Keelhaven ships with the hardened runtime enabled, just not through the store — and while in beta, without Apple notarisation, which is why the first launch asks for [one approval](#faq).
+App Store apps must run in the sandbox, and the backup engine needs to read the folders you point it at and open network and SSH connections. Running outside the sandbox is also what lets you grant it Full Disk Access — the permission macOS demands before any app may read Desktop, Documents or Downloads. Keelhaven ships with the hardened runtime enabled, just not through the store — and while in beta, without Apple notarisation, which is why the first launch asks for [one approval](#faq).
 
 </FaqItem>
 
