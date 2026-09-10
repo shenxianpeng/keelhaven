@@ -1,0 +1,20 @@
+README.md
+  h_95e33fbd4ab2d9 20-21
+docs/ARCHITECTURE.md
+  h_95e33fbd4ab2d9 74-82,87-111
+site/index.md
+  h_95e33fbd4ab2d9 290-300,319
+site/zh/index.md
+  h_95e33fbd4ab2d9 313-323,342
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "97eb6c8eeb2ec5fcc29b77d1218731514b0d15b2",
+  "prompts": {},
+  "humans": {
+    "h_95e33fbd4ab2d9": {
+      "author": "shenxianpeng <xianpeng.shen@gmail.com>"
+    }
+  }
+}
