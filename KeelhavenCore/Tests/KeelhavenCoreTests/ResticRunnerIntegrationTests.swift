@@ -109,7 +109,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         let restoreTarget = workDirectory.appendingPathComponent("restored", isDirectory: true)
         var restoreSummary: RestoreSummary?
         let restoreEvents = runner.restoreStream(
-            .restore(snapshotID: snapshotID, target: restoreTarget.path),
+            .restore(snapshotID: snapshotID, target: restoreTarget.path, includes: []),
             destination: destination,
             credentials: credentials
         )
@@ -407,7 +407,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
 
         let targetURL = workDirectory.appendingPathComponent("restored", isDirectory: true)
         try await runner.runIgnoringOutput(
-            .restore(snapshotID: snapshotID, target: targetURL.path),
+            .restore(snapshotID: snapshotID, target: targetURL.path, includes: []),
             destination: destination,
             credentials: credentials
         )
@@ -620,7 +620,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         target: URL
     ) async throws -> Set<String> {
         try await runner.runIgnoringOutput(
-            .restore(snapshotID: snapshotID, target: target.path),
+            .restore(snapshotID: snapshotID, target: target.path, includes: []),
             destination: destination,
             credentials: credentials
         )
@@ -954,6 +954,98 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             decoding: [ResticSnapshot].self
         )
         XCTAssertEqual(snapshots.map(\.id), [incomplete])
+    }
+
+    /// The pair the snapshot browser is built on, end to end against the real
+    /// binary: `ls` streams the absolute paths, `SnapshotTree` turns them into
+    /// a tree, and `restore --include` puts exactly the selected file back.
+    ///
+    /// The last assertion is the one that matters. `restore` recreates the
+    /// absolute path inside the target, so a selective restore is not "the
+    /// file appears at the top of the folder" — the UI has to say where it
+    /// lands, and this pins where that is.
+    func testListBuildsATreeAndRestoreIncludeTakesOneFile() async throws {
+        guard let binary = IntegrationTestSupport.locateRestic() else {
+            throw XCTSkip("restic is not installed; run: brew install restic")
+        }
+
+        let repoURL = workDirectory.appendingPathComponent("repo", isDirectory: true)
+        let sourceURL = workDirectory.appendingPathComponent("src", isDirectory: true)
+        let nestedURL = sourceURL.appendingPathComponent("docs/deep", isDirectory: true)
+        try FileManager.default.createDirectory(at: nestedURL, withIntermediateDirectories: true)
+        try Data("wanted\n".utf8).write(to: nestedURL.appendingPathComponent("wanted.txt"))
+        try Data("ignored\n".utf8).write(to: sourceURL.appendingPathComponent("other.txt"))
+
+        let destination = Destination.local(path: repoURL.path)
+        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
+        let runner = ResticRunner(binaryURL: binary)
+        _ = try await runner.run(
+            .initRepository,
+            destination: destination,
+            credentials: credentials,
+            decoding: ResticInitResult.self
+        )
+
+        var snapshotID: String?
+        let backup = runner.backupStream(
+            .backup(
+                sources: [sourceURL.path], excludes: [], tag: "keelhaven-test",
+                performance: .off, options: .off
+            ),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in backup {
+            if case .summary(let summary) = event { snapshotID = summary.snapshotID }
+        }
+
+        // ls: every line decodes, and the header carries the roots the tree
+        // needs to hide the filesystem above the source folder.
+        var rootPaths: [String] = []
+        var nodes: [ResticLsNode] = []
+        let listing = runner.listStream(
+            .ls(snapshotID: try XCTUnwrap(snapshotID)),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in listing {
+            switch event {
+            case .snapshot(let snapshot): rootPaths = snapshot.paths
+            case .node(let node): nodes.append(node)
+            }
+        }
+        XCTAssertEqual(rootPaths, [sourceURL.path])
+        XCTAssertTrue(
+            nodes.contains { $0.path.hasPrefix("/private") || $0.path.hasPrefix("/var") || $0.path.hasPrefix("/tmp") },
+            "restic walks from the filesystem root; the tree is what hides it"
+        )
+
+        let tree = SnapshotTree.build(from: nodes, rootedAt: rootPaths)
+        XCTAssertEqual(tree.roots.map(\.path), [sourceURL.path])
+        XCTAssertEqual(tree.fileCount, 2)
+        let wanted = try XCTUnwrap(tree.search("wanted.txt").first)
+
+        // A selective restore puts that one file back, and nothing else.
+        let target = workDirectory.appendingPathComponent("restored", isDirectory: true)
+        var restoreSummary: RestoreSummary?
+        let restore = runner.restoreStream(
+            .restore(snapshotID: try XCTUnwrap(snapshotID), target: target.path, includes: [wanted.path]),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in restore {
+            if case .summary(let summary) = event { restoreSummary = summary }
+        }
+        XCTAssertEqual(try XCTUnwrap(restoreSummary).bytesRestored, 7)
+
+        let landed = target.appendingPathComponent(wanted.path)
+        XCTAssertEqual(try String(contentsOf: landed, encoding: .utf8), "wanted\n")
+        XCTAssertFalse(
+            FileManager.default.fileExists(
+                atPath: target.appendingPathComponent(sourceURL.path).appendingPathComponent("other.txt").path
+            ),
+            "The unselected file must not be restored"
+        )
     }
 }
 

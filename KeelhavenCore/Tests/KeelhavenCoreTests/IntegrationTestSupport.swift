@@ -109,7 +109,7 @@ enum IntegrationTestSupport {
         let restoreTarget = workDirectory.appendingPathComponent("restored", isDirectory: true)
         var restoreSummary: RestoreSummary?
         let restoreEvents = runner.restoreStream(
-            .restore(snapshotID: snapshotID, target: restoreTarget.path),
+            .restore(snapshotID: snapshotID, target: restoreTarget.path, includes: []),
             destination: destination,
             credentials: credentials
         )
