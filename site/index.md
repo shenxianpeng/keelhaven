@@ -294,6 +294,8 @@ That is macOS protecting your files, not the backup engine misbehaving. **Deskto
 
 Fix it once: open **System Settings › Privacy & Security › Full Disk Access** and turn on Keelhaven — then **quit and reopen Keelhaven** before running the backup again, because macOS only hands the new permission to a freshly launched process. (System Settings offers the same "Quit & Reopen" button for this reason.)
 
+**If it comes back after an update, this is why.** macOS ties this permission to the exact build it was granted for. Keelhaven's beta builds aren't Developer ID-signed yet, so every new version is a different app as far as that list is concerned, and the permission has to be given again: remove Keelhaven with the **−** button, add it back from Applications, then quit and reopen. Signing and notarisation remove this step; until then, a release can bring it back.
+
 One thing worth knowing: the run may have stored a snapshot anyway, holding everything it *could* read — restic writes what it can and then reports the rest. Those snapshots are marked **incomplete** in the restore window, so you are never shown a file as backed up when it isn't.
 
 This is also why Keelhaven is an app rather than a script. Granting this permission to a shell script means granting it to your terminal, which is a much bigger door than one app.
