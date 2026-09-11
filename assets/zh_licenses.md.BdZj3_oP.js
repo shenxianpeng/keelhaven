@@ -1,0 +1,25 @@
+import{_ as e,o as n,c as s,a0 as t}from"./chunks/framework.L_oL6aia.js";const E=JSON.parse('{"title":"许可","description":"","frontmatter":{},"headers":[],"relativePath":"zh/licenses.md","filePath":"zh/licenses.md"}'),i={name:"zh/licenses.md"};function r(p,a,l,c,o,h){return n(),s("div",null,[...a[0]||(a[0]=[t(`<h1 id="许可" tabindex="-1">许可 <a class="header-anchor" href="#许可" aria-label="Permalink to &quot;许可&quot;">​</a></h1><p>Keelhaven 是自由开源软件。本页说明 Keelhaven 自身的许可，并致谢它所依赖的开源软件。</p><h2 id="keelhaven" tabindex="-1">Keelhaven <a class="header-anchor" href="#keelhaven" aria-label="Permalink to &quot;Keelhaven&quot;">​</a></h2><p>Keelhaven 的源代码位于 <a href="https://github.com/shenxianpeng/keelhaven" target="_blank" rel="noreferrer">github.com/shenxianpeng/keelhaven</a>， 以 <a href="https://github.com/shenxianpeng/keelhaven/blob/main/LICENSE" target="_blank" rel="noreferrer">GNU 通用公共许可证第 3 版或更高版本</a> （GPL-3.0-or-later）发布。阅读、审计、构建、修改、fork，GPL 允许的一切都可以。 「Keelhaven」的名称和图标不在此授权范围内：fork 应当使用自己的名字发布。</p><h2 id="restic" tabindex="-1">restic <a class="header-anchor" href="#restic" aria-label="Permalink to &quot;restic&quot;">​</a></h2><p>Keelhaven 的备份由 <a href="https://restic.net" target="_blank" rel="noreferrer">restic</a> 执行，它是一个开源备份程序。 一份 restic 副本（0.19.1 版，通用二进制）<strong>包含在 Keelhaven 应用包内</strong>并随之 再分发，所以你永远不需要自己安装 restic。</p><p>restic 版权所有 © 2014 Alexander Neumann，按 BSD 2-Clause 许可证使用，全文 转载如下（法律文本按惯例保留英文原文）。同样的文本也随应用一起分发，可在 「关于」窗口中查看。</p><ul><li>网站：<a href="https://restic.net" target="_blank" rel="noreferrer">https://restic.net</a></li><li>源码：<a href="https://github.com/restic/restic" target="_blank" rel="noreferrer">https://github.com/restic/restic</a></li></ul><div class="language- vp-adaptive-theme"><button title="Copy Code" class="copy"></button><span class="lang"></span><pre class="shiki shiki-themes github-light github-dark vp-code" tabindex="0"><code><span class="line"><span>BSD 2-Clause License</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Copyright (c) 2014, Alexander Neumann &lt;alexander@bumpern.de&gt;</span></span>
+<span class="line"><span>All rights reserved.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Redistribution and use in source and binary forms, with or without</span></span>
+<span class="line"><span>modification, are permitted provided that the following conditions are met:</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>* Redistributions of source code must retain the above copyright notice, this</span></span>
+<span class="line"><span>  list of conditions and the following disclaimer.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>* Redistributions in binary form must reproduce the above copyright notice,</span></span>
+<span class="line"><span>  this list of conditions and the following disclaimer in the documentation</span></span>
+<span class="line"><span>  and/or other materials provided with the distribution.</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS &quot;AS IS&quot;</span></span>
+<span class="line"><span>AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE</span></span>
+<span class="line"><span>IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE</span></span>
+<span class="line"><span>DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE</span></span>
+<span class="line"><span>FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL</span></span>
+<span class="line"><span>DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR</span></span>
+<span class="line"><span>SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER</span></span>
+<span class="line"><span>CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,</span></span>
+<span class="line"><span>OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE</span></span>
+<span class="line"><span>OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.</span></span></code></pre></div><p>restic 本身由许多开源 Go 库构建而成，各自遵循其许可。这些许可列在 <a href="https://github.com/restic/restic" target="_blank" rel="noreferrer">restic 仓库</a>中。</p><h2 id="与-restic-项目无关联" tabindex="-1">与 restic 项目无关联 <a class="header-anchor" href="#与-restic-项目无关联" aria-label="Permalink to &quot;与 restic 项目无关联&quot;">​</a></h2><p>Keelhaven 是独立产品，<strong>与 restic 项目及其作者没有关联，也未获其赞助或 背书</strong>。这里使用「restic」一词仅为描述 Keelhaven 所基于的软件。所有商标 均归各自所有者所有。</p><h2 id="问题应该报到哪里" tabindex="-1">问题应该报到哪里 <a class="header-anchor" href="#问题应该报到哪里" aria-label="Permalink to &quot;问题应该报到哪里&quot;">​</a></h2><p>Keelhaven 的问题请报给我们，不要报给 restic 项目。备份失败更可能出在 Keelhaven 调用 restic 的方式上，而不是 restic 本身，而且 restic 的维护者 都是志愿者。如果真的发现了 restic 自身的 bug，我们会自己向上游报告。</p>`,14)])])}const d=e(i,[["render",r]]);export{E as __pageData,d as default};

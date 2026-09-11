@@ -1,0 +1,1 @@
+import{_ as t,o as e,c as r,a0 as o}from"./chunks/framework.L_oL6aia.js";const d=JSON.parse('{"title":"隐私","description":"","frontmatter":{},"headers":[],"relativePath":"zh/privacy.md","filePath":"zh/privacy.md"}'),i={name:"zh/privacy.md"};function l(n,a,s,c,p,_){return e(),r("div",null,[...a[0]||(a[0]=[o("",6)])])}const u=t(i,[["render",l]]);export{d as __pageData,u as default};
