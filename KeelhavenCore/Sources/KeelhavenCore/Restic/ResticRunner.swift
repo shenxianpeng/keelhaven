@@ -76,6 +76,27 @@ public actor ResticRunner {
         )
     }
 
+    /// Runs `restic ls`, yielding the snapshot header and then one node per
+    /// entry, with the same lifecycle as the other streams.
+    ///
+    /// A stream rather than a collected array because this is the slowest thing
+    /// the app asks restic to do on a remote repository — measured at ~5.6 s
+    /// for 60 000 files over SFTP at 60 ms RTT (`Scripts/bench-remote-ls.sh`) —
+    /// so the window needs to show that it is working and let the user out.
+    /// Cancelling sends SIGINT through the same path a cancelled backup uses.
+    public nonisolated func listStream(
+        _ command: ResticCommand,
+        destination: Destination,
+        credentials: RepoCredentials
+    ) -> AsyncThrowingStream<ResticLsEvent, Error> {
+        eventStream(
+            command,
+            destination: destination,
+            credentials: credentials,
+            decodeLine: ResticJSON.decodeLsEvent(fromLine:)
+        )
+    }
+
     /// Shared subprocess JSON-lines pipeline behind both streams.
     private nonisolated func eventStream<Event: Sendable>(
         _ command: ResticCommand,

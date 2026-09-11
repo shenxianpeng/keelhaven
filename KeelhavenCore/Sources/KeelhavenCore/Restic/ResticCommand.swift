@@ -27,8 +27,20 @@ public enum ResticCommand: Equatable, Sendable {
     /// Reads the repository config — the cheapest command that proves a
     /// password opens an existing repository (used when adopting one).
     case catConfig
-    /// Restores a whole snapshot into the target folder.
-    case restore(snapshotID: String, target: String)
+    /// Lists a snapshot's contents: the snapshot header, then one node per
+    /// entry, in the order restic walked it (issue #61).
+    ///
+    /// One call for the whole snapshot rather than one per directory. That is
+    /// a measured decision, not a preference: see `SnapshotTree`.
+    case ls(snapshotID: String)
+    /// Restores a snapshot into the target folder.
+    ///
+    /// `includes` narrows the restore to selected paths — absolute, exactly as
+    /// `ls` reports them (verified against restic 0.19.1: an included file
+    /// lands alone under the target, an included directory lands with its
+    /// subtree). An empty list restores the whole snapshot, the way this
+    /// command behaved before the list existed.
+    case restore(snapshotID: String, target: String, includes: [String])
     /// Clears stale locks so retention passes can run again.
     ///
     /// Deliberately without `--remove-all`. Verified against restic 0.19.1:
@@ -68,8 +80,11 @@ public enum ResticCommand: Equatable, Sendable {
                 + retention.keepArguments
         case .catConfig:
             return ["cat", "config", "--json"]
-        case .restore(let snapshotID, let target):
+        case .ls(let snapshotID):
+            return ["ls", snapshotID, "--json"]
+        case .restore(let snapshotID, let target, let includes):
             return ["restore", snapshotID, "--target", target, "--json"]
+                + includes.flatMap { ["--include", $0] }
         case .unlock:
             return ["unlock"]
         }
