@@ -19,6 +19,7 @@ final class SchedulePolicyTests: XCTestCase {
     private func makePlan(
         schedule: Schedule,
         lastRun: Date?,
+        lastRunSucceeded: Bool = true,
         firstBackupStartsOnCreation: Bool = true,
         createdAt: Date? = nil
     ) -> BackupPlan {
@@ -29,7 +30,7 @@ final class SchedulePolicyTests: XCTestCase {
             schedule: schedule,
             firstBackupStartsOnCreation: firstBackupStartsOnCreation,
             createdAt: createdAt ?? utcDate(2026, 8, 1, 0, 0),
-            lastRun: lastRun.map { BackupRunRecord(date: $0, success: true) }
+            lastRun: lastRun.map { BackupRunRecord(date: $0, success: lastRunSucceeded) }
         )
     }
 
@@ -132,18 +133,11 @@ final class SchedulePolicyTests: XCTestCase {
     /// exit: if only successes anchored, the next tick would find the plan
     /// still due and start the same run again (issue #78).
     func testNextRunOfPlanWhoseLastRunDidNotFinishStillAnchorsOnIt() {
-        let plan = BackupPlan(
-            name: "Test",
-            sourcePaths: ["/tmp/src"],
-            destination: .local(path: "/tmp/repo"),
+        let plan = makePlan(
             schedule: .weekly(weekday: 1, hour: 21, minute: 0),
-            firstBackupStartsOnCreation: true,
-            createdAt: utcDate(2026, 8, 1, 0, 0),
-            lastRun: BackupRunRecord(
-                date: utcDate(2026, 9, 11, 9, 30),
-                success: false,
-                errorMessage: "Stopped before it finished"
-            )
+            lastRun: utcDate(2026, 9, 11, 9, 30),
+            lastRunSucceeded: false,
+            createdAt: utcDate(2026, 8, 1, 0, 0)
         )
         XCTAssertFalse(SchedulePolicy.isDue(plan, now: utcDate(2026, 9, 11, 9, 31), calendar: calendar))
         XCTAssertEqual(

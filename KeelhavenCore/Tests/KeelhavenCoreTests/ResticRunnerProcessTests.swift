@@ -216,9 +216,10 @@ final class ResticRunnerProcessTests: XCTestCase {
         """)
         let runner = ResticRunner(binaryURL: binary)
 
+        let source = workDirectory.path
         let consumer = Task { () -> (threw: Bool, sawSummary: Bool, cancelled: Bool) in
             let stream = runner.backupStream(
-                .backup(sources: ["/tmp"], excludes: [], tag: nil, performance: .off, options: .off),
+                .backup(sources: [source], excludes: [], tag: nil, performance: .off, options: .off),
                 destination: destination, credentials: credentials
             )
             var sawSummary = false
