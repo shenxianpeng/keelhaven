@@ -1,0 +1,22 @@
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerProcessTests.swift
+  s_6f526ea711c466::t_79453b7118eda4 219,222
+KeelhavenCore/Tests/KeelhavenCoreTests/SchedulePolicyTests.swift
+  s_6f526ea711c466::t_dfb0ae5c73c0e3 22,33
+  s_6f526ea711c466::t_de0668a6111876 136,138-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "842779cf4a1b4dabbb1bc2b0ea76af8e853896f4",
+  "prompts": {},
+  "sessions": {
+    "s_6f526ea711c466": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "095846ac-0ac6-44f4-a297-7f30904caa34",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
