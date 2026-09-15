@@ -78,7 +78,7 @@ final class RestoreModel {
 
                 let runner = ResticRunner(binaryURL: binaryURL)
                 let events = runner.restoreStream(
-                    .restore(snapshotID: snapshotID, target: targetURL.path),
+                    .restore(snapshotID: snapshotID, target: targetURL.path, includes: []),
                     destination: plan.destination,
                     credentials: credentials
                 )

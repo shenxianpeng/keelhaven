@@ -258,8 +258,33 @@ final class ResticCommandTests: XCTestCase {
     }
 
     func testRestoreArguments() {
-        let command = ResticCommand.restore(snapshotID: "c4e6a708", target: "/tmp/restored")
+        let command = ResticCommand.restore(snapshotID: "c4e6a708", target: "/tmp/restored", includes: [])
         XCTAssertEqual(command.arguments, ["restore", "c4e6a708", "--target", "/tmp/restored", "--json"])
+    }
+
+    /// A scoped restore repeats the flag, once per selected path, and the paths
+    /// are the absolute ones `restic ls` reported — verified against the real
+    /// binary before this parameter existed: an included file lands alone under
+    /// the target, an included directory lands with its subtree.
+    func testRestoreWithIncludesRepeatsTheFlagPerPath() {
+        let command = ResticCommand.restore(
+            snapshotID: "c4e6a708",
+            target: "/tmp/restored",
+            includes: ["/Users/me/Documents/a.txt", "/Users/me/Documents/photos"]
+        )
+        XCTAssertEqual(
+            command.arguments,
+            [
+                "restore", "c4e6a708", "--target", "/tmp/restored", "--json",
+                "--include", "/Users/me/Documents/a.txt",
+                "--include", "/Users/me/Documents/photos",
+            ]
+        )
+    }
+
+    func testListArguments() {
+        let command = ResticCommand.ls(snapshotID: "c4e6a708")
+        XCTAssertEqual(command.arguments, ["ls", "c4e6a708", "--json"])
     }
 
     func testLocalRepositoryLocation() {
