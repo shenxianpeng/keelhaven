@@ -1,0 +1,21 @@
+Scripts/bench-remote-ls.sh
+  s_6f526ea711c466::t_2f2aefccbb4cc4 87-90,93-98
+.github/workflows/ci.yml
+  s_6f526ea711c466::t_3dec253b3339d1 69-76,79-84
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "58ef97ffe13e8c4d69400a73e0024fa399687762",
+  "prompts": {},
+  "sessions": {
+    "s_6f526ea711c466": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "095846ac-0ac6-44f4-a297-7f30904caa34",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
