@@ -1,0 +1,35 @@
+Keelhaven/MenuBar/PlanStatusRow.swift
+  s_6f526ea711c466::t_8811212e0db785 337-347
+Keelhaven/Localizable.xcstrings
+  s_6f526ea711c466::t_97cded7b058898 2233-2262
+docs/ARCHITECTURE.md
+  s_6f526ea711c466::t_2994cc9d7a5bcb 51-58
+KeelhavenCore/Tests/KeelhavenCoreTests/SchedulePolicyTests.swift
+  s_6f526ea711c466::t_e5e399025f5ba9 130-154
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerProcessTests.swift
+  s_6f526ea711c466::t_1cb2b0f9b621b8 206-241
+Keelhaven/AppState.swift
+  s_6f526ea711c466::t_1b6384ab07c163 292,294,298-307
+  s_6f526ea711c466::t_0d4143bf467c56 365-370
+  s_6f526ea711c466::t_2036e0aa841911 413-422
+  s_6f526ea711c466::t_fe50eed5758a07 63-65
+  s_6f526ea711c466::t_758c0be4999555 308-309
+KeelhavenCore/Sources/KeelhavenCore/Restic/ResticRunner.swift
+  s_6f526ea711c466::t_feac5445ef183c 52-56
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f2dfffb634b94cb78114894383be98082221bd12",
+  "prompts": {},
+  "sessions": {
+    "s_6f526ea711c466": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "095846ac-0ac6-44f4-a297-7f30904caa34",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>"
+    }
+  }
+}
