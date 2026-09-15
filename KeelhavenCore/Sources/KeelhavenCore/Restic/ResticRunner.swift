@@ -49,6 +49,11 @@ public actor ResticRunner {
     /// The stream finishes after the summary event on success, or throws a
     /// `ResticError` on failure. Cancelling the consuming task sends SIGINT to
     /// restic, which exits and unlocks the repository cleanly.
+    ///
+    /// A cancelled stream ends the way consumer cancellation always ends an
+    /// `AsyncThrowingStream`: iteration simply stops — no summary, nothing
+    /// thrown. A consumer that must not mistake a stop for a finished run
+    /// checks `Task.isCancelled` after its loop.
     public nonisolated func backupStream(
         _ command: ResticCommand,
         destination: Destination,
