@@ -48,6 +48,14 @@ frameworks (UserNotifications, ServiceManagement, AppKit panels).
 
 Backups are serialized: one at a time, app-wide.
 
+A running backup can be stopped from its row. `AppState` keeps the run's
+`Task` and cancels it; the stream's termination handler turns that into
+SIGINT, restic finishes the file it is on, releases the lock and exits.
+The run is recorded as not finished, so the schedule waits for its next
+slot rather than starting the same run again on the next tick — a
+destination that stops answering (issue #78) used to leave force-quit as
+the only exit, and the catch-up at launch then re-entered the same run.
+
 ## Key decisions and their upgrade paths
 
 | Decision (v1) | Why | Upgrade path |

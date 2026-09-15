@@ -66,13 +66,22 @@ jobs:
         run: |
           brew untap aws/tap || true
           brew install restic
-      # MinIO is a single static binary; fetching it directly is faster than
-      # adding a brew tap. Credentials match the test defaults in
-      # ResticS3IntegrationTests.swift.
+      # MinIO stopped publishing binaries: dl.min.io answers 410 Gone for
+      # every path (since September 2026), and GitHub releases after
+      # 2025-09-07 carry no assets — the project went source-only. This is
+      # the last release with a darwin binary, so it is pinned, and checked
+      # against the release's own sha256sum (the unpinned dl.min.io download
+      # never was). Homebrew's formula has no bottle for this runner and
+      # would build MinIO from source at 10× minutes. Credentials match the
+      # test defaults in ResticS3IntegrationTests.swift.
       - name: Start MinIO (S3 integration tests)
         run: |
-          curl --proto "=https" -fsSL -o "$RUNNER_TEMP/minio" \
-            "https://dl.min.io/server/minio/release/darwin-$(uname -m | sed 's/x86_64/amd64/')/minio"
+          MINIO_RELEASE=RELEASE.2025-09-07T16-13-09Z
+          ASSET="minio.darwin-$(uname -m | sed 's/x86_64/amd64/').${MINIO_RELEASE}"
+          BASE="https://github.com/minio/minio/releases/download/${MINIO_RELEASE}"
+          curl --proto "=https" -fsSL -o "$RUNNER_TEMP/minio" "${BASE}/${ASSET}"
+          curl --proto "=https" -fsSL -o "$RUNNER_TEMP/minio.sha256sum" "${BASE}/${ASSET}.sha256sum"
+          echo "$(awk '{print $1}' "$RUNNER_TEMP/minio.sha256sum")  $RUNNER_TEMP/minio" | shasum -a 256 -c -
           chmod +x "$RUNNER_TEMP/minio"
           MINIO_ROOT_USER=keelhaven-test MINIO_ROOT_PASSWORD=keelhaven-test-secret \
             "$RUNNER_TEMP/minio" server --address 127.0.0.1:9000 "$RUNNER_TEMP/minio-data" \

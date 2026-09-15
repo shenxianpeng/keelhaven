@@ -60,6 +60,9 @@ final class AppState {
     @ObservationIgnored private let historyStore = RunHistoryStore()
     @ObservationIgnored private let scheduler = SchedulerService()
     @ObservationIgnored private var wakeObserver: NSObjectProtocol?
+    /// The task behind each running backup, kept so the row's Stop button
+    /// has something to cancel. Entries live exactly as long as the run.
+    @ObservationIgnored private var backupTasks: [UUID: Task<Void, Never>] = [:]
 
     init() {
         resticBinaryURL = ResticLocator.locate()
@@ -286,9 +289,22 @@ final class AppState {
         }
 
         runStates[plan.id] = .running(progress: nil, bytesDone: nil)
-        Task {
+        backupTasks[plan.id] = Task {
             await self.performBackup(plan, binaryURL: binaryURL)
+            self.backupTasks[plan.id] = nil
         }
+    }
+
+    /// The Stop button on a running row. Cancelling the task reaches restic
+    /// as SIGINT through the stream's termination handler: restic finishes
+    /// the file it is on, releases the repository lock and exits. The run is
+    /// then recorded as not finished — which is also what keeps the schedule
+    /// from starting the same run again on the next tick (issue #78).
+    ///
+    /// Only backups. A check or retention pass chained onto a finished
+    /// backup shows its own state, and this button is not offered there.
+    func stopBackup(_ plan: BackupPlan) {
+        backupTasks[plan.id]?.cancel()
     }
 
     private func performBackup(_ plan: BackupPlan, binaryURL: URL) async {
@@ -346,6 +362,12 @@ final class AppState {
                 }
             }
 
+            // A stop ends the stream the way consumer cancellation always
+            // does: iteration stops, no summary, nothing thrown. Say so here,
+            // before the bookkeeping below records a backup that never
+            // finished as a success (issue #78).
+            try Task.checkCancellation()
+
             // restic omits `snapshot_id` from its summary when
             // `--skip-if-unchanged` finds nothing to store. Only trust that
             // when we asked for it: the same field is also absent from the
@@ -388,6 +410,16 @@ final class AppState {
                current.lastCheck?.success != false {
                 await performPrune(current, binaryURL: binaryURL)
             }
+        } catch is CancellationError {
+            // Stopped from the row. Not a restic error and not a surprise,
+            // so no notification — but not a success either: the record says
+            // the run did not finish. No snapshot id: restic writes the
+            // snapshot before it prints the summary, so a stop that arrives
+            // after the summary interrupted only the lock release, and the
+            // snapshot it leaves behind is a complete one.
+            let message = String(localized: "Stopped before it finished")
+            await finishRun(plan, record: BackupRunRecord(date: startedAt, success: false, errorMessage: message))
+            runStates[plan.id] = .failed(message)
         } catch {
             let resticError = error as? ResticError
             let message = resticError?.localizedDescription ?? error.localizedDescription

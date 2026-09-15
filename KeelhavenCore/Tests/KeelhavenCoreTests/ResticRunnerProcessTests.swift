@@ -203,6 +203,43 @@ final class ResticRunnerProcessTests: XCTestCase {
         XCTAssertLessThan(Date().timeIntervalSince(started), 5)
     }
 
+    /// Pins the shape of a cancelled stream the app depends on: iteration
+    /// stops without a summary and without throwing. `AppState` therefore
+    /// checks `Task.isCancelled` after its loop — otherwise a stopped run
+    /// would fall through to the success bookkeeping and be recorded as a
+    /// finished backup (issue #78).
+    func testBackupStreamCancellationEndsWithoutThrowingOrSummary() async throws {
+        let statusLine = #"{"message_type":"status","percent_done":0.1}"#
+        let binary = try fakeBinary(script: """
+        echo '\(statusLine)'
+        exec /bin/sleep 30
+        """)
+        let runner = ResticRunner(binaryURL: binary)
+
+        let source = workDirectory.path
+        let consumer = Task { () -> (threw: Bool, sawSummary: Bool, cancelled: Bool) in
+            let stream = runner.backupStream(
+                .backup(sources: [source], excludes: [], tag: nil, performance: .off, options: .off),
+                destination: destination, credentials: credentials
+            )
+            var sawSummary = false
+            do {
+                for try await event in stream {
+                    if case .summary = event { sawSummary = true }
+                    withUnsafeCurrentTask { $0?.cancel() }
+                }
+            } catch {
+                return (true, sawSummary, Task.isCancelled)
+            }
+            return (false, sawSummary, Task.isCancelled)
+        }
+
+        let outcome = await consumer.value
+        XCTAssertFalse(outcome.threw)
+        XCTAssertFalse(outcome.sawSummary)
+        XCTAssertTrue(outcome.cancelled)
+    }
+
     func testBackupStreamCancellationEndsEvenIfChildIgnoresSigint() async throws {
         let statusLine = #"{"message_type":"status","percent_done":0.1}"#
         // A child that shrugs off SIGINT but keeps streaming: the readers must

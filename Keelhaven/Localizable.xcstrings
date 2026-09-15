@@ -2230,6 +2230,36 @@
         }
       }
     },
+    "Stop": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止"
+          }
+        }
+      }
+    },
+    "Stop backup": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "停止备份"
+          }
+        }
+      }
+    },
+    "Stopped before it finished": {
+      "localizations": {
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已停止，备份未完成"
+          }
+        }
+      }
+    },
     "Stops at the disk each folder lives on. Without this, an external drive or a network share mounted inside one of them is backed up too.": {
       "localizations": {
         "zh-Hans": {

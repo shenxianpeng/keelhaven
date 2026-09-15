@@ -19,6 +19,7 @@ final class SchedulePolicyTests: XCTestCase {
     private func makePlan(
         schedule: Schedule,
         lastRun: Date?,
+        lastRunSucceeded: Bool = true,
         firstBackupStartsOnCreation: Bool = true,
         createdAt: Date? = nil
     ) -> BackupPlan {
@@ -29,7 +30,7 @@ final class SchedulePolicyTests: XCTestCase {
             schedule: schedule,
             firstBackupStartsOnCreation: firstBackupStartsOnCreation,
             createdAt: createdAt ?? utcDate(2026, 8, 1, 0, 0),
-            lastRun: lastRun.map { BackupRunRecord(date: $0, success: true) }
+            lastRun: lastRun.map { BackupRunRecord(date: $0, success: lastRunSucceeded) }
         )
     }
 
@@ -124,6 +125,24 @@ final class SchedulePolicyTests: XCTestCase {
         XCTAssertEqual(
             SchedulePolicy.nextRun(for: plan, calendar: calendar),
             utcDate(2026, 8, 15, 21, 0)
+        )
+    }
+
+    /// A run that did not finish — stopped from the row, or failed — anchors
+    /// the schedule exactly like one that did. This is what makes Stop an
+    /// exit: if only successes anchored, the next tick would find the plan
+    /// still due and start the same run again (issue #78).
+    func testNextRunOfPlanWhoseLastRunDidNotFinishStillAnchorsOnIt() {
+        let plan = makePlan(
+            schedule: .weekly(weekday: 1, hour: 21, minute: 0),
+            lastRun: utcDate(2026, 9, 11, 9, 30),
+            lastRunSucceeded: false,
+            createdAt: utcDate(2026, 8, 1, 0, 0)
+        )
+        XCTAssertFalse(SchedulePolicy.isDue(plan, now: utcDate(2026, 9, 11, 9, 31), calendar: calendar))
+        XCTAssertEqual(
+            SchedulePolicy.nextRun(for: plan, calendar: calendar),
+            utcDate(2026, 9, 13, 21, 0)
         )
     }
 

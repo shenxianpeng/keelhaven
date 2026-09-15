@@ -334,9 +334,17 @@ struct PlanStatusRow: View {
     @ViewBuilder
     private var trailingControl: some View {
         if case .running = runState {
-            // The linear progress bar below already says "running" —
-            // a second spinner up here is noise.
-            EmptyView()
+            // Same style and size as Back Up Now, so the row keeps its height
+            // when a run starts. It is the only way out of a run restic never
+            // finishes: a destination that stops answering used to mean
+            // force-quitting the app — and the catch-up at launch then
+            // started the same run again (issue #78).
+            Button("Stop") {
+                appState.stopBackup(plan)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.regular)
+            .accessibilityLabel(String(localized: "Stop backup"))
         } else {
             Button("Back Up Now") {
                 appState.runBackup(plan)

@@ -84,10 +84,18 @@ start_minio() {
         minio_bin="$(command -v minio)"
     else
         say "Downloading MinIO"
-        local arch os
+        # The last release with binaries — dl.min.io is gone and later
+        # releases are source-only (see the same step in ci.yml). Pinned and
+        # checked against the release's own sha256sum.
+        local arch os release asset base
         arch="$(uname -m | sed -e 's/x86_64/amd64/' -e 's/aarch64/arm64/')"
         os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-        curl --proto "=https" -fsSL -o "$WORK/minio" "https://dl.min.io/server/minio/release/${os}-${arch}/minio"
+        release="RELEASE.2025-09-07T16-13-09Z"
+        asset="minio.${os}-${arch}.${release}"
+        base="https://github.com/minio/minio/releases/download/${release}"
+        curl --proto "=https" -fsSL -o "$WORK/minio" "${base}/${asset}"
+        curl --proto "=https" -fsSL -o "$WORK/minio.sha256sum" "${base}/${asset}.sha256sum"
+        echo "$(awk '{print $1}' "$WORK/minio.sha256sum")  $WORK/minio" | shasum -a 256 -c - >/dev/null
         chmod +x "$WORK/minio"
         minio_bin="$WORK/minio"
     fi
