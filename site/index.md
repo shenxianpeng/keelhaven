@@ -1,5 +1,10 @@
 ---
 layout: page
+# The document title and meta description, i.e. the search result. The
+# landing copy below is untouched by these.
+title: "Keelhaven — Free, encrypted Mac backup to storage you own"
+titleTemplate: false
+description: "A free, open-source menu bar app that encrypts your Mac's folders and backs them up on a schedule to your own drive, NAS, S3-compatible bucket or SFTP server. Built on restic."
 navbar: false
 footer: false
 

@@ -1,5 +1,10 @@
 ---
 layout: page
+# The document title and meta description, i.e. the search result. The
+# landing copy below is untouched by these.
+title: "Keelhaven — 免费、加密的 Mac 备份，存到你自己的地方"
+titleTemplate: false
+description: "免费开源的 Mac 菜单栏备份工具：先在本机加密你挑的文件夹，再按计划备份到你自己的硬盘、NAS、S3 兼容存储桶或 SFTP 服务器。基于 restic。"
 navbar: false
 footer: false
 
