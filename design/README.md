@@ -104,7 +104,8 @@ to read as Chinese rather than translated word for word.
 | Website (`site/index.md`) | meta description, footer | hero | strip under the hero | § 01, `FlowDiagram.vue` |
 | README | banner | lead | table | `docs/assets/flow.png` |
 | Social card (`og.png`) | — | title | chips | — |
-| GitHub description, Homebrew cask `desc` | as is | — | — | — |
+| GitHub description | as is | — | — | — |
+| Homebrew cask `desc` | minus "for your Mac" — `brew style` rejects platform names | — | — | — |
 
 **One idea per section, one line per idea.** If a point was made further up,
 cut it; detail belongs in the FAQ, not on the landing page. Say what the app
