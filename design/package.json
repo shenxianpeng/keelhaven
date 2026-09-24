@@ -5,7 +5,8 @@
   "description": "Generates Keelhaven's app icon, menu-bar template and brand assets from a single vector source.",
   "scripts": {
     "build": "node build.mjs",
-    "materials": "node materials.mjs"
+    "materials": "node materials.mjs",
+    "site": "node site.mjs"
   },
   "devDependencies": {
     "sharp": "^0.35.0",

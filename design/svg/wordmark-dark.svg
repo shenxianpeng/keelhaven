@@ -1,8 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="520" height="120" viewBox="0 0 520 120">
+<svg xmlns="http://www.w3.org/2000/svg" width="560" height="120" viewBox="0 0 560 120">
   <style>
     .n { font: 640 58px/1 -apple-system, 'SF Pro Display', 'Inter', system-ui, sans-serif; letter-spacing: -1.7px; }
     .s { font: 460 19px/1 -apple-system, 'SF Pro Text', 'Inter', system-ui, sans-serif; letter-spacing: -.1px; }
   </style>
   <text class="n" x="0" y="58" fill="#EAF2FB">Keelhaven</text>
-  <text class="s" x="2" y="92" fill="rgba(234,242,251,.62)">Privacy-first Mac backup to storage you own</text>
+  <text class="s" x="2" y="92" fill="rgba(234,242,251,.62)">Privacy-first backups for your Mac, to storage you own.</text>
 </svg>

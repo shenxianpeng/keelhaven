@@ -6,6 +6,10 @@ footer: false
 # All landing copy that components render lives here (not inside the
 # components); zh/index.md mirrors this file section for section — when
 # editing copy here, make the same change there (and vice versa).
+#
+# The words themselves come from design/README.md § Words: say one thing per
+# section, in one line where one line will do, and leave the detail to the
+# FAQ. If a point was made further up the page, don't make it again.
 landing:
   # The one place the support address is written. It is a Cloudflare Email
   # Routing alias on keelhaven.app that forwards to a real inbox, so it can be
@@ -17,13 +21,11 @@ landing:
   github: https://github.com/shenxianpeng/keelhaven
   cta: Download
   nav:
-    - { text: Features, anchor: features }
-    - { text: Guide, anchor: guide }
-    - { text: Pricing, anchor: pricing }
-    - { text: Voices, anchor: voices }
+    - { text: How it works, anchor: how }
+    - { text: No lock-in, anchor: open }
     - { text: FAQ, anchor: faq }
   footer:
-    tagline: Privacy-first backups for your Mac.
+    tagline: Privacy-first backups for your Mac, to storage you own.
     versionNote: public beta
     copyright: © shenxianpeng.
     groups:
@@ -34,14 +36,39 @@ landing:
           - { text: Follow on X, href: "https://x.com/xianpengshen" }
       - title: Product
         links:
-          - { text: Features, anchor: features }
-          - { text: Getting started, anchor: guide }
-          - { text: Pricing, anchor: pricing }
+          - { text: How it works, anchor: how }
           - { text: Source on GitHub, github: true }
       - title: Legal
         links:
           - { text: Privacy, link: /privacy }
           - { text: Licenses, link: /licenses }
+  # FlowDiagram.vue. docs/assets/flow.png (drawn by design/materials.mjs)
+  # shows the same diagram in the README — change the two together.
+  flow:
+    mac:
+      label: Your Mac
+      title: The folders you pick
+      items: [Documents, Photos, Projects]
+      more: …any folder you choose
+    app:
+      sub: in your menu bar
+      items:
+        - Encrypts with a password kept in your Keychain
+        - Stores only what changed since last time
+        - Runs hourly, daily or weekly, at your time
+        - Verifies the repository, weekly by default
+    arrows: [your files, encrypted]
+    storage:
+      label: Storage you own
+      title: Wherever you trust
+      items:
+        - { text: External or network drive }
+        - { text: S3-compatible bucket, note: AWS · B2 · Wasabi · R2 · MinIO }
+        - { text: SFTP to a server or NAS }
+        - { text: restic REST server }
+    notInPath:
+      label: "Not in the path:"
+      items: [a Keelhaven server, an account, telemetry]
 ---
 
 <script setup>
@@ -61,157 +88,103 @@ const releases = computed(
 
 <LandingNav />
 
+<!-- Night band: the hero and the three promises. The nav floats over it. -->
+<div class="kh-band kh-band-night kh-hero-band">
 <section id="top" class="kh-hero">
-  <h1 class="kh-hero-title">Privacy-first backups for your&nbsp;Mac</h1>
-  <p class="kh-hero-tagline">A quiet menu bar app that backs up the folders you care about — encrypted on your Mac, on your schedule, to storage you own.</p>
-  <p class="kh-hero-facts">
-    <span>macOS 14+</span>
-    <span>Free &amp; open source</span>
-    <span>No telemetry</span>
-    <span>Restore from the menu bar</span>
-  </p>
-  <div class="kh-hero-actions">
-    <CommandBlock
-      command="brew install --cask shenxianpeng/tap/keelhaven"
-      note="One command — installs and launches with no security prompt."
-    />
-    <p class="kh-hero-alt">
-      <DownloadButton label="Download the .dmg" :fallback-href="releases" ghost />
-      <a class="kh-btn kh-btn-ghost" href="#guide">Read the guide</a>
-    </p>
+  <div class="kh-hero-copy">
+    <p class="kh-hero-chip"><span aria-hidden="true"></span>Public beta · macOS 14 or later</p>
+    <h1 class="kh-hero-title">Back up your Mac to storage <em>you&nbsp;own.</em></h1>
+    <p class="kh-hero-tagline">A free menu bar app that encrypts your folders on your Mac, then backs them up on a schedule to your own drive, bucket or server.</p>
+    <div class="kh-hero-actions">
+      <DownloadButton label="Download for Mac" :fallback-href="releases" />
+      <CommandBlock
+        command="brew install --cask shenxianpeng/tap/keelhaven"
+        lead="Or with Homebrew — no security prompt:"
+      />
+    </div>
   </div>
+  <!-- MenuBarDemo is an animated recreation of the popover, built from the
+       SwiftUI sources rather than a screenshot, so it stays honest about what
+       the app shows. -->
+  <div class="kh-hero-demo"><MenuBarDemo /></div>
 </section>
+<ul class="kh-promises">
+  <li>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <strong>Encrypted on your Mac</strong>
+    <span>Only you hold the key.</span>
+  </li>
+  <li>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="6" rx="1.5"/><rect x="4" y="13" width="16" height="6" rx="1.5"/><path d="M8 8h.01M8 16h.01"/></svg>
+    <strong>Stored where you choose</strong>
+    <span>No Keelhaven server in the path.</span>
+  </li>
+  <li>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 1 1 8.5 4a6.8 6.8 0 0 0 11.5 11.5z"/></svg>
+    <strong>Quiet until it matters</strong>
+    <span>It speaks up only when something needs you.</span>
+  </li>
+</ul>
+</div>
 
-<LandingSection id="tour" eyebrow="00 · See it" title="One menu bar item. That's the whole app.">
+<LandingSection id="where" eyebrow="01 · Where your files go" title="From your Mac to your storage. Nowhere else.">
 
-<!-- MenuBarDemo is an animated recreation of the popover, built from the
-     SwiftUI sources rather than a screenshot, so it stays honest about what
-     the app shows — the spinner before the engine reports anything, then the
-     percentage that rides beside the progress bar. -->
-<ShotFrame><MenuBarDemo /></ShotFrame>
+<FlowDiagram />
 
 </LandingSection>
 
-<LandingSection id="features" eyebrow="01 · Features" title="Built to be forgotten">
-
-<div class="kh-feature-grid">
-<div class="kh-feature">
-
-### Private by design
-
-Your data is encrypted before it leaves your Mac. Passwords live in the macOS Keychain and are never written to disk or logs.
-
-</div>
-<div class="kh-feature">
-
-### Out of your way
-
-Lives in the menu bar — no Dock icon, no windows to manage. Set a schedule once and forget it.
-
-</div>
-<div class="kh-feature">
-
-### Restore, with or without it
-
-Pick a point in time in the menu bar and Keelhaven puts the files back in a new folder, overwriting nothing. The backups are a standard restic repository too, so the same snapshots restore with free open-source tools on any machine.
-
-</div>
-<div class="kh-feature">
-
-### Real schedules
-
-Hourly, daily, or weekly — pick a weekday and a time, and Keelhaven keeps your backups current.
-
-</div>
-</div>
-
-</LandingSection>
-
-<LandingSection id="guide" eyebrow="02 · Guide" title="Three decisions, then silence">
+<LandingSection id="how" band="sand" eyebrow="02 · How it works" title="Three decisions, then silence.">
 
 <ol class="kh-steps">
-<li>
-
-### Pick your folders
-
-Choose the folders you can't lose — documents, photos, projects.
-
-</li>
-<li>
-
-### Choose a destination you own
-
-An external drive, a NAS, or any S3-compatible bucket. There is no Keelhaven server in the path.
-
-</li>
-<li>
-
-### Set the schedule
-
-Hourly, daily, or weekly. Keelhaven runs in the background and only speaks up when something needs attention.
-
-</li>
+  <li>
+    <div class="kh-step-shot"><img src="/screenshots/wizard.webp" alt="The New Backup Plan window, on the step that asks where the encrypted backup should go." width="720" height="758" loading="lazy"></div>
+    <h3>1 · Make a plan</h3>
+    <p>Folders, destination, schedule.</p>
+  </li>
+  <li>
+    <div class="kh-step-shot"><img src="/screenshots/menu-bar.webp" alt="The menu bar panel listing three plans, each with a green dot, its schedule and when it last ran." width="720" height="997" loading="lazy"></div>
+    <h3>2 · Let it run</h3>
+    <p>A green dot means the last backup worked.</p>
+  </li>
+  <li>
+    <div class="kh-step-shot"><img src="/screenshots/restore.webp" alt="The Restore Backup window listing snapshots by date, file count and size." width="720" height="591" loading="lazy"></div>
+    <h3>3 · Restore any point in time</h3>
+    <p>Into a new folder. Nothing is overwritten.</p>
+  </li>
 </ol>
 
-<div class="kh-guide-note">
+</LandingSection>
 
-Runs on macOS 14 or later, Apple silicon and Intel, with everything it needs bundled. Prefer the terminal? Either command installs the same app the download button serves:
+<LandingSection id="open" split band="night" eyebrow="03 · No lock-in" title="Your backups outlive the app.">
 
-<div class="kh-install">
-  <div class="kh-install-row"><span class="kh-install-label">With Homebrew</span><code>brew install --cask shenxianpeng/tap/keelhaven</code></div>
-  <div class="kh-install-row"><span class="kh-install-label">Without Homebrew</span><code>curl -fsSL https://keelhaven.app/install.sh | bash</code></div>
-</div>
-
-Beta builds aren't notarised by Apple yet, so the very first launch takes one extra approval — the [FAQ below](#faq) walks through it in three clicks.
-
-</div>
+  <p class="kh-lead">Every plan is a standard <a href="https://restic.net" target="_blank" rel="noopener">restic</a> repository. Restore it on any Mac or Linux machine, with or without Keelhaven.</p>
+  <div class="kh-term">
+    <div class="kh-term-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+    <pre><code><span class="kh-term-prompt">$ </span>restic -r sftp:you@nas.local:/backups \
+    restore latest --target ~/Restored</code></pre>
+  </div>
 
 </LandingSection>
 
-<LandingSection id="pricing" eyebrow="03 · Pricing" title="Free. That's the entire model.">
+<LandingSection id="free" split eyebrow="04 · Price" title="Free. That's the whole model.">
 
-<PricingCard>
-<template #price><span class="kh-badge">Free and open source</span></template>
-<template #note>Free in beta, free after 1.0. No subscription, no account, no strings attached.</template>
+<p class="kh-lead">Open source under the GPLv3. No account, no subscription, no telemetry.</p>
 
-- Unlimited backup plans and destinations
-- Universal build — Apple silicon and Intel
-- Backup engine built in — nothing else to install
-- No account, no telemetry, no server of ours in the path
-
-</PricingCard>
-
-</LandingSection>
-
-<LandingSection id="voices" eyebrow="04 · Voices" title="In other people's words">
-
-<div class="kh-voices">
 <VoiceCard name="mao mao" handle="@maomao000211" source="X" href="https://x.com/maomao000211/status/2095382774874267938">
 
 Nice scope — restic plus a menu bar UI is exactly the missing piece, and keeping the repo format standard means people aren't locked into your app. The no-account, no-telemetry stance will do a lot of the selling for you.
 
 </VoiceCard>
-<VoiceCard name="小弟调调" handle="@jaywcjlove" source="X" href="https://x.com/jaywcjlove/status/2096527566400352339" note="translated from Chinese">
-
-No Dock icon, no main window. Pick the folders, the storage and the schedule, and it runs quietly in the background, speaking up only when something fails. The password is kept in the macOS Keychain, and it writes a standard restic repository, so you can restore from the restic command line without this app.
-
-</VoiceCard>
-<VoiceCard name="An_yhl" handle="@An_yhl" source="X" href="https://x.com/An_yhl/status/2096486139725070835" note="translated from Chinese">
-
-A backup tool in the menu bar really is less to think about. Worth a look if you already use restic.
-
-</VoiceCard>
-<VoiceCard name="小众软件" handle="@appinn" source="X" href="https://x.com/appinn/status/2096408933376065669" note="translated from Chinese">
-
-Keelhaven: a restic backup tool for the macOS menu bar. Free and open source.
-
-</VoiceCard>
-</div>
 
 </LandingSection>
 
 <LandingSection id="faq" eyebrow="05 · Questions" title="Straight answers">
 
+<FaqItem question="Does this replace Time Machine?">
+
+No — run both. Time Machine is excellent at putting a whole Mac back the way it was, from a drive on your desk. Keelhaven is for the second copy: the folders you can't lose, encrypted, somewhere that isn't your desk.
+
+</FaqItem>
 <FaqItem question="macOS says it can't verify Keelhaven. Is something wrong?">
 
 Nothing is wrong — beta builds aren't notarised with Apple yet, so macOS shows its standard warning for any app it can't verify online. Allow it once and it never asks again for that version:
@@ -221,11 +194,14 @@ Nothing is wrong — beta builds aren't notarised with Apple yet, so macOS shows
 - **Prefer the Terminal?** `xattr -d com.apple.quarantine /Applications/Keelhaven.app` clears the flag and skips the dialog entirely.
 
 </FaqItem>
-<FaqItem question="Does this replace Time Machine?">
+<FaqItem question="What happens if I forget the repository password?">
 
-No — run both. Time Machine is excellent at putting a whole Mac back the way it was, from a drive on your desk. Keelhaven is for the second copy: the folders you can't lose, encrypted, somewhere that isn't your desk.
+The backup is unrecoverable, by design — repositories are encrypted end to end, and nobody, not us and not your storage provider, holds a spare key. Keelhaven keeps the password in your macOS Keychain and can copy it back out after a Touch ID check; put it in your password manager too.
 
 </FaqItem>
+
+<FaqMore label="More questions">
+
 <FaqItem question="How do I get my files back?">
 
 The plan's **⋯** menu has **Restore…** — it lists every snapshot that plan has taken (date, number of files, size, newest first), and you pick the point in time you want and where to put it. It restores into a new folder named for the plan and the moment, so nothing you have now is overwritten and a restore can never cost you the version you're standing on.
@@ -311,18 +287,24 @@ No. Everything Keelhaven needs ships inside the app bundle, including its backup
 Two ways, both installing the same DMG the download button serves. With Homebrew, `brew install --cask shenxianpeng/tap/keelhaven` — and `brew upgrade` picks up new releases. Without it, `curl -fsSL https://keelhaven.app/install.sh | bash` downloads the latest release and copies it into Applications; the [script](https://github.com/shenxianpeng/keelhaven/blob/main/site/public/install.sh) is a short, readable page of shell if you'd rather check it first.
 
 </FaqItem>
-<FaqItem question="What happens if I forget the repository password?">
-
-The backup is unrecoverable, by design — repositories are encrypted end to end, and nobody, not us and not your storage provider, holds a spare key. Keelhaven keeps the password in your macOS Keychain and can copy it back out after a Touch ID check; put it in your password manager too.
-
-</FaqItem>
 <FaqItem question="Why isn't it on the Mac App Store?">
 
 App Store apps must run in the sandbox, and the backup engine needs to read the folders you point it at and open network and SSH connections. Running outside the sandbox is also what lets you grant it Full Disk Access — the permission macOS demands before any app may read Desktop, Documents or Downloads. Keelhaven ships with the hardened runtime enabled, just not through the store — and while in beta, without Apple notarisation, which is why the first launch asks for [one approval](#faq).
 
 </FaqItem>
 
+</FaqMore>
+
 </LandingSection>
+
+<div class="kh-band kh-band-night kh-cta">
+<section class="kh-cta-inner">
+  <img src="/favicon-180.png" alt="" width="88" height="88">
+  <h2 class="kh-h2">Set it up once. Then forget it.</h2>
+  <DownloadButton label="Download for Mac" :fallback-href="releases" />
+  <p class="kh-cta-note">macOS 14 or later · Apple silicon and Intel</p>
+</section>
+</div>
 
 <LandingFooter />
 

@@ -54,6 +54,13 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 restic 本身由许多开源 Go 库构建而成，各自遵循其许可。这些许可列在
 [restic 仓库](https://github.com/restic/restic)中。
 
+## Newsreader（网站字体）
+
+本网站的标题使用 [Newsreader](https://github.com/productiontype/Newsreader) 字体，
+版权 © 2020 The Newsreader Project Authors，依
+[SIL Open Font License 1.1](/fonts/LICENSE-Newsreader.txt) 使用。字体文件由本站自己提供，
+不经任何字体服务加载。
+
 ## 与 restic 项目无关联
 
 Keelhaven 是独立产品，**与 restic 项目及其作者没有关联，也未获其赞助或
