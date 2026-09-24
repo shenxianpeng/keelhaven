@@ -6,6 +6,9 @@ footer: false
 # site/index.md 的简体中文版。结构与英文版逐段对应：改动英文文案时，
 # 请同步这里（反之亦然）。中文不逐字直译，以读起来像中文为准。
 # 所有组件文案都住在这份 frontmatter 里。
+#
+# 文案本身来自 design/README.md 的「Words」一节：每一节只讲一件事，一句话
+# 能说完就只写一句，细节留给 FAQ；上面已经说过的，下面不再重复。
 landing:
   # 支持邮箱只写在这一处。它是 keelhaven.app 上的 Cloudflare Email
   # Routing 别名，转发到真实邮箱，可随时改指向而不用动网站。
@@ -18,13 +21,11 @@ landing:
   # 导航用短标签（FAQ 而非「常见问题」），配合语言切换按钮才放得进
   # 375px 的手机导航胶囊；页内区块标题和页脚仍用中文全称。
   nav:
-    - { text: 功能, anchor: features }
-    - { text: 指南, anchor: guide }
-    - { text: 定价, anchor: pricing }
-    - { text: 评价, anchor: voices }
+    - { text: 怎么用, anchor: how }
+    - { text: 不锁定, anchor: open }
     - { text: FAQ, anchor: faq }
   footer:
-    tagline: 隐私优先的 Mac 备份。
+    tagline: 隐私优先的 Mac 备份，存到你自己的地方。
     versionNote: 公开测试版
     copyright: © shenxianpeng.
     groups:
@@ -35,14 +36,39 @@ landing:
           - { text: 在 X 上关注, href: "https://x.com/xianpengshen" }
       - title: 产品
         links:
-          - { text: 功能, anchor: features }
-          - { text: 快速上手, anchor: guide }
-          - { text: 定价, anchor: pricing }
+          - { text: 怎么用, anchor: how }
           - { text: GitHub 源码, github: true }
       - title: 法律
         links:
           - { text: 隐私, link: /zh/privacy }
           - { text: 许可, link: /zh/licenses }
+  # FlowDiagram.vue 的文案。README 里的 docs/assets/flow.png（由
+  # design/materials.mjs 绘制）是同一张图的英文版——两处一起改。
+  flow:
+    mac:
+      label: 你的 Mac
+      title: 你挑的文件夹
+      items: [文稿, 照片, 项目]
+      more: …任何你选的文件夹
+    app:
+      sub: 住在你的菜单栏里
+      items:
+        - 用存在钥匙串里的密码加密
+        - 只存上次之后变化的部分
+        - 每小时、每天或每周，按你定的时间跑
+        - 定期校验仓库，默认每周一次
+    arrows: [你的文件, 已加密]
+    storage:
+      label: 你自己的存储
+      title: 你信得过的地方
+      items:
+        - { text: 外置硬盘或网络硬盘 }
+        - { text: 兼容 S3 的存储桶, note: AWS · B2 · Wasabi · R2 · MinIO }
+        - { text: 用 SFTP 连服务器或 NAS }
+        - { text: restic REST server }
+    notInPath:
+      label: 路径上没有：
+      items: [Keelhaven 的服务器, 账号, 遥测]
   # 演示动画的界面文案，取自 App 自带的简体中文本地化
   # （Keelhaven/Localizable.xcstrings），保证演示与真实应用一字不差。
   demo:
@@ -81,160 +107,106 @@ const releases = computed(
 
 <LandingNav />
 
+<!-- 深色带：首屏和三个承诺，导航浮在它上面。 -->
+<div class="kh-band kh-band-night kh-hero-band">
 <section id="top" class="kh-hero">
-  <!-- CJK 允许在任意字符间断行，nowrap 保证「Mac 备份」不被拆成「备/份」；
-       span 前的普通空格让换行点落在「的」之后。 -->
-  <h1 class="kh-hero-title">隐私优先的 <span style="white-space: nowrap">Mac 备份</span></h1>
-  <p class="kh-hero-tagline">安静的菜单栏应用。把最在乎的文件夹先在 Mac 上加密，再按时间表备份到你自己的硬盘、NAS 或云端。</p>
-  <p class="kh-hero-facts">
-    <span>macOS 14+</span>
-    <span>免费开源</span>
-    <span>无遥测</span>
-    <span>在菜单栏里恢复</span>
-  </p>
-  <div class="kh-hero-actions">
-    <CommandBlock
-      command="brew install --cask shenxianpeng/tap/keelhaven"
-      note="一行命令，装完直接能开，不弹任何安全提示。"
-      copy-label="复制"
-      copied-label="已复制"
-    />
-    <p class="kh-hero-alt">
-      <DownloadButton label="下载 .dmg" :fallback-href="releases" ghost />
-      <a class="kh-btn kh-btn-ghost" href="#guide">先看指南</a>
-    </p>
+  <div class="kh-hero-copy">
+    <p class="kh-hero-chip"><span aria-hidden="true"></span>公开测试版 · macOS 14 及以上</p>
+    <!-- CJK 允许在任意字符间断行：两段各自 nowrap，换行只会落在「到」之后。
+         中文不用斜体强调（中文字体没有真斜体，只会被机械地歪一下）。 -->
+    <h1 class="kh-hero-title"><span style="white-space: nowrap">把 Mac 备份到</span><span style="white-space: nowrap">你自己的存储</span></h1>
+    <p class="kh-hero-tagline">免费的菜单栏应用：先在 Mac 上加密你的文件夹，再按时间表备份到你自己的硬盘、存储桶或服务器。</p>
+    <div class="kh-hero-actions">
+      <DownloadButton label="下载 Mac 版" :fallback-href="releases" />
+      <CommandBlock
+        command="brew install --cask shenxianpeng/tap/keelhaven"
+        lead="或用 Homebrew 安装，不弹安全提示："
+        copy-label="复制"
+        copied-label="已复制"
+      />
+    </div>
   </div>
+  <!-- MenuBarDemo 是弹窗界面的动画复刻，按 SwiftUI 源码绘制而非截图，
+       保证展示的和应用实际拥有的一致。 -->
+  <div class="kh-hero-demo"><MenuBarDemo /></div>
 </section>
+<ul class="kh-promises">
+  <li>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+    <strong>在 Mac 上加密</strong>
+    <span>钥匙只在你手里。</span>
+  </li>
+  <li>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="6" rx="1.5"/><rect x="4" y="13" width="16" height="6" rx="1.5"/><path d="M8 8h.01M8 16h.01"/></svg>
+    <strong>存在你选的地方</strong>
+    <span>中间没有 Keelhaven 的服务器。</span>
+  </li>
+  <li>
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 15.5A8.5 8.5 0 1 1 8.5 4a6.8 6.8 0 0 0 11.5 11.5z"/></svg>
+    <strong>有事才出声</strong>
+    <span>只在需要你的时候才提醒。</span>
+  </li>
+</ul>
+</div>
 
-<LandingSection id="tour" eyebrow="00 · 看一眼" title="一个菜单栏图标，就是整个应用。">
+<LandingSection id="where" eyebrow="01 · 文件去哪儿" title="从你的 Mac 到你的存储，不经别处。">
 
-<!-- MenuBarDemo 是弹窗界面的动画复刻，按 SwiftUI 源码绘制而非截图，
-     保证展示的和应用实际拥有的一致——包括备份刚开始时的转圈，
-     以及 restic 报出总量之后进度条旁边的那个百分比。 -->
-<ShotFrame><MenuBarDemo /></ShotFrame>
+<FlowDiagram />
 
 </LandingSection>
 
-<LandingSection id="features" eyebrow="01 · 功能" title="装完就忘">
-
-<div class="kh-feature-grid">
-<div class="kh-feature">
-
-### 隐私为本
-
-数据离开 Mac 前就已加密。密码只存在 macOS 钥匙串里，不落盘、不进日志。
-
-</div>
-<div class="kh-feature">
-
-### 不打扰
-
-住在菜单栏里，没有 Dock 图标，也没有窗口要管。定好时间表，就不用再想起它。
-
-</div>
-<div class="kh-feature">
-
-### 恢复，用不用它都行
-
-在菜单栏里选一个时间点，Keelhaven 就把文件放回一个新文件夹，不覆盖任何现有文件。备份本身也是标准的 restic 仓库，同样的快照在任何机器上用免费的开源工具照样能恢复。
-
-</div>
-<div class="kh-feature">
-
-### 时间表说到做到
-
-每小时、每天或每周，选好星期和时间，之后的备份 Keelhaven 一次都不会落下。
-
-</div>
-</div>
-
-</LandingSection>
-
-<LandingSection id="guide" eyebrow="02 · 指南" title="决定三件事，剩下不用管">
+<LandingSection id="how" band="sand" eyebrow="02 · 怎么用" title="决定三件事，剩下不用管">
 
 <ol class="kh-steps">
-<li>
-
-### 挑几个文件夹
-
-挑出丢不起的那些：文稿、照片、项目。
-
-</li>
-<li>
-
-### 选个自己的地方存
-
-外置硬盘、NAS，或任何兼容 S3 的存储桶。中间没有 Keelhaven 的服务器。
-
-</li>
-<li>
-
-### 定个时间表
-
-每小时、每天或每周。Keelhaven 在后台运行，出了问题才会叫你。
-
-</li>
+  <li>
+    <div class="kh-step-shot"><img src="/screenshots/wizard.webp" alt="「新建备份计划」窗口，停在询问加密备份存到哪里的那一步。" width="720" height="758" loading="lazy"></div>
+    <h3>1 · 建一个计划</h3>
+    <p>文件夹、目的地、时间表。</p>
+  </li>
+  <li>
+    <div class="kh-step-shot"><img src="/screenshots/menu-bar-zh.webp" alt="菜单栏弹窗里列着三个计划，每个都亮着绿点，显示时间表和上次备份时间。" width="720" height="997" loading="lazy"></div>
+    <h3>2 · 让它自己跑</h3>
+    <p>绿点亮着，说明上次备份成功了。</p>
+  </li>
+  <li>
+    <div class="kh-step-shot"><img src="/screenshots/restore.webp" alt="「恢复备份」窗口，按日期、文件数和大小列出快照。" width="720" height="591" loading="lazy"></div>
+    <h3>3 · 恢复任意时间点</h3>
+    <p>恢复到新文件夹，不覆盖任何文件。</p>
+  </li>
 </ol>
 
-<div class="kh-guide-note">
+</LandingSection>
 
-macOS 14 及以上，Apple 芯片和 Intel 都行，所有依赖都打包在应用里。喜欢终端的话，下面两条命令装的和下载按钮是同一个应用：
+<LandingSection id="open" split band="night" eyebrow="03 · 不锁定" title="备份比应用活得久。">
 
-<div class="kh-install">
-  <div class="kh-install-row"><span class="kh-install-label">用 Homebrew</span><code>brew install --cask shenxianpeng/tap/keelhaven</code></div>
-  <div class="kh-install-row"><span class="kh-install-label">不用 Homebrew</span><code>curl -fsSL https://keelhaven.app/install.sh | bash</code></div>
-</div>
-
-Beta 版还没做 Apple 公证，第一次打开要多点一次确认，[下面的 FAQ](#faq) 三步讲清。
-
-</div>
+  <p class="kh-lead">每个计划都是标准的 <a href="https://restic.net" target="_blank" rel="noopener">restic</a> 仓库。在任何 Mac 或 Linux 上都能恢复，装不装 Keelhaven 都一样。</p>
+  <div class="kh-term">
+    <div class="kh-term-bar" aria-hidden="true"><span></span><span></span><span></span></div>
+    <pre><code><span class="kh-term-prompt">$ </span>restic -r sftp:you@nas.local:/backups \
+    restore latest --target ~/Restored</code></pre>
+  </div>
 
 </LandingSection>
 
-<LandingSection id="pricing" eyebrow="03 · 定价" title="免费。这就是全部定价。">
+<LandingSection id="free" split eyebrow="04 · 定价" title="免费。这就是全部定价。">
 
-<PricingCard>
-<template #price><span class="kh-badge">免费且开源</span></template>
-<template #note>Beta 免费，1.0 之后也免费。没有订阅，没有账号，也没有任何附加条件。</template>
+<p class="kh-lead">GPLv3 开源。没有账号，没有订阅，没有遥测。</p>
 
-- 备份计划和目的地数量不限
-- 通用构建，Apple 芯片和 Intel 都支持
-- 备份引擎已内置，不用再装任何东西
-- 没有账号，没有遥测，中间没有我们的服务器
-
-</PricingCard>
-
-</LandingSection>
-
-<LandingSection id="voices" eyebrow="04 · 评价" title="别人怎么说">
-
-<div class="kh-voices">
 <VoiceCard name="小弟调调" handle="@jaywcjlove" source="X" href="https://x.com/jaywcjlove/status/2096527566400352339">
 
 无 Dock 图标，没有主窗口。选定文件夹、备份存储介质、定时策略，后台静默执行，出错才推送通知。密码仅保存在 macOS 钥匙串，生成标准 restic 仓库，脱离本软件也能用 restic 命令行恢复。
 
 </VoiceCard>
-<VoiceCard name="An_yhl" handle="@An_yhl" source="X" href="https://x.com/An_yhl/status/2096486139725070835">
-
-菜单栏备份工具确实省心，restic 用户可以试试
-
-</VoiceCard>
-<VoiceCard name="小众软件" handle="@appinn" source="X" href="https://x.com/appinn/status/2096408933376065669">
-
-Keelhaven：macOS 菜单栏的 restic 备份工具，免费开源
-
-</VoiceCard>
-<VoiceCard name="mao mao" handle="@maomao000211" source="X" href="https://x.com/maomao000211/status/2095382774874267938" note="译自英文">
-
-思路很对，restic 配上菜单栏界面，正好补上了缺的那一块。仓库保持标准格式，用户就不会被你的软件绑住。不要账号、不做遥测，光这一条就够说服不少人了。
-
-</VoiceCard>
-</div>
 
 </LandingSection>
 
 <LandingSection id="faq" eyebrow="05 · 常见问题" title="不绕弯子的回答">
 
+<FaqItem question="能取代时间机器（Time Machine）吗？">
+
+不能，两个一起用。时间机器擅长把整台 Mac 恢复原样，用的是桌上那块硬盘；Keelhaven 管的是第二份副本：丢不起的那些文件夹，加密后放到别的地方。
+
+</FaqItem>
 <FaqItem question="macOS 说无法验证 Keelhaven，是出问题了吗？">
 
 没出问题。Beta 版还没做 Apple 公证，macOS 对所有没法在线验证的应用都会弹这个警告。允许一次，同一版本就不会再问：
@@ -244,11 +216,14 @@ Keelhaven：macOS 菜单栏的 restic 备份工具，免费开源
 - **偏好终端？** `xattr -d com.apple.quarantine /Applications/Keelhaven.app` 一条命令清掉隔离标记，连对话框都不会弹。
 
 </FaqItem>
-<FaqItem question="能取代时间机器（Time Machine）吗？">
+<FaqItem question="忘了仓库密码会怎样？">
 
-不能，两个一起用。时间机器擅长把整台 Mac 恢复原样，用的是桌上那块硬盘；Keelhaven 管的是第二份副本：丢不起的那些文件夹，加密后放到别的地方。
+备份就找不回来了，这是有意为之：仓库端到端加密，备用钥匙谁手里都没有，我们没有，你的存储服务商也没有。Keelhaven 把密码存在钥匙串里，过一道 Touch ID 随时能拷出来；最好也存一份进你的密码管理器。
 
 </FaqItem>
+
+<FaqMore label="更多问题">
+
 <FaqItem question="文件怎么恢复回来？">
 
 计划的 **⋯** 菜单里有 **恢复文件…**，它会列出这个计划的每一个快照（日期、文件数、大小，最新的在最上面），你挑一个时间点，再挑放到哪儿。它会恢复进一个以计划名和时刻命名的新文件夹，不覆盖你现在手上的任何文件，所以恢复这件事本身永远不会让你丢掉当前的版本。
@@ -334,18 +309,24 @@ Keelhaven：macOS 菜单栏的 restic 备份工具，免费开源
 能，两种方式，装的都是下载按钮那个 DMG。有 Homebrew：`brew install --cask shenxianpeng/tap/keelhaven`，以后 `brew upgrade` 自动跟进新版本。没有：`curl -fsSL https://keelhaven.app/install.sh | bash` 下载最新版并拷进「应用程序」。[脚本](https://github.com/shenxianpeng/keelhaven/blob/main/site/public/install.sh)就一页 shell，不放心可以先看一遍。
 
 </FaqItem>
-<FaqItem question="忘了仓库密码会怎样？">
-
-备份就找不回来了，这是有意为之：仓库端到端加密，备用钥匙谁手里都没有，我们没有，你的存储服务商也没有。Keelhaven 把密码存在钥匙串里，过一道 Touch ID 随时能拷出来；最好也存一份进你的密码管理器。
-
-</FaqItem>
 <FaqItem question="为什么不上 Mac App Store？">
 
 App Store 要求应用跑在沙盒里，而备份引擎得读你指定的任意文件夹、连网络和 SSH。反过来，待在沙盒之外也意味着你可以给它「完全磁盘访问权限」——macOS 要求任何 App 读取桌面、文稿、下载之前必须先拿到的那项授权。Keelhaven 开着强化运行时（hardened runtime），只是不走商店；Beta 期间也还没公证，所以第一次打开要[多点一次确认](#faq)。
 
 </FaqItem>
 
+</FaqMore>
+
 </LandingSection>
+
+<div class="kh-band kh-band-night kh-cta">
+<section class="kh-cta-inner">
+  <img src="/favicon-180.png" alt="" width="88" height="88">
+  <h2 class="kh-h2">设置一次，然后就可以忘了它。</h2>
+  <DownloadButton label="下载 Mac 版" :fallback-href="releases" />
+  <p class="kh-cta-note">macOS 14 及以上 · Apple 芯片和 Intel</p>
+</section>
+</div>
 
 <LandingFooter />
 

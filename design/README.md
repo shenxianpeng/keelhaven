@@ -69,14 +69,47 @@ Three rules that are easy to get wrong:
 
 ## Type
 
-The system stack, everywhere: `-apple-system` first, so it resolves to SF Pro on
-a Mac. A native app's site should be set in the OS's own face.
+Two faces, and a third for code:
 
-Headlines are tight — `font-weight: 640`, `letter-spacing: -.035em`. Body text
-is not: default tracking, `line-height: 1.55`.
+- **Headlines — Newsreader** (SIL OFL 1.1), weight 400, tracking `-.02em`, italic
+  for the one emphasised phrase ("you *own*"). The website self-hosts it from
+  `site/public/fonts/` so it loads no font service; `materials.mjs` embeds the
+  same files from `fonts/`. CJK headings fall through to the system serif — and
+  are never set in italic, which Chinese faces only fake.
+- **Everything else — the system stack**, `-apple-system` first, so it resolves
+  to SF Pro on a Mac: a native app's site should read in the OS's own face.
+  Body text keeps default tracking at `line-height: 1.55`. Inter is vendored in
+  `fonts/` only so `materials.mjs` renders the same PNGs on any machine.
+- **Commands and eyebrows — the system monospace** (`ui-monospace`, SF Mono).
 
-Inter is vendored in `fonts/` (SIL OFL 1.1) purely so `materials.mjs` renders the
-same PNGs on any machine. It is not used by the site.
+## Words
+
+The site, the README, the social card and the release notes tell one story in
+the same words. They live here; change them here first, then everywhere the
+table below says they appear.
+
+| | |
+|---|---|
+| One-liner | Privacy-first backups for your Mac, to storage you own. |
+| Headline | Back up your Mac to storage *you own.* |
+| Explainer | A free menu bar app that encrypts your folders on your Mac, then backs them up on a schedule to your own drive, bucket or server. |
+| Three promises | **Encrypted on your Mac** — Only you hold the key. · **Stored where you choose** — No Keelhaven server in the path. · **Quiet until it matters** — It speaks up only when something needs you. |
+| Proof line | Free & open source · No account · No telemetry · macOS 14+ · Apple silicon & Intel |
+
+The Chinese site carries the same lines in Chinese (`site/zh/index.md`), written
+to read as Chinese rather than translated word for word.
+
+| Where | One-liner | Headline | Promises | Diagram |
+|---|---|---|---|---|
+| Website (`site/index.md`) | meta description, footer | hero | strip under the hero | § 01, `FlowDiagram.vue` |
+| README | banner | lead | table | `docs/assets/flow.png` |
+| Social card (`og.png`) | — | title | chips | — |
+| GitHub description, Homebrew cask `desc` | as is | — | — | — |
+
+**One idea per section, one line per idea.** If a point was made further up,
+cut it; detail belongs in the FAQ, not on the landing page. Say what the app
+does in the reader's words ("your drive, your bucket, your server"), say what
+it doesn't do plainly, and leave out fear, cipher names and exclamation marks.
 
 ## Regenerating
 
@@ -84,16 +117,20 @@ same PNGs on any machine. It is not used by the site.
 cd design
 npm install
 npm run build       # icon, asset catalog, .icns, favicons
-npm run materials   # banner, og:image, social preview, wordmark  (needs Chromium)
+npm run materials   # banner, flow diagram, og:image, social preview, wordmark  (needs Chromium)
+npm run site        # website fonts + step screenshots into site/public/
 ```
 
 `build.mjs` writes into `Keelhaven/Assets.xcassets/`, `docs/assets/` and
-`site/public/`; `materials.mjs` writes into `docs/assets/` and `site/public/`.
+`site/public/`; `materials.mjs` writes into `docs/assets/` and `site/public/`;
+`site.mjs` copies the Newsreader files and crops the screenshots in
+`docs/assets/screenshots/` into `site/public/` (re-measure its crop boxes when a
+screenshot is re-taken).
 Those PNGs are committed on purpose: CI's macOS runner has no image toolchain,
 so the build must not depend on this script having run.
 
 `site/public/` holds a small duplicate of `docs/assets/` — the favicons, nav
-logo and `og.png` — because VitePress serves static files only from there. It is
+logo, `og.png`, fonts and screenshots — because VitePress serves static files only from there. It is
 written by these scripts rather than copied by hand: the hand-copied version
 (`site/assets/`) drifted out of use and was left behind. Anything the website
 needs should be added to the `SITE` writes, not copied across.
