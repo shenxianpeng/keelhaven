@@ -1,0 +1,78 @@
+design/svg/wordmark-light.svg
+  s_d6cfc58d31ceaa::t_96563deef42334 1,7
+site/index.md
+  s_d6cfc58d31ceaa::t_d755744ab57006 9-12,24-25,28,39,45-71,91-92,94-104,106-109,111-127,130,132,136,139-153,160-165,171,183-187,197,199,202-204,296-297,300-307
+  s_d6cfc58d31ceaa::t_127872a5096ff2 158,169
+  s_d6cfc58d31ceaa::t_b6d19e38ecc7d6 170,308
+design/fonts/LICENSE-Newsreader.txt
+  s_d6cfc58d31ceaa::t_0478890cc9872b 1-93
+design/package.json
+  s_d6cfc58d31ceaa::t_4006aff9005044 8-9
+site/licenses.md
+  s_d6cfc58d31ceaa::t_de3f81726da695 61-67
+site/.vitepress/theme/components/FaqMore.vue
+  s_d6cfc58d31ceaa::t_ca70496a8e28a7 1-17
+site/.vitepress/config.mts
+  s_d6cfc58d31ceaa::t_9880e9541ff96a 30-31,33,61,69,125
+design/svg/wordmark-dark.svg
+  s_d6cfc58d31ceaa::t_96563deef42334 1,7
+site/.vitepress/theme/index.ts
+  s_d6cfc58d31ceaa::t_9413d7a7757eda 11-12,26-27
+site/zh/index.md
+  s_d6cfc58d31ceaa::t_127872a5096ff2 180,191
+  s_d6cfc58d31ceaa::t_c7cc49adc11695 9-11,24-25,28,39,45-62,64-71,110-111,113-114,116,118-127,129-131,133-149,152,154,158,161-175,182-187,193,205-209,219,221,224-226,318-319,322-329
+  s_d6cfc58d31ceaa::t_164ae949d1c01f 115,117
+  s_d6cfc58d31ceaa::t_dbcd4bb0506cf5 63
+  s_d6cfc58d31ceaa::t_77c4bdcdc29651 192,330
+site/zh/licenses.md
+  s_d6cfc58d31ceaa::t_de3f81726da695 57-63
+site/.vitepress/theme/components/FlowDiagram.vue
+  s_d6cfc58d31ceaa::t_fa063f434dffbd 1-87
+design/README.md
+  s_d6cfc58d31ceaa::t_c5b0e246dbb92e 72-112,120-121,125-128,133
+design/site.mjs
+  s_d6cfc58d31ceaa::t_42af2634d7dd54 38,41
+  s_d6cfc58d31ceaa::t_d925990b32faf1 1-32,44-45,49-53
+  s_d6cfc58d31ceaa::t_6835acac72b5eb 33-37,39-40,42,46-48
+  s_d6cfc58d31ceaa::t_1fd315572744e3 43
+design/materials.mjs
+  s_d6cfc58d31ceaa::t_2407a477c7b5f6 171
+  s_d6cfc58d31ceaa::t_9255d0ad47ee29 2-4,9-15,33-38,40-42,44-57,59-65,67,73-74,77,79-80,82,84-85,87-138,140-170,172-208,214,218,223-226,228,233,239,252-255
+  s_d6cfc58d31ceaa::t_96563deef42334 139
+site/public/fonts/LICENSE-Newsreader.txt
+  s_d6cfc58d31ceaa::t_4006aff9005044 1-93
+README.md
+  s_d6cfc58d31ceaa::t_638d98cf87bdb4 68-70
+  s_d6cfc58d31ceaa::t_e6ea06484a3847 2,5-10,12-15,17-22,24,26-28,31-32,35-40,48-51,53,55-56,58,60-64,66,74-78
+site/.vitepress/theme/landing.css
+  s_d6cfc58d31ceaa::t_40983db7a19463 127,165-167,170-183,479,1109,1111-1116
+  s_d6cfc58d31ceaa::t_2d997e98d3bf54 257,1164-1166
+  s_d6cfc58d31ceaa::t_16cf857fd4083d 6-9,12-29,42-43,45,47,49,52,54-55,60,62,64,67,87-89,101,103-119,122-123,125,128,132-137,142-144,146-164,168-169,208,223,228-229,235-238,242,250-253,326-327,376-385,387,389-411,416-418,421-431,435-436,438-439,442-443,445-447,449-456,459-461,464-478,480-502,508-511,517,520-521,525,528,535-536,538-539,544,550,557,564-571,573-578,580,583-588,590-593,595-598,601-603,605-608,610-630,633-663,665-675,677-684,686-688,690-701,703-709,712,718-720,723-728,730-736,738-744,747-751,755,757,760,762-767,769-771,773-786,788-805,821-822,866,869,888-889,893,909,941,946-947,949,951-960,962-963,965-966,968-982,984,986-987,989-992,994-1005,1015,1017,1090-1108,1110,1117-1119,1142-1148,1153-1163,1196,1568
+  s_d6cfc58d31ceaa::t_f4189e03fc3508 1167,1173-1180
+  s_d6cfc58d31ceaa::t_164ae949d1c01f 1149-1152
+site/.vitepress/theme/components/LandingSection.vue
+  s_d6cfc58d31ceaa::t_e5d36871dec293 2-4,12,18,20-24
+  s_d6cfc58d31ceaa::t_127872a5096ff2 5-7,13,19
+docs/WEBSITE.md
+  s_d6cfc58d31ceaa::t_97caced72cf92b 22-25
+CLAUDE.md
+  s_d6cfc58d31ceaa::t_20768137b5d009 43
+site/.vitepress/theme/components/CommandBlock.vue
+  s_d6cfc58d31ceaa::t_6268e9364bed95 4-6,11,36
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "f1a4727e4849bf869adad00585d3ba77aa6ee192",
+  "prompts": {},
+  "sessions": {
+    "s_d6cfc58d31ceaa": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "e66ab993-0428-406f-966d-42fd5ca09d3f",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
