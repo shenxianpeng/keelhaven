@@ -1,0 +1,19 @@
+site/.vitepress/theme/components/DownloadButton.vue
+  s_fb9a2b74d1e9dc::t_235c2a3d43cab7 18-31,38
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.4",
+  "base_commit_sha": "c61d718026172309af8626c7ca25c120cb7258e3",
+  "prompts": {},
+  "sessions": {
+    "s_fb9a2b74d1e9dc": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "c7234209-6abf-43ab-99a6-e68dabc8c7f4",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
