@@ -127,6 +127,23 @@ final class SnapshotTreeTests: XCTestCase {
         XCTAssertTrue(matches[0].isDirectory)
     }
 
+    /// A node is identified by its path, never its name: names repeat across
+    /// folders, paths cannot. The path is also what `restore` takes in
+    /// `includes:`, so a selection of ids is already the list to restore.
+    func testEveryNodeIsIdentifiedByItsPath() throws {
+        let tree = try tree()
+        var visited: [SnapshotTree.Node] = []
+        func visit(_ node: SnapshotTree.Node) {
+            visited.append(node)
+            for child in node.children ?? [] { visit(child) }
+        }
+        for root in tree.roots { visit(root) }
+
+        XCTAssertEqual(visited.count, 12, "The root, its four directories and the seven leaves")
+        XCTAssertEqual(visited.map(\.id), visited.map(\.path))
+        XCTAssertEqual(Set(visited.map(\.id)).count, visited.count, "No two nodes may share an id")
+    }
+
     // MARK: - Shapes a real snapshot will not produce, but a bug might
 
     /// A node **inside** the snapshot whose parent is missing from the listing
