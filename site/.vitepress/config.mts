@@ -27,14 +27,22 @@ const base = '/'
 const origin = 'https://keelhaven.app'
 const siteUrl = origin + base
 
+// The one-liner from design/README.md § Words — the same sentence the README,
+// the footer tagline and the social card carry.
 const description =
-  'Privacy-first backups for your Mac. A quiet menu bar app.'
+  'Privacy-first backups for your Mac, to storage you own.'
 
 export default defineConfig({
   base,
   title: 'Keelhaven',
   description,
   lastUpdated: false,
+
+  // /privacy and /licenses, never /privacy.html. The footer already links the
+  // extensionless form and GitHub Pages serves it, but without this the
+  // sitemap listed the .html one, so Google saw two URLs for each page and
+  // flagged one as a duplicate with no canonical chosen.
+  cleanUrls: true,
 
   // Needs an absolute origin to emit useful <loc>s, which is why it only
   // arrived with the custom domain. site/public/robots.txt points at it.
@@ -56,15 +64,14 @@ export default defineConfig({
 
     ['meta', { property: 'og:type', content: 'website' }],
     ['meta', { property: 'og:site_name', content: 'Keelhaven' }],
-    ['meta', { property: 'og:title', content: 'Keelhaven — privacy-first Mac backup' }],
+    ['meta', { property: 'og:title', content: 'Keelhaven — back up your Mac to storage you own' }],
     ['meta', { property: 'og:description', content: description }],
-    ['meta', { property: 'og:url', content: siteUrl }],
     ['meta', { property: 'og:image', content: `${siteUrl}og.png` }],
     ['meta', { property: 'og:image:width', content: '1200' }],
     ['meta', { property: 'og:image:height', content: '630' }],
 
     ['meta', { name: 'twitter:card', content: 'summary_large_image' }],
-    ['meta', { name: 'twitter:title', content: 'Keelhaven — privacy-first Mac backup' }],
+    ['meta', { name: 'twitter:title', content: 'Keelhaven — back up your Mac to storage you own' }],
     ['meta', { name: 'twitter:description', content: description }],
     ['meta', { name: 'twitter:image', content: `${siteUrl}og.png` }],
 
@@ -85,6 +92,26 @@ export default defineConfig({
       ].join('\n'),
     ],
   ],
+
+  // Every page exists in English at the root and in Chinese under /zh/, so each
+  // one names its canonical URL and both language versions. Without them the
+  // two copies of a page, and the .html and extensionless forms of each, were
+  // left for Google to reconcile on its own.
+  transformHead({ pageData }) {
+    if (pageData.isNotFound) return []
+    const path = pageData.relativePath
+      .replace(/(^|\/)index\.md$/, '$1')
+      .replace(/\.md$/, '')
+    const enPath = path.replace(/^zh\//, '')
+    const url = (p: string) => siteUrl + p
+    return [
+      ['link', { rel: 'canonical', href: url(path) }],
+      ['link', { rel: 'alternate', hreflang: 'en', href: url(enPath) }],
+      ['link', { rel: 'alternate', hreflang: 'zh-Hans', href: url('zh/' + enPath) }],
+      ['link', { rel: 'alternate', hreflang: 'x-default', href: url(enPath) }],
+      ['meta', { property: 'og:url', content: url(path) }],
+    ]
+  },
 
   themeConfig: {
     // Custom field, read by LandingFooter via useData().theme.
@@ -120,7 +147,7 @@ export default defineConfig({
       label: '简体中文',
       lang: 'zh-Hans',
       link: '/zh/',
-      description: '隐私优先的 Mac 备份。一个安静的菜单栏应用。',
+      description: '隐私优先的 Mac 备份，存到你自己的地方。',
       themeConfig: {
         nav: [{ text: '首页', link: '/zh/' }],
         footer: {

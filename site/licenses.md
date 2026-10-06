@@ -58,6 +58,13 @@ restic is itself built from a number of open source Go libraries, each under
 its own license. Those licenses are listed in the
 [restic repository](https://github.com/restic/restic).
 
+## Newsreader (website font)
+
+This website sets its headings in [Newsreader](https://github.com/productiontype/Newsreader),
+copyright © 2020 The Newsreader Project Authors, used under the
+[SIL Open Font License 1.1](/fonts/LICENSE-Newsreader.txt). The font is served
+from this site — it is not loaded from a font service.
+
 ## Not affiliated with the restic project
 
 Keelhaven is an independent product. It is **not affiliated with, sponsored by,

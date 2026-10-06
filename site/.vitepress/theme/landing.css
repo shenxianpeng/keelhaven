@@ -3,9 +3,29 @@
  * fallbacks for the full-bleed background) so nothing bleeds into the docs
  * pages, which stay on the stock default theme.
  *
- * Palette tokens come from design/README.md — the lantern amber is the only
- * warm colour and appears once per screen (hero CTA, pricing badge).
+ * Palette tokens come from design/README.md. The page alternates two grounds:
+ * night (the hero, "No lock-in" and the close) and paper (the explaining in
+ * between). The lantern amber is the only warm colour and is spent on the
+ * download button — never on text.
  */
+
+/* Newsreader, the headline face — self-hosted from site/public/fonts (written
+ * there by design/site.mjs), so the page loads no font CDN. Latin only: CJK
+ * headings fall through to the system serif, as before. */
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/Newsreader-latin-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Newsreader';
+  src: url('/fonts/Newsreader-latin-400-italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
 
 :root {
   --kh-abyss: #05141f;
@@ -19,24 +39,32 @@
   --kh-lantern: #ffbb52;
   --kh-ember: #ee8c2c;
 
-  /* Warm paper in Keelhaven's temperature, not mole.fit's exact hex. */
+  /* Warm paper in Keelhaven's temperature, and a deeper sand for the one
+   * section that needs to sit apart from it. */
   --kh-paper: #f6f3ec;
+  --kh-sand: #ede8dd;
   --kh-surface: #fdfbf6;
+  --kh-shot: #dde7f1;
   --kh-ink: var(--kh-hull);
-  --kh-ink-soft: rgba(11, 37, 64, 0.7);
+  --kh-ink-soft: rgba(11, 37, 64, 0.72);
   --kh-line: rgba(11, 37, 64, 0.14);
   --kh-chip: rgba(11, 37, 64, 0.07);
+  --kh-accent: var(--kh-sea);
 
-  --kh-serif: ui-serif, 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --kh-serif: 'Newsreader', ui-serif, 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+  --kh-mono: ui-monospace, 'SF Mono', Menlo, monospace;
 }
 
 .dark {
   --kh-paper: var(--kh-abyss);
+  --kh-sand: #081c30;
   --kh-surface: var(--kh-hull);
+  --kh-shot: var(--kh-deep);
   --kh-ink: var(--kh-mist);
-  --kh-ink-soft: rgba(234, 242, 251, 0.68);
+  --kh-ink-soft: rgba(234, 242, 251, 0.7);
   --kh-line: rgba(234, 242, 251, 0.14);
   --kh-chip: rgba(234, 242, 251, 0.08);
+  --kh-accent: var(--kh-foam);
 }
 
 /* Full-bleed page background behind the landing content. The wrapper also
@@ -56,7 +84,9 @@ body:has(.kh-landing) .VPLocalNav {
 }
 
 .kh-landing {
-  background: var(--kh-paper);
+  /* Night behind the top of the page, so the floating nav never shows a
+     paper edge above the hero band it overlaps. */
+  background: linear-gradient(var(--kh-deep) 0, var(--kh-deep) 240px, var(--kh-paper) 240px);
   color: var(--kh-ink);
   min-height: 100vh;
   font-size: 17px;
@@ -68,38 +98,89 @@ body:has(.kh-landing) .VPLocalNav {
   color: inherit;
 }
 
-/* ---------- shared layout ---------- */
+/* ---------- bands ---------- */
 
-.kh-landing .kh-container {
-  max-width: 1080px;
-  margin: 0 auto;
-  padding: 0 24px;
+/* A full-bleed ground for one section. Night flips the ink tokens, so every
+ * component inside it (command box, cards, FAQ) turns light-on-dark without
+ * a dark variant of its own. */
+.kh-landing .kh-band {
+  background: var(--kh-paper);
+}
+.kh-landing .kh-band-sand {
+  background: var(--kh-sand);
+}
+.kh-landing .kh-band-night {
+  --kh-ink: var(--kh-mist);
+  --kh-ink-soft: rgba(234, 242, 251, 0.74);
+  --kh-line: rgba(234, 242, 251, 0.14);
+  --kh-chip: rgba(234, 242, 251, 0.08);
+  --kh-accent: var(--kh-foam);
+  color: var(--kh-ink);
+  background: linear-gradient(180deg, var(--kh-hull) 0%, var(--kh-abyss) 100%);
 }
 
+/* ---------- shared layout ---------- */
+
 .kh-landing .kh-section {
-  max-width: 1080px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 96px 24px 0;
-  scroll-margin-top: 96px;
+  padding: clamp(64px, 9vw, 104px) 24px;
+  scroll-margin-top: 72px;
 }
 
 .kh-landing .kh-eyebrow {
-  font-size: 14px;
-  letter-spacing: 0.04em;
-  color: var(--kh-sea);
-  margin: 0 0 10px;
-}
-.dark .kh-landing .kh-eyebrow {
-  color: var(--kh-foam);
+  font-family: var(--kh-mono);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kh-ink-soft);
+  margin: 0 0 16px;
 }
 
 .kh-landing .kh-h2 {
   font-family: var(--kh-serif);
-  font-weight: 500;
-  font-size: clamp(30px, 4.5vw, 44px);
-  line-height: 1.12;
+  font-weight: 400;
+  font-size: clamp(34px, 5vw, 60px);
+  line-height: 1.04;
   letter-spacing: -0.02em;
-  margin: 0 0 40px;
+  max-width: 18ch;
+  text-wrap: balance;
+  margin: 0 0 clamp(36px, 5vw, 56px);
+}
+
+.kh-landing .kh-lead {
+  margin: 0;
+  max-width: 34em;
+  font-size: clamp(17px, 1.8vw, 19px);
+  line-height: 1.6;
+  color: var(--kh-ink-soft);
+}
+.kh-landing .kh-lead a {
+  color: var(--kh-ink);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--kh-line);
+}
+
+/* Two columns — heading and lead line beside the section's one card (its
+ * last child) — collapsing to one on small screens. */
+.kh-landing .kh-section-split {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: auto auto 1fr;
+  column-gap: clamp(32px, 6vw, 80px);
+  align-items: start;
+}
+.kh-landing .kh-section-split > * {
+  grid-column: 1;
+}
+.kh-landing .kh-section-split > :last-child {
+  grid-column: 2;
+  grid-row: 1 / span 3;
+  align-self: center;
+}
+.kh-landing .kh-section-split > .kh-h2 {
+  margin-bottom: 24px;
 }
 
 /* ---------- buttons ---------- */
@@ -124,7 +205,7 @@ body:has(.kh-landing) .VPLocalNav {
   color: var(--kh-hull);
 }
 .kh-landing .kh-btn-primary:hover {
-  box-shadow: 0 6px 20px rgba(238, 140, 44, 0.35);
+  box-shadow: 0 8px 28px rgba(238, 140, 44, 0.4);
 }
 
 .kh-landing .kh-btn-version {
@@ -139,20 +220,26 @@ body:has(.kh-landing) .VPLocalNav {
   background: transparent;
 }
 .kh-landing .kh-btn-ghost:hover {
-  border-color: var(--kh-sea);
+  border-color: var(--kh-accent);
 }
 
 /* ---------- nav ---------- */
 
+/* A night pill, whichever ground it floats over: it starts on the dark hero,
+ * and a dark pill reads on paper where a paper pill would vanish on navy. */
 .kh-landing .kh-nav-wrap {
   position: sticky;
   top: 12px;
   z-index: 20;
   padding: 12px 16px 0;
+  --kh-ink: var(--kh-mist);
+  --kh-ink-soft: rgba(234, 242, 251, 0.72);
+  --kh-line: rgba(234, 242, 251, 0.14);
+  --kh-chip: rgba(234, 242, 251, 0.1);
 }
 
 .kh-landing .kh-nav {
-  max-width: 1080px;
+  max-width: 1180px;
   margin: 0 auto;
   display: flex;
   align-items: center;
@@ -160,12 +247,14 @@ body:has(.kh-landing) .VPLocalNav {
   padding: 10px 12px 10px 18px;
   border-radius: 999px;
   border: 1px solid var(--kh-line);
-  background: color-mix(in srgb, var(--kh-surface) 82%, transparent);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
+  color: var(--kh-ink);
+  background: color-mix(in srgb, var(--kh-hull) 80%, transparent);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .kh-landing .kh-nav-brand {
+  flex: none;
   display: inline-flex;
   align-items: center;
   gap: 9px;
@@ -234,8 +323,8 @@ body:has(.kh-landing) .VPLocalNav {
   padding: 6px;
   border: 1px solid var(--kh-line);
   border-radius: 14px;
-  background: var(--kh-paper);
-  box-shadow: 0 12px 32px rgba(11, 37, 64, 0.14);
+  background: var(--kh-hull);
+  box-shadow: 0 12px 32px rgba(2, 8, 16, 0.35);
   display: flex;
   flex-direction: column;
 }
@@ -284,235 +373,436 @@ body:has(.kh-landing) .VPLocalNav {
 
 /* ---------- hero ---------- */
 
+/* Pulled up under the sticky nav (66px tall) so the night reaches the top
+ * edge of the page. The lantern glow sits behind the menu bar demo. */
+.kh-landing .kh-hero-band {
+  margin-top: -66px;
+  padding-top: 66px;
+  background:
+    radial-gradient(800px 560px at 78% 22%, rgba(255, 187, 82, 0.13), rgba(255, 187, 82, 0) 62%),
+    linear-gradient(180deg, var(--kh-deep) 0%, var(--kh-hull) 42%, var(--kh-abyss) 100%);
+}
+
 .kh-landing .kh-hero {
-  max-width: 1080px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: clamp(64px, 12vh, 128px) 24px 0;
+  padding: clamp(48px, 9vh, 96px) 24px clamp(40px, 6vh, 64px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 460px;
+  gap: 48px;
+  align-items: center;
+}
+
+.kh-landing .kh-hero-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 26px;
+  padding: 5px 14px;
+  border: 1px solid var(--kh-line);
+  border-radius: 999px;
+  font-size: 13px;
+  color: var(--kh-ink-soft);
+}
+.kh-landing .kh-hero-chip span {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--kh-foam);
 }
 
 .kh-landing .kh-hero-title {
   font-family: var(--kh-serif);
-  font-weight: 500;
-  font-size: clamp(44px, 7.5vw, 84px);
-  line-height: 1.04;
+  font-weight: 400;
+  font-size: clamp(46px, 7vw, 88px);
+  line-height: 0.98;
   letter-spacing: -0.025em;
   margin: 0;
-  max-width: 15ch;
+  max-width: 11ch;
+  text-wrap: balance;
+}
+.kh-landing .kh-hero-title em {
+  font-style: italic;
+}
+/* CJK headings set in the system serif want looser leading and no tracking. */
+.kh-landing:lang(zh) .kh-hero-title {
+  line-height: 1.15;
+  letter-spacing: 0;
+  max-width: 9em;
 }
 
 .kh-landing .kh-hero-tagline {
-  font-size: clamp(18px, 2.2vw, 22px);
-  line-height: 1.5;
+  font-size: clamp(18px, 2vw, 20px);
+  line-height: 1.55;
   color: var(--kh-ink-soft);
-  max-width: 56ch;
-  margin: 28px 0 0;
-}
-
-.kh-landing .kh-hero-facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px 0;
-  font-size: 14.5px;
-  color: var(--kh-ink-soft);
-  margin: 22px 0 0;
-}
-.kh-landing .kh-hero-facts span + span::before {
-  content: '·';
-  margin: 0 10px;
-  color: var(--kh-sea);
+  max-width: 30em;
+  margin: 26px 0 0;
 }
 
 .kh-landing .kh-hero-actions {
-  margin: 36px 0 0;
-  padding-bottom: 24px;
-  border-bottom: 1px solid var(--kh-line);
+  margin: 34px 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 26px;
+}
+.kh-landing .kh-hero-actions > .kh-btn {
+  padding: 15px 30px;
+  font-size: 16.5px;
+  box-shadow: 0 12px 40px -12px rgba(255, 187, 82, 0.6);
+}
+.kh-landing .kh-hero-actions .kh-cmd {
+  width: 100%;
+  max-width: 540px;
 }
 
-/* Copy-to-clipboard command box — the hero's primary CTA. */
+.kh-landing .kh-hero-demo .kh-demo {
+  min-height: 0;
+  padding: 0 0 20px;
+}
+
+/* The three promises: the whole pitch in three lines, under the hero. */
+.kh-landing .kh-promises {
+  list-style: none;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 24px clamp(48px, 7vh, 72px);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0 48px;
+}
+.kh-landing .kh-promises li {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 6px 12px;
+  align-items: center;
+  align-content: start;
+  padding-top: 32px;
+  border-top: 1px solid var(--kh-line);
+}
+.kh-landing .kh-promises svg {
+  width: 22px;
+  height: 22px;
+  fill: none;
+  stroke: var(--kh-foam);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.kh-landing .kh-promises strong {
+  font-size: 17.5px;
+  font-weight: 600;
+}
+.kh-landing .kh-promises span {
+  grid-column: 2;
+  font-size: 15.5px;
+  color: var(--kh-ink-soft);
+}
+
+/* Copy-to-clipboard command box, under the hero's download button. */
 .kh-landing .kh-cmd {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+.kh-landing .kh-cmd-lead {
+  font-size: 13.5px;
+  color: var(--kh-ink-soft);
 }
 .kh-landing .kh-cmd-box {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  max-width: 560px;
-  padding: 13px 14px 13px 18px;
+  padding: 12px 12px 12px 18px;
   border: 1px solid var(--kh-line);
   border-radius: 12px;
-  background: var(--kh-chip);
+  background: rgba(5, 20, 31, 0.45);
+  color: var(--kh-ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition: border-color 0.15s ease;
 }
 .kh-landing .kh-cmd-box:hover {
-  border-color: var(--kh-sea);
+  border-color: var(--kh-foam);
 }
 .kh-landing .kh-cmd-box code {
   flex: 1;
   min-width: 0;
   overflow-x: auto;
   white-space: nowrap;
-  font-size: 14.5px;
+  font-family: var(--kh-mono);
+  font-size: 14px;
   color: var(--kh-ink);
+  background: none;
+  padding: 0;
 }
 /* A leading $ sets the line as a terminal command without being copied. */
 .kh-landing .kh-cmd-box code::before {
   content: '$ ';
-  color: var(--kh-sea);
+  color: var(--kh-foam);
 }
 .kh-landing .kh-cmd-copy {
   flex-shrink: 0;
   padding: 4px 11px;
   border-radius: 999px;
-  background: var(--kh-paper);
+  background: var(--kh-chip);
   border: 1px solid var(--kh-line);
   font-size: 12.5px;
   color: var(--kh-ink-soft);
 }
 .kh-landing .kh-cmd-copy.is-copied {
   color: var(--kh-ink);
-  border-color: var(--kh-sea);
+  border-color: var(--kh-foam);
 }
 .kh-landing .kh-cmd-note {
   font-size: 13.5px;
   color: var(--kh-ink-soft);
 }
 
-/* Secondary row under the command box: the .dmg download and guide link. */
-.kh-landing .kh-hero-alt {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  margin: 20px 0 0;
+/* ---------- 01 · where your files go ---------- */
+
+.kh-landing .kh-flow-lanes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px minmax(0, 1.25fr) 112px minmax(0, 1fr);
+  align-items: stretch;
 }
-
-/* ---------- screenshot frame ---------- */
-
-.kh-landing .kh-shot {
+.kh-landing .kh-flow-card {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 28px;
+  border: 1px solid var(--kh-line);
+  border-radius: 18px;
+  background: var(--kh-surface);
+}
+.kh-landing .kh-flow-card p {
   margin: 0;
 }
-.kh-landing .kh-shot-frame {
-  border-radius: 20px;
-  background: linear-gradient(160deg, var(--kh-deep), var(--kh-abyss));
-  border: 1px solid var(--kh-sea);
-  overflow: hidden;
+.kh-landing .kh-flow-label {
+  font-family: var(--kh-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--kh-ink-soft);
 }
-.kh-landing .kh-shot-frame img {
+.kh-landing .kh-flow-title {
+  font-family: var(--kh-serif);
+  font-size: 27px;
+  line-height: 1.1;
+}
+.kh-landing .kh-flow-card ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 15.5px;
+  line-height: 1.45;
+}
+.kh-landing .kh-flow-card li {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.kh-landing .kh-flow-card li svg {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.kh-landing .kh-flow-card small {
   display: block;
-  width: 100%;
-  height: auto;
+  margin-top: 2px;
+  font-size: 13px;
+  color: var(--kh-ink-soft);
 }
-.kh-landing .kh-shot-placeholder {
-  min-height: clamp(260px, 42vw, 460px);
+.kh-landing .kh-flow-more {
+  padding-left: 32px;
+  font-size: 14.5px;
+  color: var(--kh-ink-soft);
+}
+
+/* The app sits in the middle, on night — the one card that is Keelhaven. */
+.kh-landing .kh-flow-app {
+  border: 0;
+  border-radius: 20px;
+  background: var(--kh-hull);
+  color: var(--kh-mist);
+  box-shadow: 0 24px 60px -24px rgba(5, 20, 31, 0.55);
+}
+.dark .kh-landing .kh-flow-app {
+  background: var(--kh-deep);
+}
+.kh-landing .kh-flow-app ul {
+  font-size: 15px;
+}
+.kh-landing .kh-flow-app li svg {
+  stroke: var(--kh-foam);
+}
+.kh-landing .kh-flow-app-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 4px;
+}
+.kh-landing .kh-flow-app-name {
+  font-size: 20px;
+  font-weight: 600;
+}
+.kh-landing .kh-flow-app-sub {
+  font-size: 13.5px;
+  color: var(--kh-foam);
+}
+
+.kh-landing .kh-flow-arrow {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 18px;
-  color: var(--kh-foam);
-  font-size: 15px;
-}
-.kh-landing .kh-shot-placeholder img {
-  width: 72px;
-  height: 72px;
-  border-radius: 16px;
-}
-.kh-landing .kh-shot-placeholder p {
-  margin: 0;
-}
-
-/* ---------- features ---------- */
-
-.kh-landing .kh-feature-grid {
-  display: grid;
-  /* 2×2 on desktop, one column on small screens — never a 3+1 orphan row. */
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
-  gap: 0 48px;
-}
-.kh-landing .kh-feature {
-  padding: 26px 0;
-  border-top: 1px solid var(--kh-line);
-}
-.kh-landing .kh-feature h3 {
-  font-family: var(--kh-serif);
-  font-weight: 500;
-  font-size: 22px;
-  letter-spacing: -0.01em;
-  margin: 0 0 10px;
-}
-.kh-landing .kh-feature p {
-  margin: 0;
+  gap: 8px;
+  padding: 0 10px;
+  font-family: var(--kh-mono);
+  font-size: 12.5px;
   color: var(--kh-ink-soft);
-  font-size: 15.5px;
+  text-align: center;
+}
+.kh-landing .kh-flow-arrow svg {
+  width: 90px;
+  height: 14px;
+  fill: none;
+  stroke: var(--kh-ink);
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* Past the app, only encrypted data travels: the line goes dashed. */
+.kh-landing .kh-flow-arrow.is-encrypted svg path:first-child {
+  stroke-dasharray: 5 5;
 }
 
-/* ---------- how it works ---------- */
+.kh-landing .kh-flow-not {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 28px;
+  margin: 24px 0 0;
+  padding: 16px 20px;
+  border: 1px dashed color-mix(in srgb, var(--kh-ink) 28%, transparent);
+  border-radius: 14px;
+  font-size: 15px;
+  color: var(--kh-ink-soft);
+}
+.kh-landing .kh-flow-not strong {
+  color: var(--kh-ink);
+  font-weight: 600;
+}
+.kh-landing .kh-flow-not s {
+  text-decoration-color: color-mix(in srgb, var(--kh-ink) 50%, transparent);
+}
+
+/* ---------- 02 · how it works ---------- */
 
 .kh-landing .kh-steps {
   list-style: none;
-  counter-reset: kh-step;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 40px 48px;
   margin: 0;
   padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
 }
 .kh-landing .kh-steps li {
-  counter-increment: kh-step;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--kh-line);
+  border-radius: 20px;
+  background: var(--kh-surface);
 }
-.kh-landing .kh-steps li::before {
-  content: counter(kh-step, decimal-leading-zero);
-  display: block;
-  font-family: var(--kh-serif);
-  font-size: 40px;
-  line-height: 1;
-  color: var(--kh-tide);
-  margin-bottom: 14px;
+.kh-landing .kh-step-shot {
+  height: 320px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--kh-shot);
 }
-.dark .kh-landing .kh-steps li::before {
-  color: var(--kh-foam);
+.kh-landing .kh-step-shot img {
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 10px;
+  box-shadow: 0 18px 40px -16px rgba(11, 37, 64, 0.45);
 }
 .kh-landing .kh-steps h3 {
-  font-size: 17px;
-  font-weight: 700;
-  margin: 0 0 8px;
+  margin: 0;
+  padding: 24px 28px 0;
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 .kh-landing .kh-steps p {
   margin: 0;
-  color: var(--kh-ink-soft);
+  padding: 6px 28px 28px;
   font-size: 15.5px;
+  color: var(--kh-ink-soft);
 }
 
-/* ---------- pricing ---------- */
+/* ---------- 03 · no lock-in ---------- */
 
-.kh-landing .kh-pricing-card {
-  border-radius: 20px;
-  border: 1px solid var(--kh-line);
-  background: var(--kh-surface);
-  padding: clamp(28px, 5vw, 48px);
+.kh-landing .kh-term {
+  overflow: hidden;
+  border: 1px solid rgba(127, 182, 220, 0.18);
+  border-radius: 16px;
+  background: var(--kh-abyss);
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.8);
 }
-.kh-landing .kh-pricing-top {
+.kh-landing .kh-term-bar {
+  height: 38px;
+  padding: 0 16px;
   display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 12px 18px;
-  margin-bottom: 6px;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid rgba(127, 182, 220, 0.12);
 }
-/* Voices: quotes from real posts, each linked to its source. The serif is
- * the page's heading face, so a quote reads as a pull-quote rather than a
- * card of body text. No amber here — the pricing badge above already spent
- * this screen's one warm accent. */
-.kh-landing .kh-voices {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 20px;
+.kh-landing .kh-term-bar span {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: rgba(234, 242, 251, 0.2);
 }
+.kh-landing .kh-term pre {
+  margin: 0;
+  padding: 24px 26px 28px;
+  overflow-x: auto;
+}
+.kh-landing .kh-term code {
+  font-family: var(--kh-mono);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--kh-mist);
+  background: none;
+  padding: 0;
+}
+.kh-landing .kh-term-prompt {
+  color: var(--kh-foam);
+  user-select: none;
+}
+
+/* ---------- 04 · price ---------- */
+
+/* Voices: a quote from a real post, linked to its source. The serif is the
+ * page's heading face, so it reads as a pull-quote rather than a card of
+ * body text. */
 .kh-landing .kh-voice {
   margin: 0;
   display: flex;
@@ -528,11 +818,10 @@ body:has(.kh-landing) .VPLocalNav {
   padding: 0;
   border: 0;
   font-family: var(--kh-serif);
-  font-size: clamp(18px, 2.1vw, 21px);
-  line-height: 1.5;
+  font-size: clamp(19px, 2.1vw, 22px);
+  line-height: 1.45;
   letter-spacing: -0.005em;
   color: var(--kh-ink);
-  max-width: 64ch;
   text-wrap: pretty;
 }
 .kh-landing .kh-voice-quote::before {
@@ -574,59 +863,13 @@ body:has(.kh-landing) .VPLocalNav {
 }
 .kh-landing .kh-voice-source:hover {
   color: var(--kh-ink);
-  border-color: var(--kh-sea);
+  border-color: var(--kh-accent);
 }
 
-.kh-landing .kh-badge {
-  display: inline-block;
-  border-radius: 999px;
-  background: var(--kh-beam);
-  color: var(--kh-hull);
-  font-size: 15px;
-  font-weight: 700;
-  padding: 7px 16px;
-}
-.kh-landing .kh-pricing-note {
-  color: var(--kh-ink-soft);
-  font-size: 15.5px;
-  margin: 0 0 26px;
-}
-.kh-landing .kh-pricing-card ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
-  gap: 12px 40px;
-}
-.kh-landing .kh-pricing-card li {
-  position: relative;
-  padding-left: 28px;
-  font-size: 15.5px;
-}
-.kh-landing .kh-pricing-card li::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 4px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--kh-sea);
-  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 8.5 6.5 12 13 4.5'/%3E%3C/svg%3E") center / contain no-repeat;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' d='M3 8.5 6.5 12 13 4.5'/%3E%3C/svg%3E") center / contain no-repeat;
-}
-.dark .kh-landing .kh-pricing-card li::before {
-  background: var(--kh-foam);
-}
-
-/* ---------- faq ---------- */
+/* ---------- 05 · faq ---------- */
 
 .kh-landing .kh-faq-item {
   border-top: 1px solid var(--kh-line);
-}
-.kh-landing .kh-faq-item:last-of-type {
-  border-bottom: 1px solid var(--kh-line);
 }
 .kh-landing .kh-faq-item summary {
   display: flex;
@@ -642,15 +885,12 @@ body:has(.kh-landing) .VPLocalNav {
 }
 .kh-landing .kh-faq-q {
   font-family: var(--kh-serif);
-  font-weight: 500;
-  font-size: clamp(18px, 2.4vw, 22px);
+  font-weight: 400;
+  font-size: clamp(19px, 2.4vw, 23px);
   letter-spacing: -0.01em;
 }
 .kh-landing .kh-faq-item summary:hover .kh-faq-q {
-  color: var(--kh-sea);
-}
-.dark .kh-landing .kh-faq-item summary:hover .kh-faq-q {
-  color: var(--kh-foam);
+  color: var(--kh-accent);
 }
 
 .kh-landing .kh-faq-plus {
@@ -666,7 +906,7 @@ body:has(.kh-landing) .VPLocalNav {
   position: absolute;
   inset: 0;
   margin: auto;
-  background: var(--kh-sea);
+  background: var(--kh-accent);
   border-radius: 2px;
 }
 .kh-landing .kh-faq-plus::before {
@@ -676,10 +916,6 @@ body:has(.kh-landing) .VPLocalNav {
 .kh-landing .kh-faq-plus::after {
   width: 2px;
   height: 18px;
-}
-.dark .kh-landing .kh-faq-plus::before,
-.dark .kh-landing .kh-faq-plus::after {
-  background: var(--kh-foam);
 }
 .kh-landing .kh-faq-item[open] .kh-faq-plus {
   transform: rotate(45deg);
@@ -702,70 +938,83 @@ body:has(.kh-landing) .VPLocalNav {
   padding-left: 20px;
 }
 .kh-landing .kh-faq-a a {
-  color: var(--kh-sea);
+  color: var(--kh-accent);
   text-decoration: underline;
   text-underline-offset: 3px;
 }
-.dark .kh-landing .kh-faq-a a {
-  color: var(--kh-foam);
-}
 
-/* ---------- guide install note ---------- */
-
-.kh-landing .kh-guide-note {
-  margin-top: 48px;
-  padding-top: 24px;
+/* The rest of the FAQ, folded behind one row. */
+.kh-landing .kh-faq-more {
   border-top: 1px solid var(--kh-line);
-  color: var(--kh-ink-soft);
-  font-size: 15.5px;
-  max-width: 72ch;
+  border-bottom: 1px solid var(--kh-line);
 }
-.kh-landing .kh-guide-note p {
-  margin: 0 0 14px;
-}
-.kh-landing .kh-guide-note p:last-child {
-  margin-bottom: 0;
-}
-.kh-landing .kh-install {
-  display: grid;
-  gap: 10px;
-  margin: 0 0 14px;
-}
-.kh-landing .kh-install-row {
+.kh-landing .kh-faq-more > summary {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px 12px;
+  gap: 10px;
+  padding: 22px 4px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--kh-accent);
 }
-.kh-landing .kh-install-label {
-  flex: none;
-  width: 132px;
-  font-size: 13.5px;
+.kh-landing .kh-faq-more > summary::-webkit-details-marker {
+  display: none;
+}
+.kh-landing .kh-faq-more > summary svg {
+  transition: transform 0.2s ease;
+}
+.kh-landing .kh-faq-more[open] > summary svg {
+  transform: rotate(180deg);
+}
+
+/* ---------- close ---------- */
+
+.kh-landing .kh-cta {
+  background:
+    radial-gradient(700px 420px at 50% 110px, rgba(255, 187, 82, 0.12), rgba(255, 187, 82, 0) 65%),
+    linear-gradient(180deg, var(--kh-hull) 0%, var(--kh-abyss) 100%);
+}
+.kh-landing .kh-cta-inner {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(80px, 12vw, 120px) 24px clamp(72px, 10vw, 104px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  text-align: center;
+}
+.kh-landing .kh-cta-inner img {
+  width: 88px;
+  height: 88px;
+  filter: drop-shadow(0 18px 40px rgba(0, 0, 0, 0.55));
+}
+.kh-landing .kh-cta-inner .kh-h2 {
+  margin: 0;
+  max-width: 16ch;
+}
+.kh-landing .kh-cta-inner .kh-btn {
+  padding: 15px 30px;
+  font-size: 16.5px;
+}
+.kh-landing .kh-cta-note {
+  margin: 0;
+  font-size: 14.5px;
   color: var(--kh-ink-soft);
-}
-.kh-landing .kh-install code {
-  font-size: 13px;
-  padding: 4px 10px;
-  border-radius: 6px;
-  background: var(--kh-chip);
-  border: 1px solid var(--kh-line);
-  user-select: all;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  max-width: 100%;
 }
 
 /* ---------- footer ---------- */
 
 .kh-landing .kh-footer {
-  margin-top: 120px;
   background: var(--kh-abyss);
   color: var(--kh-mist);
 }
 .kh-landing .kh-footer-inner {
-  max-width: 1080px;
+  max-width: 1180px;
   margin: 0 auto;
-  padding: 64px 24px 28px;
+  padding: 56px 24px 28px;
 }
 .kh-landing .kh-footer-cols {
   display: grid;
@@ -838,6 +1087,36 @@ body:has(.kh-landing) .VPLocalNav {
 
 /* ---------- responsive ---------- */
 
+@media (max-width: 960px) {
+  .kh-landing .kh-hero {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kh-landing .kh-flow-lanes {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  /* Stacked, the arrows point down. */
+  .kh-landing .kh-flow-arrow {
+    flex-direction: row;
+    height: 64px;
+  }
+  .kh-landing .kh-flow-arrow svg {
+    width: 44px;
+    transform: rotate(90deg);
+  }
+  .kh-landing .kh-steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kh-landing .kh-section-split {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+  }
+  .kh-landing .kh-section-split > :last-child {
+    grid-column: 1;
+    grid-row: auto;
+    margin-top: 40px;
+  }
+}
+
 @media (max-width: 720px) {
   .kh-landing .kh-nav {
     gap: 10px;
@@ -860,8 +1139,42 @@ body:has(.kh-landing) .VPLocalNav {
   .kh-landing .kh-nav-lang button {
     padding: 7px 8px;
   }
+  .kh-landing .kh-hero-band {
+    margin-top: -58px;
+    padding-top: 58px;
+  }
+  .kh-landing .kh-hero-actions > .kh-btn {
+    align-self: stretch;
+  }
+  /* The demo's popover is scaled down on phones but keeps its layout box. */
+  .kh-landing .kh-hero-demo {
+    margin-bottom: -40px;
+  }
+  .kh-landing .kh-promises {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .kh-landing .kh-promises li {
+    padding: 20px 0;
+  }
+  .kh-landing .kh-step-shot {
+    height: 280px;
+  }
+  .kh-landing .kh-step-shot img {
+    max-height: 240px;
+  }
+  .kh-landing .kh-term code {
+    font-size: 12px;
+  }
   .kh-landing .kh-footer-cols {
     grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* On the narrowest phones the GitHub icon gives way to the section links;
+ * the footer still carries the repository link. */
+@media (max-width: 420px) {
+  .kh-landing .kh-nav-github {
+    display: none;
   }
 }
 
@@ -880,7 +1193,7 @@ body:has(.kh-landing) .VPLocalNav {
      76–91% done + notification
      92–96% crossfade back to the idle frame for a clean loop seam.
    Colors here are macOS chrome, not brand tokens — the popover must look
-   like the Mac app, not like the website. The frame around it stays brand. */
+   like the Mac app, not like the website. The night hero around it stays brand. */
 
 .kh-landing .kh-demo {
   position: relative;
@@ -1252,8 +1565,7 @@ body:has(.kh-landing) .VPLocalNav {
   opacity: 0;
   animation: kh-demo-notif 12s infinite;
 }
-.kh-landing .kh-demo-notif img,
-.kh-landing .kh-shot-frame .kh-demo-notif img {
+.kh-landing .kh-demo-notif img {
   width: 30px;
   height: 30px;
   border-radius: 7px;
