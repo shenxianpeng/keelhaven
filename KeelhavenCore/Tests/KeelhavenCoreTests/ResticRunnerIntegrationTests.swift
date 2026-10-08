@@ -846,6 +846,49 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         return (runner, destination, credentials, sourceURL)
     }
 
+    /// Backs `sourceURL` up the way the app does, and returns the id of the
+    /// snapshot that made.
+    private func backUp(
+        _ sourceURL: URL,
+        with runner: ResticRunner,
+        to destination: Destination,
+        credentials: RepoCredentials
+    ) async throws -> String {
+        var snapshotID: String?
+        let backup = runner.backupStream(
+            .backup(
+                sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag,
+                performance: .off, options: .off
+            ),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in backup {
+            if case .summary(let summary) = event { snapshotID = summary.snapshotID }
+        }
+        return try XCTUnwrap(snapshotID)
+    }
+
+    /// Everything `restic ls` says about a snapshot: the roots from its
+    /// header, and every entry after it.
+    private func contents(
+        of snapshotID: String,
+        with runner: ResticRunner,
+        in destination: Destination,
+        credentials: RepoCredentials
+    ) async throws -> (rootPaths: [String], nodes: [ResticLsNode]) {
+        var rootPaths: [String] = []
+        var nodes: [ResticLsNode] = []
+        let listing = runner.listStream(.ls(snapshotID: snapshotID), destination: destination, credentials: credentials)
+        for try await event in listing {
+            switch event {
+            case .snapshot(let snapshot): rootPaths = snapshot.paths
+            case .node(let node): nodes.append(node)
+            }
+        }
+        return (rootPaths, nodes)
+    }
+
     /// `keep the last N` against the real binary. A retention setting is the
     /// only thing in the app that deletes, so "it renders the right flag" is
     /// not enough — this makes five snapshots, keeps two, and counts what is
@@ -1063,34 +1106,13 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             decoding: ResticInitResult.self
         )
 
-        var snapshotID: String?
-        let backup = runner.backupStream(
-            .backup(
-                sources: [sourceURL.path], excludes: [], tag: "keelhaven-test",
-                performance: .off, options: .off
-            ),
-            destination: destination,
-            credentials: credentials
-        )
-        for try await event in backup {
-            if case .summary(let summary) = event { snapshotID = summary.snapshotID }
-        }
+        let snapshotID = try await backUp(sourceURL, with: runner, to: destination, credentials: credentials)
 
         // ls: every line decodes, and the header carries the roots the tree
         // needs to hide the filesystem above the source folder.
-        var rootPaths: [String] = []
-        var nodes: [ResticLsNode] = []
-        let listing = runner.listStream(
-            .ls(snapshotID: try XCTUnwrap(snapshotID)),
-            destination: destination,
-            credentials: credentials
+        let (rootPaths, nodes) = try await contents(
+            of: snapshotID, with: runner, in: destination, credentials: credentials
         )
-        for try await event in listing {
-            switch event {
-            case .snapshot(let snapshot): rootPaths = snapshot.paths
-            case .node(let node): nodes.append(node)
-            }
-        }
         XCTAssertEqual(rootPaths, [sourceURL.path])
         XCTAssertTrue(
             nodes.contains { $0.path.hasPrefix("/private") || $0.path.hasPrefix("/var") || $0.path.hasPrefix("/tmp") },
@@ -1106,7 +1128,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         let target = workDirectory.appendingPathComponent("restored", isDirectory: true)
         var restoreSummary: RestoreSummary?
         let restore = runner.restoreStream(
-            .restore(snapshotID: try XCTUnwrap(snapshotID), target: target.path, includes: [wanted.path]),
+            .restore(snapshotID: snapshotID, target: target.path, includes: [wanted.path]),
             destination: destination,
             credentials: credentials
         )
@@ -1137,32 +1159,10 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             try Data("\(index)".utf8).write(to: sourceURL.appendingPathComponent("file-\(index).txt"))
         }
 
-        var snapshotID: String?
-        let backup = runner.backupStream(
-            .backup(
-                sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag,
-                performance: .off, options: .off
-            ),
-            destination: destination,
-            credentials: credentials
+        let snapshotID = try await backUp(sourceURL, with: runner, to: destination, credentials: credentials)
+        let (rootPaths, nodes) = try await contents(
+            of: snapshotID, with: runner, in: destination, credentials: credentials
         )
-        for try await event in backup {
-            if case .summary(let summary) = event { snapshotID = summary.snapshotID }
-        }
-
-        var rootPaths: [String] = []
-        var nodes: [ResticLsNode] = []
-        let listing = runner.listStream(
-            .ls(snapshotID: try XCTUnwrap(snapshotID)),
-            destination: destination,
-            credentials: credentials
-        )
-        for try await event in listing {
-            switch event {
-            case .snapshot(let snapshot): rootPaths = snapshot.paths
-            case .node(let node): nodes.append(node)
-            }
-        }
 
         let tree = SnapshotTree.build(from: nodes, rootedAt: rootPaths)
         XCTAssertEqual(tree.fileCount, 600)
@@ -1193,25 +1193,14 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             try Data(name.utf8).write(to: file)
         }
 
-        var snapshotID: String?
-        let backup = runner.backupStream(
-            .backup(
-                sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag,
-                performance: .off, options: .off
-            ),
-            destination: destination,
-            credentials: credentials
-        )
-        for try await event in backup {
-            if case .summary(let summary) = event { snapshotID = summary.snapshotID }
-        }
+        let snapshotID = try await backUp(sourceURL, with: runner, to: destination, credentials: credentials)
 
         // The folder is selected as a folder, the way the browser offers it.
         let includes = ["photo[1].jpg", "star*.txt", "what?.md", #"back\slash.txt"#, "[2024] Taxes"]
             .map { sourceURL.appendingPathComponent($0).path }
         let target = workDirectory.appendingPathComponent("restored", isDirectory: true)
         let restore = runner.restoreStream(
-            .restore(snapshotID: try XCTUnwrap(snapshotID), target: target.path, includes: includes),
+            .restore(snapshotID: snapshotID, target: target.path, includes: includes),
             destination: destination,
             credentials: credentials
         )
