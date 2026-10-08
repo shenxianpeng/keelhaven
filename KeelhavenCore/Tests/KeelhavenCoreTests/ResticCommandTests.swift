@@ -41,21 +41,51 @@ final class ResticCommandTests: XCTestCase {
 
     func testForgetArguments() {
         XCTAssertEqual(ResticCommand.forget(retention: .year, performance: .off).arguments, [
-            "forget", "--prune",
+            "forget", "--prune", "--tag", "keelhaven",
             "--keep-last", "3",
             "--keep-daily", "7",
             "--keep-weekly", "5",
             "--keep-monthly", "12",
         ])
         XCTAssertEqual(ResticCommand.forget(retention: .month, performance: .off).arguments, [
-            "forget", "--prune",
+            "forget", "--prune", "--tag", "keelhaven",
             "--keep-last", "3",
             "--keep-daily", "7",
             "--keep-weekly", "4",
         ])
         // Never issued by the app — PrunePolicy.isDue is false for .off —
-        // and restic rejects the bare command rather than deleting anything.
-        XCTAssertEqual(ResticCommand.forget(retention: .off, performance: .off).arguments, ["forget", "--prune"])
+        // and restic rejects a command with no policy rather than deleting
+        // anything, tag or no tag.
+        XCTAssertEqual(
+            ResticCommand.forget(retention: .off, performance: .off).arguments,
+            ["forget", "--prune", "--tag", "keelhaven"]
+        )
+    }
+
+    /// A retention pass may only consider snapshots Keelhaven made. Without
+    /// `--tag`, restic applies the policy to every snapshot in the
+    /// repository, including ones another machine or the command line wrote
+    /// there. So the filter has to be on every policy, and has to be the tag
+    /// backups are given.
+    ///
+    /// The tag's value is pinned too. It is written into every snapshot
+    /// already out there, so changing it would hide all of them from
+    /// retention — and an empty one would be worse: restic reads `--tag ""`
+    /// as "snapshots with no tags", which would aim the pass at exactly the
+    /// snapshots that are not ours.
+    func testForgetIsLimitedToTheTagBackupsCarry() {
+        XCTAssertEqual(ResticCommand.snapshotTag, "keelhaven")
+
+        let policies: [RetentionPolicy] = [.off, .year, .month, .lastN(5)]
+        for policy in policies {
+            let arguments = ResticCommand.forget(retention: policy, performance: .off).arguments
+            let flag = arguments.firstIndex(of: "--tag")
+            XCTAssertNotNil(flag, "\(policy) is missing --tag")
+            if let flag {
+                XCTAssertEqual(arguments[flag + 1], ResticCommand.snapshotTag)
+            }
+            XCTAssertEqual(arguments.filter { $0 == "--tag" }.count, 1)
+        }
     }
 
     // MARK: - Performance options
@@ -205,7 +235,7 @@ final class ResticCommandTests: XCTestCase {
             )
         )
         XCTAssertEqual(command.arguments, [
-            "forget", "--prune",
+            "forget", "--prune", "--tag", "keelhaven",
             "--limit-upload", "500",
             "--pack-size", "64",
             "--keep-last", "3",

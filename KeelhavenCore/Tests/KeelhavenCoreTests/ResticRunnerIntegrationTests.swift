@@ -48,7 +48,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         // streaming backup: must yield exactly one summary carrying a snapshot id
         var summary: BackupSummary?
         let stream = runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [".DS_Store"], tag: "keelhaven-test", performance: .off, options: .off),
+            .backup(sources: [sourceURL.path], excludes: [".DS_Store"], tag: ResticCommand.snapshotTag, performance: .off, options: .off),
             destination: destination,
             credentials: credentials
         )
@@ -194,7 +194,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         )
         // A snapshot, so the retention pass below has something real to do.
         for try await _ in runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off, options: .off),
+            .backup(sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag, performance: .off, options: .off),
             destination: destination,
             credentials: credentials
         ) {}
@@ -254,7 +254,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
 
         // Backups are unaffected — the reason this failure hides so well.
         for try await _ in runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: .off, options: .off),
+            .backup(sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag, performance: .off, options: .off),
             destination: destination,
             credentials: credentials
         ) {}
@@ -339,7 +339,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         )
         var summary: BackupSummary?
         let stream = runner.backupStream(
-            .backup(sources: [sourceURL.path], excludes: [], tag: "keelhaven-test", performance: performance, options: .off),
+            .backup(sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag, performance: performance, options: .off),
             destination: destination,
             credentials: credentials
         )
@@ -820,11 +820,12 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         }
     }
 
-    /// `keep the last N` against the real binary. A retention setting is the
-    /// only thing in the app that deletes, so "it renders the right flag" is
-    /// not enough — this makes five snapshots, keeps two, and counts what is
-    /// left (issue #52).
-    func testKeepLastActuallyLeavesOnlyThatManySnapshots() async throws {
+    /// Where the retention tests start: an empty source folder and a freshly
+    /// initialised repository beside it — or a skip, when restic is not
+    /// installed.
+    private func makeEmptyRepository() async throws -> (
+        runner: ResticRunner, destination: Destination, credentials: RepoCredentials, sourceURL: URL
+    ) {
         guard let binary = IntegrationTestSupport.locateRestic() else {
             throw XCTSkip("restic is not installed; run: brew install restic")
         }
@@ -842,6 +843,15 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             credentials: credentials,
             decoding: ResticInitResult.self
         )
+        return (runner, destination, credentials, sourceURL)
+    }
+
+    /// `keep the last N` against the real binary. A retention setting is the
+    /// only thing in the app that deletes, so "it renders the right flag" is
+    /// not enough — this makes five snapshots, keeps two, and counts what is
+    /// left (issue #52).
+    func testKeepLastActuallyLeavesOnlyThatManySnapshots() async throws {
+        let (runner, destination, credentials, sourceURL) = try await makeEmptyRepository()
 
         // Five distinct snapshots: each run changes a file, so none is skipped.
         for index in 0..<5 {
@@ -849,7 +859,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
                 .write(to: sourceURL.appendingPathComponent("a.txt"))
             let stream = runner.backupStream(
                 .backup(
-                    sources: [sourceURL.path], excludes: [], tag: "keelhaven-test",
+                    sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag,
                     performance: .off, options: .off
                 ),
                 destination: destination,
@@ -877,6 +887,73 @@ final class ResticRunnerIntegrationTests: XCTestCase {
 
         let after = try await snapshotCount()
         XCTAssertEqual(after, 2, "keep the last 2 must leave exactly two snapshots")
+
+        // And the repository is still sound after the prune rewrote it.
+        try await runner.runIgnoringOutput(
+            .check,
+            destination: destination,
+            credentials: credentials
+        )
+    }
+
+    /// A retention pass must leave alone every snapshot Keelhaven did not
+    /// make. The wizard offers to connect a plan to a repository "created
+    /// earlier — by another plan, a previous install, or another Mac", so a
+    /// repository holding someone else's history is a supported setup, not a
+    /// corner case — and `forget` with no filter applies its policy to all of
+    /// it.
+    ///
+    /// This builds the hardest version of that: foreign snapshots of the same
+    /// folder, from the same host, interleaved with ours, so nothing but the
+    /// tag tells the two apart. Before the filter, `keep the last 1` left one
+    /// snapshot here; the three that were not ours to delete went with it.
+    func testRetentionLeavesSnapshotsKeelhavenDidNotMakeAlone() async throws {
+        let (runner, destination, credentials, sourceURL) = try await makeEmptyRepository()
+
+        var revision = 0
+        func backUp(tag: String?) async throws -> String {
+            revision += 1
+            try Data("revision \(revision)\n".utf8)
+                .write(to: sourceURL.appendingPathComponent("a.txt"))
+            var snapshotID: String?
+            let stream = runner.backupStream(
+                .backup(sources: [sourceURL.path], excludes: [], tag: tag, performance: .off, options: .off),
+                destination: destination,
+                credentials: credentials
+            )
+            for try await event in stream {
+                if case .summary(let summary) = event {
+                    snapshotID = summary.snapshotID
+                }
+            }
+            return try XCTUnwrap(snapshotID)
+        }
+
+        // Ours carry the tag the app gives every backup; theirs are what the
+        // restic command line writes when nobody asks for a tag.
+        var ours: [String] = []
+        var theirs: [String] = []
+        for _ in 0..<3 {
+            ours.append(try await backUp(tag: ResticCommand.snapshotTag))
+            theirs.append(try await backUp(tag: nil))
+        }
+
+        try await runner.runIgnoringOutput(
+            .forget(retention: .lastN(1), performance: .off),
+            destination: destination,
+            credentials: credentials
+        )
+
+        let remaining = try await runner.run(
+            .snapshots,
+            destination: destination,
+            credentials: credentials,
+            decoding: [ResticSnapshot].self
+        ).map(\.id)
+        XCTAssertEqual(
+            Set(remaining), Set(theirs + [try XCTUnwrap(ours.last)]),
+            "the policy applies to our snapshots and to nothing else in the repository"
+        )
 
         // And the repository is still sound after the prune rewrote it.
         try await runner.runIgnoringOutput(
