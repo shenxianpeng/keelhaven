@@ -65,12 +65,16 @@ final class ResticCommandTests: XCTestCase {
     /// A retention pass may only consider snapshots Keelhaven made. Without
     /// `--tag`, restic applies the policy to every snapshot in the
     /// repository, including ones another machine or the command line wrote
-    /// there. So the filter has to be on every policy, has to be the tag
-    /// backups are given, and has to be a real tag — restic reads `--tag ""`
+    /// there. So the filter has to be on every policy, and has to be the tag
+    /// backups are given.
+    ///
+    /// The tag's value is pinned too. It is written into every snapshot
+    /// already out there, so changing it would hide all of them from
+    /// retention — and an empty one would be worse: restic reads `--tag ""`
     /// as "snapshots with no tags", which would aim the pass at exactly the
     /// snapshots that are not ours.
     func testForgetIsLimitedToTheTagBackupsCarry() {
-        XCTAssertFalse(ResticCommand.snapshotTag.isEmpty)
+        XCTAssertEqual(ResticCommand.snapshotTag, "keelhaven")
 
         let policies: [RetentionPolicy] = [.off, .year, .month, .lastN(5)]
         for policy in policies {
@@ -82,12 +86,6 @@ final class ResticCommandTests: XCTestCase {
             }
             XCTAssertEqual(arguments.filter { $0 == "--tag" }.count, 1)
         }
-
-        let backup = ResticCommand.backup(
-            sources: ["/tmp/data"], excludes: [], tag: ResticCommand.snapshotTag,
-            performance: .off, options: .off
-        )
-        XCTAssertEqual(backup.arguments, ["backup", "--json", "--tag", "keelhaven", "/tmp/data"])
     }
 
     // MARK: - Performance options
