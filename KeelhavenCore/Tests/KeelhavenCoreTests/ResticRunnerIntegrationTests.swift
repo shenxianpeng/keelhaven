@@ -820,11 +820,12 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         }
     }
 
-    /// `keep the last N` against the real binary. A retention setting is the
-    /// only thing in the app that deletes, so "it renders the right flag" is
-    /// not enough — this makes five snapshots, keeps two, and counts what is
-    /// left (issue #52).
-    func testKeepLastActuallyLeavesOnlyThatManySnapshots() async throws {
+    /// Where the retention tests start: an empty source folder and a freshly
+    /// initialised repository beside it — or a skip, when restic is not
+    /// installed.
+    private func makeEmptyRepository() async throws -> (
+        runner: ResticRunner, destination: Destination, credentials: RepoCredentials, sourceURL: URL
+    ) {
         guard let binary = IntegrationTestSupport.locateRestic() else {
             throw XCTSkip("restic is not installed; run: brew install restic")
         }
@@ -842,6 +843,15 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             credentials: credentials,
             decoding: ResticInitResult.self
         )
+        return (runner, destination, credentials, sourceURL)
+    }
+
+    /// `keep the last N` against the real binary. A retention setting is the
+    /// only thing in the app that deletes, so "it renders the right flag" is
+    /// not enough — this makes five snapshots, keeps two, and counts what is
+    /// left (issue #52).
+    func testKeepLastActuallyLeavesOnlyThatManySnapshots() async throws {
+        let (runner, destination, credentials, sourceURL) = try await makeEmptyRepository()
 
         // Five distinct snapshots: each run changes a file, so none is skipped.
         for index in 0..<5 {
@@ -898,23 +908,7 @@ final class ResticRunnerIntegrationTests: XCTestCase {
     /// tag tells the two apart. Before the filter, `keep the last 1` left one
     /// snapshot here; the three that were not ours to delete went with it.
     func testRetentionLeavesSnapshotsKeelhavenDidNotMakeAlone() async throws {
-        guard let binary = IntegrationTestSupport.locateRestic() else {
-            throw XCTSkip("restic is not installed; run: brew install restic")
-        }
-
-        let repoURL = workDirectory.appendingPathComponent("repo", isDirectory: true)
-        let sourceURL = workDirectory.appendingPathComponent("src", isDirectory: true)
-        try FileManager.default.createDirectory(at: sourceURL, withIntermediateDirectories: true)
-
-        let destination = Destination.local(path: repoURL.path)
-        let credentials = RepoCredentials(repositoryPassword: "integration-test-password")
-        let runner = ResticRunner(binaryURL: binary)
-        _ = try await runner.run(
-            .initRepository,
-            destination: destination,
-            credentials: credentials,
-            decoding: ResticInitResult.self
-        )
+        let (runner, destination, credentials, sourceURL) = try await makeEmptyRepository()
 
         var revision = 0
         func backUp(tag: String?) async throws -> String {
