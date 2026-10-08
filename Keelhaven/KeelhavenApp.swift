@@ -48,11 +48,14 @@ struct KeelhavenApp: App {
         }
         .windowResizability(.contentSize)
 
+        // Resizable for the same reason Edit Plan is, below: its content
+        // grows — here, into a file browser whose names want room.
         Window("Restore Backup", id: WindowID.restore) {
             RestoreWindowView()
                 .environment(appState)
         }
-        .windowResizability(.contentSize)
+        .windowResizability(.contentMinSize)
+        .defaultSize(width: 600, height: 460)
 
         // The only window the user can resize: its sections expand, and
         // `.contentSize` used to pin it to whatever height the expanded

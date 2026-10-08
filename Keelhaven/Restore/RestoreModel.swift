@@ -3,15 +3,24 @@ import Observation
 import KeelhavenCore
 
 /// Drives the restore window: load a plan's snapshots, then restore a chosen
-/// one into a fresh subfolder of a user-picked destination.
+/// one — all of it, or the files picked out of it — into a fresh subfolder of
+/// a user-picked destination.
 @MainActor
 @Observable
 final class RestoreModel {
     enum Phase {
         case loadingSnapshots
         case selecting
+        /// Reading what is inside one snapshot. The one slow step in the
+        /// window — restic has to open the repository and walk the whole
+        /// snapshot, seconds on a remote one (see `SnapshotTree`) — so it
+        /// counts what has arrived and can be cancelled.
+        case loadingContents(entriesRead: Int)
+        case browsing
         case restoring(progress: Double)
-        case finished(targetURL: URL, filesRestored: Int)
+        /// `reveal` is what Finder should select: the restored items when
+        /// they were picked out, the new folder when it was everything.
+        case finished(targetURL: URL, reveal: [URL], filesRestored: Int)
         case failed(String)
     }
 
@@ -27,6 +36,30 @@ final class RestoreModel {
     var selectedSnapshotIsIncomplete: Bool {
         guard let selectedSnapshotID else { return false }
         return incompleteSnapshotIDs.contains(selectedSnapshotID)
+    }
+
+    var selectedSnapshot: ResticSnapshot? {
+        snapshots.first { $0.id == selectedSnapshotID }
+    }
+
+    // MARK: - Inside one snapshot
+
+    /// The contents of the snapshot being browsed. Kept after going back to
+    /// the list, so returning to the same snapshot does not read it twice.
+    private(set) var tree: SnapshotTree?
+    private var treeSnapshotID: ResticSnapshot.ID?
+    var contentSelection: Set<SnapshotTree.Node.ID> = []
+    var expandedFolders: Set<SnapshotTree.Node.ID> = []
+    private(set) var searchText = ""
+    /// The matches while a search is on, in tree order; nil shows the tree.
+    private(set) var searchResults: [SnapshotTree.Node]?
+    private var contentsTask: Task<Void, Never>?
+    private var searchTask: Task<Void, Never>?
+
+    /// What a restore from the browser would bring back: the selection, with
+    /// anything inside an already selected folder counted once.
+    var selectedNodes: [SnapshotTree.Node] {
+        tree?.effectiveSelection(contentSelection) ?? []
     }
 
     func loadSnapshots(appState: AppState, plan: BackupPlan) async {
@@ -53,8 +86,127 @@ final class RestoreModel {
         }
     }
 
-    func restore(appState: AppState, plan: BackupPlan, into parentURL: URL) {
+    /// Reads the selected snapshot and opens it for browsing.
+    func browseSelectedSnapshot(appState: AppState, plan: BackupPlan) {
+        guard let snapshot = selectedSnapshot else { return }
+        if treeSnapshotID == snapshot.id, tree != nil {
+            phase = .browsing
+            return
+        }
+
+        phase = .loadingContents(entriesRead: 0)
+        contentsTask = Task {
+            do {
+                guard let binaryURL = appState.resticBinaryURL else {
+                    throw ResticError.binaryNotFound
+                }
+                let credentials = try appState.restoreCredentials(for: plan)
+                let runner = ResticRunner(binaryURL: binaryURL)
+                let events = runner.listStream(
+                    .ls(snapshotID: snapshot.id),
+                    destination: plan.destination,
+                    credentials: credentials
+                )
+
+                var nodes: [ResticLsNode] = []
+                var rootPaths = snapshot.paths
+                for try await event in events {
+                    switch event {
+                    case .snapshot(let header):
+                        rootPaths = header.paths
+                    case .node(let node):
+                        nodes.append(node)
+                        // Often enough to show it is alive, rarely enough
+                        // that a large snapshot is not thousands of redraws.
+                        if nodes.count.isMultiple(of: 500) {
+                            phase = .loadingContents(entriesRead: nodes.count)
+                        }
+                    }
+                }
+                guard !Task.isCancelled else { return }
+
+                // Sorting and totalling tens of thousands of entries is real
+                // work; off the main actor, the progress view keeps turning.
+                let listing = nodes
+                let roots = rootPaths
+                let built = await Task.detached {
+                    SnapshotTree.build(from: listing, rootedAt: roots)
+                }.value
+                guard !Task.isCancelled else { return }
+                open(built, of: snapshot.id)
+            } catch {
+                // Cancelling ends restic with a signal, which arrives here as
+                // a failed run. It is not one: the user asked for it, and
+                // `cancelReadingContents` has already put the list back.
+                guard !Task.isCancelled else { return }
+                phase = .failed(errorText(error))
+            }
+        }
+    }
+
+    func cancelReadingContents() {
+        contentsTask?.cancel()
+        contentsTask = nil
+        phase = .selecting
+    }
+
+    func backToSnapshots() {
+        phase = .selecting
+    }
+
+    private func open(_ built: SnapshotTree, of snapshotID: ResticSnapshot.ID) {
+        tree = built
+        treeSnapshotID = snapshotID
+        contentSelection = []
+        searchText = ""
+        searchResults = nil
+        // The top level starts open. A plan with one source folder would
+        // otherwise greet the user with a single closed row.
+        expandedFolders = Set(built.roots.filter(\.isDirectory).map(\.id))
+        phase = .browsing
+    }
+
+    /// Searching replaces the tree with a flat list of matches.
+    ///
+    /// The selection is dropped whenever the query changes: what is selected
+    /// is what gets restored, so nothing may stay selected in a list that no
+    /// longer shows it.
+    func search(for text: String) {
+        guard text != searchText else { return }
+        searchText = text
+        contentSelection = []
+        searchTask?.cancel()
+
+        let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let tree, !query.isEmpty else {
+            searchResults = nil
+            return
+        }
+        // A pass over every entry per keystroke, so it stays off the main
+        // actor; a result that arrives after the next keystroke is dropped.
+        searchTask = Task {
+            let matches = await Task.detached { tree.search(query) }.value
+            guard !Task.isCancelled else { return }
+            searchResults = matches
+        }
+    }
+
+    /// Collapsing a folder deselects what was selected inside it, for the
+    /// same reason a new search clears the selection.
+    func setExpanded(_ node: SnapshotTree.Node, _ isExpanded: Bool) {
+        if isExpanded {
+            expandedFolders.insert(node.id)
+        } else {
+            expandedFolders.remove(node.id)
+            contentSelection = contentSelection.filter { !node.contains(path: $0) }
+        }
+    }
+
+    /// Restores the selected snapshot into a new subfolder of `parentURL`:
+    /// all of it, or only `nodes` when the user picked files out of it.
+    func restore(appState: AppState, plan: BackupPlan, into parentURL: URL, only nodes: [SnapshotTree.Node] = []) {
         guard let snapshotID = selectedSnapshotID else { return }
+        let includes = nodes.map(\.path)
         phase = .restoring(progress: 0)
         Task {
             do {
@@ -78,7 +230,7 @@ final class RestoreModel {
 
                 let runner = ResticRunner(binaryURL: binaryURL)
                 let events = runner.restoreStream(
-                    .restore(snapshotID: snapshotID, target: targetURL.path, includes: []),
+                    .restore(snapshotID: snapshotID, target: targetURL.path, includes: includes),
                     destination: plan.destination,
                     credentials: credentials
                 )
@@ -92,7 +244,17 @@ final class RestoreModel {
                         summary = value
                     }
                 }
-                phase = .finished(targetURL: targetURL, filesRestored: summary?.filesRestored ?? 0)
+                let reveal = RestoreLayout.pathsToReveal(target: targetURL.path, includes: includes)
+                    .map { URL(fileURLWithPath: $0) }
+                // restic's own count includes every folder it had to recreate
+                // above a restored file — eight of them for one document a
+                // few levels down. For a selection, the number that means
+                // something is how many things were picked.
+                phase = .finished(
+                    targetURL: targetURL,
+                    reveal: reveal,
+                    filesRestored: nodes.isEmpty ? (summary?.filesRestored ?? 0) : nodes.count
+                )
             } catch {
                 phase = .failed(errorText(error))
             }
