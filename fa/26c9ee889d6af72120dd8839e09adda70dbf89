@@ -1,0 +1,48 @@
+site/zh/index.md
+  s_8af4a1109bff68::t_6a1026b5db067c 45-47
+site/guides/index.md
+  s_8af4a1109bff68::t_4815d4e3935eee 1-21
+site/zh/guides/backblaze-b2.md
+  s_8af4a1109bff68::t_c1a231a0398c87 1-90
+site/compare.md
+  s_8af4a1109bff68::t_6b323557a31489 1-60,63-66
+  s_8af4a1109bff68::t_b234a2fa75e26c 61-62,67-68
+site/zh/restic.md
+  s_8af4a1109bff68::t_5adcce578bbb54 1-99
+site/guides/backblaze-b2.md
+  s_8af4a1109bff68::t_4815d4e3935eee 1-101
+site/zh/guides/index.md
+  s_8af4a1109bff68::t_c1a231a0398c87 1-20
+site/guides/nas.md
+  s_8af4a1109bff68::t_b234a2fa75e26c 27-28,42-44,81-82
+  s_8af4a1109bff68::t_4815d4e3935eee 1-26,29-41,45-80,83-89
+site/restic.md
+  s_8af4a1109bff68::t_b234a2fa75e26c 91-92
+  s_8af4a1109bff68::t_6b323557a31489 1-90,93-108
+docs/WEBSITE.md
+  s_8af4a1109bff68::t_d4d7a33379a35a 3-6,25-33
+site/zh/guides/nas.md
+  s_8af4a1109bff68::t_c1a231a0398c87 1-77
+site/zh/compare.md
+  s_8af4a1109bff68::t_5adcce578bbb54 1-63
+site/.vitepress/config.mts
+  s_8af4a1109bff68::t_6a1026b5db067c 35-62,149-157,186-190
+site/index.md
+  s_8af4a1109bff68::t_6a1026b5db067c 45-47
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "fa26c9ee889d6af72120dd8839e09adda70dbf89",
+  "prompts": {},
+  "sessions": {
+    "s_8af4a1109bff68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "76c6caa4-d8a4-4f99-abba-2af7a074bad8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
