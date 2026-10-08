@@ -163,8 +163,10 @@ final class ResticRunnerPipeTests: XCTestCase {
     }
 
     /// The command that collects its output instead of streaming it has the
-    /// same two pipes. 400 snapshots are about 80 KB of JSON: a plan that has
-    /// backed up hourly for a little over two weeks.
+    /// same two pipes. These 400 entries come to about 90 KB. restic's own
+    /// are fuller — 848 bytes each, measured on 0.19.1 — so a real snapshot
+    /// list passes what a pipe holds at around 77: an hourly plan gets there
+    /// in a little over three days.
     func testACollectedResultCanBeLargerThanAPipeHolds() async throws {
         let runner = try runner(printing: """
         /usr/bin/awk 'BEGIN {
