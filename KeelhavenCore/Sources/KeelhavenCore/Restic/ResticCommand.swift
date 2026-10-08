@@ -66,6 +66,9 @@ public enum ResticCommand: Equatable, Sendable {
     /// lands alone under the target, an included directory lands with its
     /// subtree). An empty list restores the whole snapshot, the way this
     /// command behaved before the list existed.
+    ///
+    /// Pass the paths as they are. restic reads `--include` as a pattern, so
+    /// they are escaped on the way out — see `literalPattern`.
     case restore(snapshotID: String, target: String, includes: [String])
     /// Clears stale locks so retention passes can run again.
     ///
@@ -110,10 +113,30 @@ public enum ResticCommand: Equatable, Sendable {
             return ["ls", snapshotID, "--json"]
         case .restore(let snapshotID, let target, let includes):
             return ["restore", snapshotID, "--target", target, "--json"]
-                + includes.flatMap { ["--include", $0] }
+                + includes.flatMap { ["--include", Self.literalPattern($0)] }
         case .unlock:
             return ["unlock"]
         }
+    }
+
+    /// A path, written so that restic's pattern matcher takes it literally.
+    ///
+    /// `--include` is a glob, and file names are full of glob characters.
+    /// Verified against restic 0.19.1 with the names passed as they were:
+    /// `photo[1].jpg` restored `photo1.jpg` instead — the wrong file, and no
+    /// error — `star*.txt` brought `starfish.txt` along with it, and a folder
+    /// called `[2024] Taxes` restored nothing at all. A backslash in front of
+    /// each of `\ * ? [ ]` makes the matcher read the character itself; with
+    /// that, each of those names restores exactly the file it names.
+    static func literalPattern(_ path: String) -> String {
+        var pattern = ""
+        for character in path {
+            if "\\*?[]".contains(character) {
+                pattern.append("\\")
+            }
+            pattern.append(character)
+        }
+        return pattern
     }
 
     /// One place that knows the shape of a backup command line, so a preview

@@ -1124,5 +1124,61 @@ final class ResticRunnerIntegrationTests: XCTestCase {
             "The unselected file must not be restored"
         )
     }
+
+    /// A selected file must come back as itself, whatever its name. restic
+    /// reads `--include` as a pattern, so every name here is one that means
+    /// something else to a glob — and each sits next to a decoy the pattern
+    /// would match instead of it, or as well as it. Before the paths were
+    /// escaped, this restored `photo1.jpg` for `photo[1].jpg`, took
+    /// `starfish.txt` along with `star*.txt`, and brought back nothing for
+    /// the folder or the backslash.
+    func testRestoreIncludeTakesANameLiterallyEvenWhenItLooksLikeAPattern() async throws {
+        let (runner, destination, credentials, sourceURL) = try await makeEmptyRepository()
+
+        let selected = ["photo[1].jpg", "star*.txt", "what?.md", #"back\slash.txt"#, "[2024] Taxes/return.pdf"]
+        let decoys = ["photo1.jpg", "starfish.txt", "whatX.md", "2 Taxes/return.pdf"]
+        for name in selected + decoys {
+            let file = sourceURL.appendingPathComponent(name)
+            try FileManager.default.createDirectory(
+                at: file.deletingLastPathComponent(), withIntermediateDirectories: true
+            )
+            try Data(name.utf8).write(to: file)
+        }
+
+        var snapshotID: String?
+        let backup = runner.backupStream(
+            .backup(
+                sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag,
+                performance: .off, options: .off
+            ),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in backup {
+            if case .summary(let summary) = event { snapshotID = summary.snapshotID }
+        }
+
+        // The folder is selected as a folder, the way the browser offers it.
+        let includes = ["photo[1].jpg", "star*.txt", "what?.md", #"back\slash.txt"#, "[2024] Taxes"]
+            .map { sourceURL.appendingPathComponent($0).path }
+        let target = workDirectory.appendingPathComponent("restored", isDirectory: true)
+        let restore = runner.restoreStream(
+            .restore(snapshotID: try XCTUnwrap(snapshotID), target: target.path, includes: includes),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await _ in restore {}
+
+        let landedRoot = target.appendingPathComponent(sourceURL.path)
+        func cameBack(_ name: String) -> Bool {
+            FileManager.default.fileExists(atPath: landedRoot.appendingPathComponent(name).path)
+        }
+        for name in selected {
+            XCTAssertTrue(cameBack(name), "\(name) was selected and did not come back")
+        }
+        for name in decoys {
+            XCTAssertFalse(cameBack(name), "\(name) was not selected and came back anyway")
+        }
+    }
 }
 
