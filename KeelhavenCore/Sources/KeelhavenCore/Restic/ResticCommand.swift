@@ -4,6 +4,17 @@ import Foundation
 /// secrets travel via environment variables, never argv (argv is visible to
 /// every process on the machine).
 public enum ResticCommand: Equatable, Sendable {
+    /// The tag every snapshot Keelhaven writes carries — and, for that
+    /// reason, the mark a retention pass looks for before it will remove
+    /// anything (see `forget`).
+    ///
+    /// One constant for both jobs because the two must never part ways:
+    /// restic matches a tag whole, so a backup tagged anything else is a
+    /// backup retention silently stops seeing. It has been `keelhaven` since
+    /// the first release, which is why narrowing `forget` to it stranded
+    /// nothing.
+    public static let snapshotTag = "keelhaven"
+
     case initRepository
     case backup(sources: [String], excludes: [String], tag: String?, performance: PerformanceOptions, options: BackupOptions)
     /// Everything `backup` does except the writing: restic walks the sources,
@@ -18,9 +29,24 @@ public enum ResticCommand: Equatable, Sendable {
     case snapshots
     case stats
     case check
-    /// Applies a retention policy and compacts the repository
-    /// (`forget --prune`). No `--json`: the output is progress text we don't
-    /// parse — the exit code decides, exactly like `check`.
+    /// Applies a retention policy to the snapshots Keelhaven made, and
+    /// compacts the repository (`forget --prune --tag keelhaven`). No
+    /// `--json`: the output is progress text we don't parse — the exit code
+    /// decides, exactly like `check`.
+    ///
+    /// The tag is not a parameter, on purpose. A repository can hold
+    /// snapshots Keelhaven never wrote — the wizard offers to connect to one
+    /// "created earlier … or by another Mac" — and without a filter restic
+    /// applies the keep policy to all of them: against 0.19.1, an unfiltered
+    /// `--keep-last 1` trimmed a second machine's history along with ours.
+    /// Nor may the tag ever be empty: restic reads `--tag ""` as "snapshots
+    /// with no tags", which are exactly the ones that are not ours. A
+    /// constant can be neither forgotten nor blank.
+    ///
+    /// What this does not separate is one Keelhaven plan from another: two
+    /// plans (or two Macs) sharing a repository carry the same tag, so
+    /// whichever pass runs applies its policy to both.
+    ///
     /// `--read-concurrency` is deliberately not passed on: it is a `backup`
     /// flag, and restic exits with a usage error when it appears here.
     case forget(retention: RetentionPolicy, performance: PerformanceOptions)
@@ -75,7 +101,7 @@ public enum ResticCommand: Equatable, Sendable {
             // A prune rewrites and re-uploads pack files, so the upload cap
             // and pack size matter here for the same reasons they do during
             // a backup.
-            return ["forget", "--prune"]
+            return ["forget", "--prune", "--tag", Self.snapshotTag]
                 + performance.arguments(includingReadConcurrency: false)
                 + retention.keepArguments
         case .catConfig:

@@ -66,6 +66,7 @@ the only exit, and the catch-up at launch then re-entered the same run.
 | In-app 60s timer + login item | No launchd plist lifecycle to manage | `SMAppService.agent(plistName:)` launchd agent reusing `SchedulePolicy` |
 | App Sandbox OFF (hardened runtime ON) | restic child needs arbitrary folder read, network, ssh | Security-scoped bookmarks + XPC — known App Store blocker, revisit post-v1 |
 | JSON files in Application Support | Human-readable, atomic writes, Codable round-trip tested | — |
+| Retention only ever considers snapshots tagged `keelhaven` (`forget --prune --tag keelhaven`) | A plan can be connected to a repository that already holds another machine's or the command line's snapshots, and an unfiltered `forget` applies its policy to all of them. Every backup has carried the tag since 0.1.0, so narrowing to it stranded nothing | The tag is the app's, not the plan's: plans (or Macs) sharing one repository still share one policy. A per-plan tag would separate them, and needs a way to adopt the snapshots written before it existed |
 | Retention as three presets (`off`/`year`/`month`), `forget --prune` riding the backup tail weekly | A choice a person can read instead of five keep-count fields; off (never delete) is the default; output isn't parsed — the exit code decides, like `check` | Custom keep counts can become a parameterized case alongside the presets |
 
 ## restic contract

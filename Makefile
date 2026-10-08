@@ -3,7 +3,7 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap test bench-remote restic build dmg release install update dev-site deploy-site clean
+.PHONY: help bootstrap test bench-remote restic build dmg release install update dev-site deploy-site metrics clean
 
 help: ## List available targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-12s %s\n", $$1, $$2}'
@@ -43,6 +43,9 @@ dev-site: ## Preview the website locally with live reload (http://localhost:5173
 
 deploy-site: ## Build site/ and push it to keelhaven-site's gh-pages (manual deploy)
 	./Scripts/deploy-site.sh
+
+metrics: ## Print stars, release downloads and 14-day repository traffic
+	./Scripts/metrics.sh
 
 clean: ## Remove generated project and build products
 	rm -rf Keelhaven.xcodeproj build .build KeelhavenCore/.build
