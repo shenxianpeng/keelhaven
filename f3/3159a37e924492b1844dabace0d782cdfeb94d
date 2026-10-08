@@ -1,0 +1,34 @@
+Keelhaven/Restore/RestoreModel.swift
+  s_8af4a1109bff68::t_3d3b31386b47d5 6-7,14-19,21-23,41-64,89-207,209,233,247-255,257
+  s_8af4a1109bff68::t_ccb33284499efe 256
+Keelhaven/Restore/SnapshotBrowserView.swift
+  s_8af4a1109bff68::t_030b11cb3603c3 1-15,17-22,33,35-36,39-160
+  s_8af4a1109bff68::t_bcfe7f4a2fd5b5 25-32
+  s_8af4a1109bff68::t_054388a4892197 16
+  s_8af4a1109bff68::t_cb39ce4db66c0b 23-24
+  s_8af4a1109bff68::t_046fcf2131ef59 34
+  s_8af4a1109bff68::t_5774142a7f0b7e 37-38
+Keelhaven/KeelhavenApp.swift
+  s_8af4a1109bff68::t_5dfdf98d1b784a 51-52,57-58
+Keelhaven/Localizable.xcstrings
+  s_8af4a1109bff68::t_0711dd2a75eb97 2804-2913
+Keelhaven/Restore/RestoreWindowView.swift
+  s_8af4a1109bff68::t_5dfdf98d1b784a 7-10,14,33-35,93-95,97-100,111-135,143,165,184-248,258
+  s_8af4a1109bff68::t_e4ba25140f0d59 11-13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f33159a37e924492b1844dabace0d782cdfeb94d",
+  "prompts": {},
+  "sessions": {
+    "s_8af4a1109bff68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "76c6caa4-d8a4-4f99-abba-2af7a074bad8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
