@@ -1,0 +1,27 @@
+site/.vitepress/theme/components/CommandBlock.vue
+  s_8af4a1109bff68::t_74daf271c20cc1 20-28,32
+Makefile
+  s_8af4a1109bff68::t_fc0ada49d40762 6,47-48
+  s_8af4a1109bff68::t_fb1dc5e0907467 49
+docs/WEBSITE.md
+  s_8af4a1109bff68::t_fc0ada49d40762 128-174
+Scripts/metrics.sh
+  s_8af4a1109bff68::t_4fd018257d5ded 10-12
+  s_8af4a1109bff68::t_534575402800b8 1-9,13-52
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "df3db775385ac3cab4b78971f41aa94fb2537317",
+  "prompts": {},
+  "sessions": {
+    "s_8af4a1109bff68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "76c6caa4-d8a4-4f99-abba-2af7a074bad8",
+        "model": "unknown"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
