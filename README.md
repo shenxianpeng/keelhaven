@@ -33,9 +33,8 @@
 </p>
 
 <p align="center">
-  <img src="docs/assets/screenshots/wizard.png" height="300" alt="The New Backup Plan window, asking where the encrypted backup should go.">
-  <img src="docs/assets/screenshots/menu-bar.png" height="300" alt="The menu bar panel listing three backup plans, each with a green dot.">
-  <img src="docs/assets/screenshots/restore.png" height="300" alt="The Restore Backup window listing snapshots by date.">
+  <img src="docs/assets/demo.gif" width="800"
+       alt="A half-minute walk through Keelhaven: the New Backup Plan window asking where the encrypted backup should go; the menu bar panel running a backup of Documents, from a spinner to a progress bar to a green dot and a Backup complete notification; and the Restore Backup window listing snapshots by date.">
 </p>
 <p align="center"><em>Make a plan · let it run · restore any point in time.</em></p>
 
