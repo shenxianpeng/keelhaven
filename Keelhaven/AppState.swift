@@ -342,7 +342,7 @@ final class AppState {
                 .backup(
                     sources: plan.sourcePaths,
                     excludes: plan.excludePatterns,
-                    tag: "keelhaven",
+                    tag: ResticCommand.snapshotTag,
                     performance: plan.performance,
                     options: plan.backupOptions
                 ),
@@ -551,7 +551,7 @@ final class AppState {
                 .previewBackup(
                     sources: plan.sourcePaths,
                     excludes: plan.excludePatterns,
-                    tag: "keelhaven",
+                    tag: ResticCommand.snapshotTag,
                     performance: plan.performance,
                     options: plan.backupOptions
                 ),

@@ -16,12 +16,13 @@ Keychain and the menu bar.
 |---|---|
 | A new plan | `restic init` |
 | Each scheduled run | `restic backup --json --tag keelhaven <folders>` |
-| Retention, at most weekly, after a good backup | `restic forget --prune --keep-…` |
+| Retention, at most weekly, after a good backup | `restic forget --prune --tag keelhaven --keep-…` |
 | Verification, weekly by default | `restic check` |
 | Restore | `restic restore <snapshot> --target <new folder>` |
 | A stale lock, when you ask | `restic unlock` — never `--remove-all` |
 
-One restic process runs at a time, app-wide.
+One restic process runs at a time, app-wide. The `--tag` on `forget` is new
+after 0.9.1 — *Use a repository you already have*, below, says why it matters.
 
 The retention choices are presets over the keep flags:
 
@@ -52,11 +53,19 @@ against it and creates nothing.
 Snapshots made by other machines stay where they are, and the restore window
 lists them alongside Keelhaven's own.
 
-**If other machines back up to the same repository, leave retention at *Keep
-everything*.** Keelhaven's `forget` is not limited to its own snapshots: it
-applies the policy to every host and path in the repository, the same as
-running it by hand with no filter. Prune a shared repository with a policy of
-your own instead.
+Retention leaves them alone as well, in versions after 0.9.1. There `forget`
+runs with `--tag keelhaven`, so it only ever considers snapshots Keelhaven
+made; anything the restic command line or another tool wrote stays until you
+prune it yourself.
+
+**0.9.1 and earlier applied the policy to every snapshot in the repository.**
+Update before you turn retention on for a repository that something else
+writes to.
+
+**One repository, one retention choice.** Every plan tags its snapshots the
+same way, so when two Keelhaven plans — or two Macs running Keelhaven — share
+a repository, whichever retention pass runs applies its policy to both. Give
+each plan a repository of its own, or set them all to the same choice.
 
 ## Use the command line alongside it
 
