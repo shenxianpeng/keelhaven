@@ -1125,6 +1125,54 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         )
     }
 
+    /// A real snapshot's listing is far bigger than a pipe. restic writes
+    /// about 330 bytes per entry, so 64 KB is some 200 files — a small
+    /// folder — and the two-file listing above could never have shown that
+    /// the first version of the stream stopped dead at that point, with
+    /// restic blocked on a write nobody was reading (see `PipeReader`).
+    /// Six hundred files is three pipes' worth.
+    func testListingMoreThanAPipeHoldsArrivesWhole() async throws {
+        let (runner, destination, credentials, sourceURL) = try await makeEmptyRepository()
+        for index in 0..<600 {
+            try Data("\(index)".utf8).write(to: sourceURL.appendingPathComponent("file-\(index).txt"))
+        }
+
+        var snapshotID: String?
+        let backup = runner.backupStream(
+            .backup(
+                sources: [sourceURL.path], excludes: [], tag: ResticCommand.snapshotTag,
+                performance: .off, options: .off
+            ),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in backup {
+            if case .summary(let summary) = event { snapshotID = summary.snapshotID }
+        }
+
+        var rootPaths: [String] = []
+        var nodes: [ResticLsNode] = []
+        let listing = runner.listStream(
+            .ls(snapshotID: try XCTUnwrap(snapshotID)),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in listing {
+            switch event {
+            case .snapshot(let snapshot): rootPaths = snapshot.paths
+            case .node(let node): nodes.append(node)
+            }
+        }
+
+        let tree = SnapshotTree.build(from: nodes, rootedAt: rootPaths)
+        XCTAssertEqual(tree.fileCount, 600)
+        // Finder's order, all the way down a long folder.
+        XCTAssertEqual(
+            tree.roots.first?.children?.prefix(3).map(\.name),
+            ["file-0.txt", "file-1.txt", "file-2.txt"]
+        )
+    }
+
     /// A selected file must come back as itself, whatever its name. restic
     /// reads `--include` as a pattern, so every name here is one that means
     /// something else to a glob — and each sits next to a decoy the pattern

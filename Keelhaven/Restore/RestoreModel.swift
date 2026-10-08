@@ -101,37 +101,17 @@ final class RestoreModel {
                     throw ResticError.binaryNotFound
                 }
                 let credentials = try appState.restoreCredentials(for: plan)
-                let runner = ResticRunner(binaryURL: binaryURL)
-                let events = runner.listStream(
-                    .ls(snapshotID: snapshot.id),
+                let built = try await Self.readContents(
+                    of: snapshot,
+                    with: ResticRunner(binaryURL: binaryURL),
                     destination: plan.destination,
                     credentials: credentials
-                )
-
-                var nodes: [ResticLsNode] = []
-                var rootPaths = snapshot.paths
-                for try await event in events {
-                    switch event {
-                    case .snapshot(let header):
-                        rootPaths = header.paths
-                    case .node(let node):
-                        nodes.append(node)
-                        // Often enough to show it is alive, rarely enough
-                        // that a large snapshot is not thousands of redraws.
-                        if nodes.count.isMultiple(of: 500) {
-                            phase = .loadingContents(entriesRead: nodes.count)
-                        }
-                    }
+                ) { [weak self] entriesRead in
+                    // A count that was already on its way when the user
+                    // cancelled must not put the progress screen back.
+                    guard !Task.isCancelled else { return }
+                    self?.phase = .loadingContents(entriesRead: entriesRead)
                 }
-                guard !Task.isCancelled else { return }
-
-                // Sorting and totalling tens of thousands of entries is real
-                // work; off the main actor, the progress view keeps turning.
-                let listing = nodes
-                let roots = rootPaths
-                let built = await Task.detached {
-                    SnapshotTree.build(from: listing, rootedAt: roots)
-                }.value
                 guard !Task.isCancelled else { return }
                 open(built, of: snapshot.id)
             } catch {
@@ -142,6 +122,41 @@ final class RestoreModel {
                 phase = .failed(errorText(error))
             }
         }
+    }
+
+    /// Reads a snapshot's listing and builds its tree, away from the main
+    /// actor. Tens of thousands of entries arrive faster than they can be
+    /// taken one main-actor hop at a time without the window stuttering, and
+    /// sorting and totalling them afterwards is real work too — so only the
+    /// running count crosses over, every few hundred entries: often enough
+    /// to show it is alive, rarely enough not to be thousands of redraws.
+    private nonisolated static func readContents(
+        of snapshot: ResticSnapshot,
+        with runner: ResticRunner,
+        destination: Destination,
+        credentials: RepoCredentials,
+        progress: @MainActor @Sendable (Int) -> Void
+    ) async throws -> SnapshotTree {
+        var nodes: [ResticLsNode] = []
+        var rootPaths = snapshot.paths
+        let events = runner.listStream(
+            .ls(snapshotID: snapshot.id),
+            destination: destination,
+            credentials: credentials
+        )
+        for try await event in events {
+            switch event {
+            case .snapshot(let header):
+                rootPaths = header.paths
+            case .node(let node):
+                nodes.append(node)
+                if nodes.count.isMultiple(of: 500) {
+                    await progress(nodes.count)
+                }
+            }
+        }
+        try Task.checkCancellation()
+        return SnapshotTree.build(from: nodes, rootedAt: rootPaths)
     }
 
     func cancelReadingContents() {

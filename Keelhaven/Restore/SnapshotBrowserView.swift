@@ -76,9 +76,15 @@ struct SnapshotBrowserView: View {
 /// Recursive `DisclosureTableRow`s rather than `OutlineGroup`: an outline
 /// group keeps which rows are open to itself, and the window needs to say —
 /// the top level starts open, and closing a folder has to deselect what was
-/// selected inside it. Measured on 60 000 entries with every folder open, the
-/// table stays lazy: the main thread never stalled for longer than a tenth of
-/// a second.
+/// selected inside it.
+///
+/// A closed folder hands the table one row, not all of its children. The
+/// table walks every row it is given on every change, shown or not: with a
+/// 40 000-file snapshot built out in full, opening a single folder froze the
+/// window for 0.4 s, and over a second once a few were open. One stand-in
+/// child is enough for the table to draw the triangle; the real children
+/// replace it when the folder opens, so the cost follows what is on screen
+/// rather than what is in the backup.
 private struct SnapshotRows: TableRowContent {
     let node: SnapshotTree.Node
     let isExpanded: (SnapshotTree.Node) -> Bool
@@ -87,13 +93,17 @@ private struct SnapshotRows: TableRowContent {
     @TableRowBuilder<SnapshotTree.Node>
     var tableRowBody: some TableRowContent<SnapshotTree.Node> {
         // An empty folder gets no triangle: there is nothing to open.
-        if let children = node.children, !children.isEmpty {
+        if let children = node.children, let standIn = children.first {
             DisclosureTableRow(node, isExpanded: Binding(
                 get: { isExpanded(node) },
                 set: { setExpanded(node, $0) }
             )) {
-                ForEach(children) { child in
-                    SnapshotRows(node: child, isExpanded: isExpanded, setExpanded: setExpanded)
+                if isExpanded(node) {
+                    ForEach(children) { child in
+                        SnapshotRows(node: child, isExpanded: isExpanded, setExpanded: setExpanded)
+                    }
+                } else {
+                    TableRow(standIn)
                 }
             }
         } else {
