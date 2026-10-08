@@ -104,6 +104,7 @@ to read as Chinese rather than translated word for word.
 | Website (`site/index.md`) | meta description, footer | hero | strip under the hero | § 01, `FlowDiagram.vue` |
 | README | banner | lead | table | `docs/assets/flow.png` |
 | Social card (`og.png`) | — | title | chips | — |
+| Demo (`demo.mjs` → `demo.gif`, `demo.mp4`) | — | opening card | a scene of their own | — |
 | GitHub description, Homebrew cask `desc` | as is | — | — | — |
 
 **One idea per section, one line per idea.** If a point was made further up,
@@ -119,6 +120,7 @@ npm install
 npm run build       # icon, asset catalog, .icns, favicons
 npm run materials   # banner, flow diagram, og:image, social preview, wordmark  (needs Chromium)
 npm run site        # website fonts + step screenshots into site/public/
+npm run demo        # the README's demo.gif, and build/demo.mp4 for posts  (needs Chromium, ffmpeg, site/node_modules)
 ```
 
 `build.mjs` writes into `Keelhaven/Assets.xcassets/`, `docs/assets/` and
@@ -128,6 +130,15 @@ npm run site        # website fonts + step screenshots into site/public/
 screenshot is re-taken).
 Those PNGs are committed on purpose: CI's macOS runner has no image toolchain,
 so the build must not depend on this script having run.
+
+`demo.mjs` is the one that moves. It sets a half-minute cut — the headline,
+the three steps, the three promises, the install line — frame by frame in
+Chromium and hands the frames to ffmpeg. Steps 1 and 3 are the screenshots in
+`docs/assets/screenshots/`; step 2 is the website's own `MenuBarDemo`, taken
+from a fresh site build. So it is re-run, not re-shot: after a screenshot is
+re-taken or the popover changes, `npm run demo` brings the GIF and the film
+back in step. `npm run demo -- --lang=zh` makes the Chinese cut, once
+`wizard-zh.png` and `restore-zh.png` exist beside the English ones.
 
 `site/public/` holds a small duplicate of `docs/assets/` — the favicons, nav
 logo, `og.png`, fonts and screenshots — because VitePress serves static files only from there. It is
