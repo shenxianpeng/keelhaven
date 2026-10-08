@@ -42,6 +42,9 @@ landing:
       - title: Product
         links:
           - { text: How it works, anchor: how }
+          - { text: Guides, link: /guides/ }
+          - { text: For restic users, link: /restic }
+          - { text: The alternatives, link: /compare }
           - { text: Source on GitHub, github: true }
       - title: Legal
         links:
