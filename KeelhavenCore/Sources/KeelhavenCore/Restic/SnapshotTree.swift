@@ -39,6 +39,13 @@ public struct SnapshotTree: Sendable {
         public var id: String { path }
         public var isDirectory: Bool { type == "dir" }
         public var isSymlink: Bool { type == "symlink" }
+
+        /// True when `path` lies somewhere beneath this node. Compared a whole
+        /// component at a time, so `/a/doc` is not taken for the parent of
+        /// `/a/documents`.
+        public func contains(path other: String) -> Bool {
+            other.hasPrefix(path.hasSuffix("/") ? path : path + "/")
+        }
     }
 
     /// One node per path the snapshot covers. A plan can back up several
@@ -138,11 +145,37 @@ public struct SnapshotTree: Sendable {
         return matches
     }
 
-    /// Directories first, then names case-insensitively — the order a file
-    /// browser has used for forty years.
+    /// What a selection actually restores: the selected nodes, minus any that
+    /// already sit inside a selected folder, in tree order.
+    ///
+    /// Restoring a folder brings its whole subtree with it, so a file picked
+    /// along with a folder above it adds nothing to the restore — only to the
+    /// count and the size the window shows, which would then promise more
+    /// than arrives.
+    public func effectiveSelection(_ selected: Set<Node.ID>) -> [Node] {
+        var result: [Node] = []
+        func visit(_ node: Node) {
+            if selected.contains(node.id) {
+                result.append(node)
+                return
+            }
+            for child in node.children ?? [] {
+                visit(child)
+            }
+        }
+        for root in roots where !selected.isEmpty {
+            visit(root)
+        }
+        return result
+    }
+
+    /// Directories first, then names the way Finder sorts them: ignoring
+    /// case, and reading digits as numbers, so `IMG_2` comes before `IMG_10`.
+    /// A plain string comparison puts `10` first, and a folder of numbered
+    /// photos or scans is exactly where someone goes looking for one file.
     private static func order(_ a: ResticLsNode, _ b: ResticLsNode) -> Bool {
         if a.isDirectory != b.isDirectory { return a.isDirectory }
-        return a.name.localizedCaseInsensitiveCompare(b.name) == .orderedAscending
+        return a.name.localizedStandardCompare(b.name) == .orderedAscending
     }
 
     private static func countFiles(in node: Node) -> Int {

@@ -213,4 +213,69 @@ final class SnapshotTreeTests: XCTestCase {
         XCTAssertEqual(tree.fileCount, 2)
         XCTAssertEqual(tree.totalSize, 3)
     }
+
+    private func nodes(fromLines lines: [String]) -> [ResticLsNode] {
+        lines.compactMap { line -> ResticLsNode? in
+            guard case .node(let node)? = ResticJSON.decodeLsEvent(fromLine: line) else { return nil }
+            return node
+        }
+    }
+
+    /// Digits are read as numbers, the way Finder reads them. A plain string
+    /// comparison files `IMG_10` ahead of `IMG_2`, and a folder of numbered
+    /// photos is exactly where someone goes looking for one file.
+    func testNamesWithNumbersSortTheWayFinderSortsThem() {
+        let tree = SnapshotTree.build(from: nodes(fromLines: [
+            #"{"name":"shots","type":"dir","path":"/shots","message_type":"node"}"#,
+            #"{"name":"IMG_10.jpg","type":"file","path":"/shots/IMG_10.jpg","size":1,"message_type":"node"}"#,
+            #"{"name":"IMG_2.jpg","type":"file","path":"/shots/IMG_2.jpg","size":1,"message_type":"node"}"#,
+            #"{"name":"img_1.jpg","type":"file","path":"/shots/img_1.jpg","size":1,"message_type":"node"}"#,
+        ]), rootedAt: ["/shots"])
+        XCTAssertEqual(tree.roots.first?.children?.map(\.name), ["img_1.jpg", "IMG_2.jpg", "IMG_10.jpg"])
+    }
+
+    /// What gets restored is what was selected, counted once. A file picked
+    /// together with a folder above it comes back with that folder anyway, so
+    /// it must not be listed — or counted, or sized — a second time.
+    func testEffectiveSelectionDropsWhatASelectedFolderAlreadyCovers() throws {
+        let tree = try tree()
+        let selected: Set<String> = [
+            "/tmp/keelhaven-ls/src/docs",
+            "/tmp/keelhaven-ls/src/docs/b.txt",
+            "/tmp/keelhaven-ls/src/docs/deep/c.txt",
+            "/tmp/keelhaven-ls/src/a.txt",
+        ]
+        let effective = tree.effectiveSelection(selected)
+        // Tree order — directories first — not the order of the set.
+        XCTAssertEqual(effective.map(\.path), ["/tmp/keelhaven-ls/src/docs", "/tmp/keelhaven-ls/src/a.txt"])
+        XCTAssertEqual(effective.reduce(0) { $0 + $1.totalSize }, 16 + 6)
+    }
+
+    func testEffectiveSelectionOfNothingIsNothing() throws {
+        let tree = try tree()
+        XCTAssertTrue(tree.effectiveSelection([]).isEmpty)
+        XCTAssertTrue(tree.effectiveSelection(["/not/in/this/snapshot"]).isEmpty)
+    }
+
+    /// A folder contains what is beneath it and nothing that merely starts
+    /// with the same letters: `docs` is not the parent of `docs-old`.
+    func testANodeContainsOnlyPathsBeneathIt() throws {
+        let tree = try tree()
+        let docs = try XCTUnwrap(node("/tmp/keelhaven-ls/src/docs", in: tree))
+        XCTAssertTrue(docs.contains(path: "/tmp/keelhaven-ls/src/docs/b.txt"))
+        XCTAssertTrue(docs.contains(path: "/tmp/keelhaven-ls/src/docs/deep/another/d.txt"))
+        XCTAssertFalse(docs.contains(path: "/tmp/keelhaven-ls/src/docs-old/b.txt"))
+        XCTAssertFalse(docs.contains(path: "/tmp/keelhaven-ls/src/docs"), "a node is not inside itself")
+        XCTAssertFalse(docs.contains(path: "/tmp/keelhaven-ls/src/a.txt"))
+
+        // A plan that backs up a whole volume is rooted at "/", which already
+        // ends in the separator.
+        let volume = SnapshotTree.build(from: nodes(fromLines: [
+            #"{"name":"/","type":"dir","path":"/","message_type":"node"}"#,
+            #"{"name":"Users","type":"dir","path":"/Users","message_type":"node"}"#,
+        ]), rootedAt: ["/"])
+        let root = try XCTUnwrap(volume.roots.first)
+        XCTAssertEqual(root.path, "/")
+        XCTAssertTrue(root.contains(path: "/Users"))
+    }
 }
