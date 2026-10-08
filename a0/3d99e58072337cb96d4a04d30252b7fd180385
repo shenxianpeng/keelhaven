@@ -1,0 +1,19 @@
+KeelhavenCore/Tests/KeelhavenCoreTests/ResticRunnerIntegrationTests.swift
+  s_8af4a1109bff68::t_07ab7972a4cffe 849-891,1109,1113-1114,1131,1162-1164,1196,1203
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "a03d99e58072337cb96d4a04d30252b7fd180385",
+  "prompts": {},
+  "sessions": {
+    "s_8af4a1109bff68": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "76c6caa4-d8a4-4f99-abba-2af7a074bad8",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
