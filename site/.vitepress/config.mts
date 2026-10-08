@@ -32,6 +32,34 @@ const siteUrl = origin + base
 const description =
   'Privacy-first backups for your Mac, to storage you own.'
 
+// The guides and the two pages that sit beside them share one sidebar, so a
+// reader on any of them can reach the rest. Each page exists in both
+// languages at the same path, which is what lets one function serve both.
+function docsSidebar(prefix: '' | '/zh') {
+  const zh = prefix === '/zh'
+  const items = [
+    {
+      text: zh ? '使用指南' : 'Guides',
+      items: [
+        { text: zh ? '备份到 Backblaze B2' : 'Back up to Backblaze B2', link: `${prefix}/guides/backblaze-b2` },
+        { text: zh ? '备份到 NAS' : 'Back up to a NAS', link: `${prefix}/guides/nas` },
+      ],
+    },
+    {
+      text: zh ? '了解更多' : 'Before you start',
+      items: [
+        { text: zh ? '写给 restic 用户' : 'For restic users', link: `${prefix}/restic` },
+        { text: zh ? '和同类工具对比' : 'The alternatives', link: `${prefix}/compare` },
+      ],
+    },
+  ]
+  return {
+    [`${prefix}/guides/`]: items,
+    [`${prefix}/restic`]: items,
+    [`${prefix}/compare`]: items,
+  }
+}
+
 export default defineConfig({
   base,
   title: 'Keelhaven',
@@ -118,9 +146,15 @@ export default defineConfig({
     appVersion,
     // Passed through withBase() by the default theme, so no `base` here.
     logo: '/icon-128.png',
-    // The site is a single landing page; only /privacy and /licenses use
-    // this default-theme chrome.
-    nav: [{ text: 'Home', link: '/' }],
+    // The landing page draws its own nav; this default-theme chrome is for
+    // everything else — the guides, /restic, /compare, /privacy, /licenses.
+    nav: [
+      { text: 'Home', link: '/' },
+      { text: 'Guides', link: '/guides/' },
+    ],
+    // Keyed by path, not one array: an array would also put the sidebar on
+    // the landing page, which is laid out without one.
+    sidebar: docsSidebar(''),
     // GitHub icon in that default-theme navbar. The landing page's own nav
     // and footer carry the same link, driven by index.md frontmatter.
     socialLinks: [
@@ -149,7 +183,11 @@ export default defineConfig({
       link: '/zh/',
       description: '隐私优先的 Mac 备份，存到你自己的地方。',
       themeConfig: {
-        nav: [{ text: '首页', link: '/zh/' }],
+        nav: [
+          { text: '首页', link: '/zh/' },
+          { text: '使用指南', link: '/zh/guides/' },
+        ],
+        sidebar: docsSidebar('/zh'),
         footer: {
           message: `<a href="${base}zh/privacy">隐私</a> · <a href="${base}zh/licenses">许可</a>`,
           copyright: '© shenxianpeng.',

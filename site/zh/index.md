@@ -42,6 +42,9 @@ landing:
       - title: 产品
         links:
           - { text: 怎么用, anchor: how }
+          - { text: 使用指南, link: /zh/guides/ }
+          - { text: 写给 restic 用户, link: /zh/restic }
+          - { text: 和同类工具对比, link: /zh/compare }
           - { text: GitHub 源码, github: true }
       - title: 法律
         links:
