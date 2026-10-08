@@ -125,6 +125,53 @@ curl -sI https://www.keelhaven.app | head -5        # 301 to the apex
 curl -s https://keelhaven.app/sitemap.xml | head -3
 ```
 
+## Measuring a launch
+
+Three sources, and each sees something the others cannot.
+
+**Google Analytics** has the website: visits, where they came from, and the
+two ways the site starts an install. Both are events sent by our own
+components, because GA records neither on its own:
+
+| Event | Sent by | Means |
+|---|---|---|
+| `file_download` | `DownloadButton.vue` | the DMG button was clicked |
+| `install_command_copy` | `CommandBlock.vue` | the Homebrew line was copied |
+
+`file_download` is already a key event in the property. Mark
+`install_command_copy` as one too (Admin › Data display › Events), or the
+acquisition reports will credit a channel for its DMG downloads and not for
+its Homebrew installs.
+
+**Tag the links you post.** A click from an app, a newsletter or a chat
+arrives with no referrer and lands in "Direct", indistinguishable from someone
+typing the address. A tagged link keeps its source:
+
+```
+https://keelhaven.app/?utm_source=v2ex&utm_medium=community&utm_campaign=launch-1.0
+```
+
+Keep `utm_campaign` the same for everything in one launch and vary
+`utm_source` per place (`hackernews`, `reddit-macapps`, `v2ex`, `sspai`,
+`x`, `wechat`). Lowercase, no spaces — GA treats `Reddit` and `reddit` as two
+sources.
+
+**GitHub** has what no tracker can count, and what an ad blocker cannot hide —
+which matters here, because the people who install a privacy-first backup tool
+block analytics more than most. `make metrics` prints stars, release downloads
+(every `brew install` is one) and the last 14 days of repository traffic with
+its referrers. GitHub keeps traffic for 14 days and then drops it, so around a
+launch run it at least that often and keep the output:
+
+```bash
+make metrics >> ~/keelhaven-metrics.log
+```
+
+**Nothing** counts installs that are already running: the app has no telemetry
+and its update check reads a static file. That is deliberate — see
+`site/privacy.md` — so the number of active users is not knowable, only the
+number of downloads.
+
 ## Preview deployments
 
 Every branch gets a throwaway copy of the site on Cloudflare, so a docs PR

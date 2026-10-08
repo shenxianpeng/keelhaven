@@ -17,9 +17,19 @@ const props = defineProps<{
 const copied = ref(false)
 let timer: ReturnType<typeof setTimeout> | undefined
 
+// A copy is not a click Google Analytics records on its own, so without this
+// an install that starts here is invisible: DownloadButton's file_download
+// only sees the DMG path. The two events together are the installs the site
+// starts.
+function trackCopy() {
+  const gtag = (window as { gtag?: (...args: unknown[]) => void }).gtag
+  gtag?.('event', 'install_command_copy', { command: props.command })
+}
+
 const copy = async () => {
   try {
     await navigator.clipboard.writeText(props.command)
+    trackCopy()
     copied.value = true
     clearTimeout(timer)
     timer = setTimeout(() => (copied.value = false), 1600)
