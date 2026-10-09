@@ -89,8 +89,13 @@ final class RestoreModel {
     /// Reads the selected snapshot and opens it for browsing.
     func browseSelectedSnapshot(appState: AppState, plan: BackupPlan) {
         guard let snapshot = selectedSnapshot else { return }
-        if treeSnapshotID == snapshot.id, tree != nil {
-            phase = .browsing
+        if treeSnapshotID == snapshot.id, let tree {
+            // Read once, but shown afresh every time. The table is rebuilt
+            // when the browser comes back and does not reopen the folders it
+            // had open — so carrying the old selection over left a file
+            // selected inside a folder that was now closed: counted in the
+            // footer, about to be restored, and nowhere on screen.
+            open(tree, of: snapshot.id)
             return
         }
 
@@ -175,10 +180,14 @@ final class RestoreModel {
         contentSelection = []
         searchText = ""
         searchResults = nil
-        // The top level starts open. A plan with one source folder would
-        // otherwise greet the user with a single closed row.
-        expandedFolders = Set(built.roots.filter(\.isDirectory).map(\.id))
+        expandedFolders = Self.topLevelFolders(of: built)
         phase = .browsing
+    }
+
+    /// The top level starts open. A plan with one source folder would
+    /// otherwise greet the user with a single closed row.
+    private static func topLevelFolders(of tree: SnapshotTree) -> Set<SnapshotTree.Node.ID> {
+        Set(tree.roots.filter(\.isDirectory).map(\.id))
     }
 
     /// Searching replaces the tree with a flat list of matches.
@@ -194,7 +203,13 @@ final class RestoreModel {
 
         let query = text.trimmingCharacters(in: .whitespacesAndNewlines)
         guard let tree, !query.isEmpty else {
+            // Back to the outline, and to the outline as it first appears:
+            // the rows are built again, and what was open before the search
+            // is not something the table brings back.
             searchResults = nil
+            if let tree {
+                expandedFolders = Self.topLevelFolders(of: tree)
+            }
             return
         }
         // A pass over every entry per keystroke, so it stays off the main
