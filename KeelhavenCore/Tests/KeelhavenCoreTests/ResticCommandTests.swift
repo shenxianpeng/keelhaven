@@ -288,8 +288,55 @@ final class ResticCommandTests: XCTestCase {
     }
 
     func testRestoreArguments() {
-        let command = ResticCommand.restore(snapshotID: "c4e6a708", target: "/tmp/restored")
+        let command = ResticCommand.restore(snapshotID: "c4e6a708", target: "/tmp/restored", includes: [])
         XCTAssertEqual(command.arguments, ["restore", "c4e6a708", "--target", "/tmp/restored", "--json"])
+    }
+
+    /// A scoped restore repeats the flag, once per selected path, and the paths
+    /// are the absolute ones `restic ls` reported — verified against the real
+    /// binary before this parameter existed: an included file lands alone under
+    /// the target, an included directory lands with its subtree.
+    func testRestoreWithIncludesRepeatsTheFlagPerPath() {
+        let command = ResticCommand.restore(
+            snapshotID: "c4e6a708",
+            target: "/tmp/restored",
+            includes: ["/Users/me/Documents/a.txt", "/Users/me/Documents/photos"]
+        )
+        XCTAssertEqual(
+            command.arguments,
+            [
+                "restore", "c4e6a708", "--target", "/tmp/restored", "--json",
+                "--include", "/Users/me/Documents/a.txt",
+                "--include", "/Users/me/Documents/photos",
+            ]
+        )
+    }
+
+    /// restic reads `--include` as a glob, and a file name is free to contain
+    /// every character a glob gives meaning to. Unescaped, `photo[1].jpg`
+    /// restores `photo1.jpg` — the wrong file, silently — and a folder named
+    /// `[2024] Taxes` restores nothing. Each of `\ * ? [ ]` therefore goes out
+    /// behind a backslash, and everything else goes out untouched.
+    func testRestoreIncludesAreEscapedSoAPathIsNeverReadAsAPattern() {
+        XCTAssertEqual(ResticCommand.literalPattern("photo[1].jpg"), #"photo\[1\].jpg"#)
+        XCTAssertEqual(ResticCommand.literalPattern("star*.txt"), #"star\*.txt"#)
+        XCTAssertEqual(ResticCommand.literalPattern("what?.md"), #"what\?.md"#)
+        XCTAssertEqual(ResticCommand.literalPattern(#"back\slash.txt"#), #"back\\slash.txt"#)
+        // Spaces, dots, parentheses, braces and non-ASCII mean nothing to the
+        // matcher, so they must come through exactly as they went in.
+        let plain = "Résumé (final) {v2} 报告.pdf"
+        XCTAssertEqual(ResticCommand.literalPattern(plain), plain)
+
+        let command = ResticCommand.restore(snapshotID: "c4e6a708", target: "restored", includes: ["[2024] Taxes"])
+        XCTAssertEqual(
+            command.arguments,
+            ["restore", "c4e6a708", "--target", "restored", "--json", "--include", #"\[2024\] Taxes"#]
+        )
+    }
+
+    func testListArguments() {
+        let command = ResticCommand.ls(snapshotID: "c4e6a708")
+        XCTAssertEqual(command.arguments, ["ls", "c4e6a708", "--json"])
     }
 
     func testLocalRepositoryLocation() {

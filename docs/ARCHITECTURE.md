@@ -66,6 +66,9 @@ the only exit, and the catch-up at launch then re-entered the same run.
 | In-app 60s timer + login item | No launchd plist lifecycle to manage | `SMAppService.agent(plistName:)` launchd agent reusing `SchedulePolicy` |
 | App Sandbox OFF (hardened runtime ON) | restic child needs arbitrary folder read, network, ssh | Security-scoped bookmarks + XPC — known App Store blocker, revisit post-v1 |
 | JSON files in Application Support | Human-readable, atomic writes, Codable round-trip tested | — |
+| A snapshot is opened with one `restic ls` and held as a tree in memory (`SnapshotTree`) | Opening the repository is the cost, and it is constant: ~2.7 s over SFTP at 60 ms, against under a second more for four times the files (`Scripts/bench-remote-ls.sh`). Listing a folder per click would pay it every time; one listing also makes search local and instant | Per-folder listing, if snapshots ever outgrow memory — hundreds of thousands of entries is still tens of megabytes |
+| The restore browser gives the table rows only for folders that are open | SwiftUI's `Table` walks every row it is handed on every change, shown or not: with a 40 000-file snapshot built out in full, opening one folder froze the window for 0.4 s. A closed folder contributes one stand-in child, enough to draw its triangle | A hand-flattened row list, if a single folder with tens of thousands of direct children needs to open smoothly |
+| A selective restore passes each path to `--include` escaped (`ResticCommand.literalPattern`) | `--include` is a glob: unescaped, `photo[1].jpg` restored `photo1.jpg` instead and a folder named `[2024] Taxes` restored nothing (restic 0.19.1) | — |
 | Retention only ever considers snapshots tagged `keelhaven` (`forget --prune --tag keelhaven`) | A plan can be connected to a repository that already holds another machine's or the command line's snapshots, and an unfiltered `forget` applies its policy to all of them. Every backup has carried the tag since 0.1.0, so narrowing to it stranded nothing | The tag is the app's, not the plan's: plans (or Macs) sharing one repository still share one policy. A per-plan tag would separate them, and needs a way to adopt the snapshots written before it existed |
 | Retention as three presets (`off`/`year`/`month`), `forget --prune` riding the backup tail weekly | A choice a person can read instead of five keep-count fields; off (never delete) is the default; output isn't parsed — the exit code decides, like `check` | Custom keep counts can become a parameterized case alongside the presets |
 
@@ -135,9 +138,10 @@ exercises the real binary end-to-end when it's installed.
 
 ## Not yet built (deliberately)
 
-File-level browsing inside snapshots (whole-snapshot restore shipped:
-plan actions → Restore… lists snapshots and restores into a fresh subfolder),
-custom retention keep counts (preset retention shipped: Edit Plan →
+Snapshot diff, deleting a single snapshot, searching across snapshots and
+mounting one (restore is shipped: plan actions → Restore… lists snapshots, and
+either restores one whole or opens it to pick files out — always into a fresh
+subfolder), custom retention keep counts (preset retention shipped: Edit Plan →
 Retention), additional backends (rclone family), rest-server beyond its
 default mode (`--private-repos`, `--append-only`, self-signed/custom-CA
 TLS — public CA-signed HTTPS works), launchd scheduling, sandboxing.

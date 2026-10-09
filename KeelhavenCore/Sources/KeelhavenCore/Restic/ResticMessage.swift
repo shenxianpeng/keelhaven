@@ -231,6 +231,47 @@ public struct ResticSourceErrorMessage: Decodable, Sendable {
     }
 }
 
+/// One `message_type: "node"` line from `restic ls --json`: a single entry in
+/// a snapshot, in the order restic walked it — parents before their children.
+///
+/// Captured from restic 0.19.1 (`Fixtures/ls-nested.jsonl`):
+///
+///     {"name":"b.txt","type":"file","path":"/…/docs/b.txt","uid":502,"size":7,
+///      "mode":420,"permissions":"-rw-r--r--","mtime":"…","message_type":"node"}
+///
+/// Two things only the capture settles: `size` is present on files and absent
+/// on directories *and* symlinks, and a symlink carries **no** `linktarget` at
+/// all. Neither may be treated as a given.
+public struct ResticLsNode: Decodable, Sendable, Hashable {
+    public let name: String
+    /// restic's own type string, kept as a string rather than decoded into an
+    /// enum on purpose: the walk can also emit `dev`, `chardev`, `fifo`,
+    /// `socket` and `irregular`, and throwing on one of those would drop a
+    /// real entry out of the tree — and a file the user cannot see is a file
+    /// they cannot restore.
+    public let type: String
+    /// Absolute, as stored in the snapshot — which is also what
+    /// `restore --include` expects.
+    public let path: String
+    public let size: Int64?
+    public let mtime: Date?
+    public let linkTarget: String?
+
+    enum CodingKeys: String, CodingKey {
+        case name, type, path, size, mtime
+        case linkTarget = "linktarget"
+    }
+
+    public var isDirectory: Bool { type == "dir" }
+    public var isSymlink: Bool { type == "symlink" }
+}
+
+/// A decoded line of the `restic ls --json` stream.
+public enum ResticLsEvent: Sendable {
+    case snapshot(ResticSnapshot)
+    case node(ResticLsNode)
+}
+
 /// A decoded event from the `restic backup --json` stream.
 public enum BackupProgressEvent: Sendable {
     case status(BackupStatusMessage)
@@ -313,6 +354,24 @@ public enum ResticJSON {
                   error.messageType == "error"
             else { return nil }
             return error.unreadableItem
+        }
+    }
+
+    /// One line of the `restic ls --json` stream: the snapshot header first
+    /// (same shape `restic snapshots --json` uses), then one node per entry.
+    /// Returns nil for anything else, including the empty trailing line.
+    public static func decodeLsEvent(fromLine line: String) -> ResticLsEvent? {
+        guard let data = line.data(using: .utf8),
+              let envelope = try? decoder.decode(ResticMessageEnvelope.self, from: data)
+        else { return nil }
+
+        switch envelope.messageType {
+        case "snapshot":
+            return (try? decoder.decode(ResticSnapshot.self, from: data)).map { .snapshot($0) }
+        case "node":
+            return (try? decoder.decode(ResticLsNode.self, from: data)).map { .node($0) }
+        default:
+            return nil
         }
     }
 }

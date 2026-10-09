@@ -435,4 +435,82 @@ final class ResticMessageParsingTests: XCTestCase {
             .someSourcesUnreadable(paths: [], totalUnreadable: 0, message: "something went wrong")
         )
     }
+
+    /// Unmodified `restic ls --json` from restic 0.19.1 for a small nested
+    /// source tree: a hidden file, a file with a space and non-ASCII
+    /// characters, an empty directory, a symlink, and two levels of nesting.
+    ///
+    /// Two facts the fixture exists to pin, neither of which restic's docs
+    /// state: the walk starts at the filesystem root (so `/tmp` and
+    /// `/tmp/keelhaven-ls` arrive as nodes even though only
+    /// `/tmp/keelhaven-ls/src` was backed up), and every line carries
+    /// `message_type`.
+    func testDecodeEveryLsLine() throws {
+        let lines = try fixtureLines("ls-nested.jsonl")
+        XCTAssertEqual(lines.count, 15)
+
+        var events: [ResticLsEvent] = []
+        for line in lines {
+            events.append(try XCTUnwrap(ResticJSON.decodeLsEvent(fromLine: line), "Undecoded line: \(line)"))
+        }
+
+        guard case .snapshot(let snapshot) = events[0] else {
+            return XCTFail("Expected the header line to be the snapshot")
+        }
+        XCTAssertEqual(snapshot.paths, ["/tmp/keelhaven-ls/src"])
+        XCTAssertEqual(snapshot.shortID, "e0a7bd49")
+
+        let nodes = events.dropFirst().compactMap { event -> ResticLsNode? in
+            guard case .node(let node) = event else { return nil }
+            return node
+        }
+        XCTAssertEqual(nodes.count, 14)
+
+        // Parents come before children — the order the tree builder relies on.
+        XCTAssertEqual(nodes[0].path, "/tmp")
+        XCTAssertEqual(nodes[1].path, "/tmp/keelhaven-ls")
+        XCTAssertEqual(nodes[2].path, "/tmp/keelhaven-ls/src")
+    }
+
+    /// `size` is on files and on nothing else, and a symlink has no
+    /// `linktarget` at all — the second one surprised me, which is exactly why
+    /// it is worth a test rather than an assumption.
+    func testLsNodeShapeForFilesDirectoriesAndSymlinks() throws {
+        let lines = try fixtureLines("ls-nested.jsonl")
+        var byPath: [String: ResticLsNode] = [:]
+        for line in lines {
+            if case .node(let node)? = ResticJSON.decodeLsEvent(fromLine: line) {
+                byPath[node.path] = node
+            }
+        }
+
+        let file = try XCTUnwrap(byPath["/tmp/keelhaven-ls/src/docs/b.txt"])
+        XCTAssertEqual(file.name, "b.txt")
+        XCTAssertEqual(file.type, "file")
+        XCTAssertEqual(file.size, 7)
+        XCTAssertFalse(file.isDirectory)
+        XCTAssertNotNil(file.mtime)
+
+        let directory = try XCTUnwrap(byPath["/tmp/keelhaven-ls/src/docs"])
+        XCTAssertTrue(directory.isDirectory)
+        XCTAssertNil(directory.size, "Directories carry no size")
+
+        let empty = try XCTUnwrap(byPath["/tmp/keelhaven-ls/src/empty"])
+        XCTAssertTrue(empty.isDirectory)
+
+        let symlink = try XCTUnwrap(byPath["/tmp/keelhaven-ls/src/link-to-a"])
+        XCTAssertTrue(symlink.isSymlink)
+        XCTAssertNil(symlink.size)
+        XCTAssertNil(symlink.linkTarget, "restic ls emits no linktarget for a symlink")
+
+        let unicode = try XCTUnwrap(byPath["/tmp/keelhaven-ls/src/文档 名.txt"])
+        XCTAssertEqual(unicode.name, "文档 名.txt")
+        XCTAssertEqual(unicode.size, 8)
+    }
+
+    func testLsDecoderIgnoresEverythingElse() {
+        XCTAssertNil(ResticJSON.decodeLsEvent(fromLine: ""))
+        XCTAssertNil(ResticJSON.decodeLsEvent(fromLine: "not json"))
+        XCTAssertNil(ResticJSON.decodeLsEvent(fromLine: #"{"message_type":"status","percent_done":0.5}"#))
+    }
 }
