@@ -26,8 +26,7 @@ Keelhaven 管的是第二份副本：丢不起的那些文件夹，加密后放�
 ## Arq
 
 思路最接近的一个：你的文件、你的存储、你的密钥。Arq 做得更久，也支持
-Windows，能备份到 Google Drive、OneDrive 和 Dropbox，还能打开备份只取出
-一个文件，而 Keelhaven 恢复的是整个快照。
+Windows，还能备份到 Google Drive、OneDrive 和 Dropbox。
 
 想要免费、开源，备份格式别的工具也能读，就选 Keelhaven。
 

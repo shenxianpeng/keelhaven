@@ -18,11 +18,17 @@ Keychain and the menu bar.
 | Each scheduled run | `restic backup --json --tag keelhaven <folders>` |
 | Retention, at most weekly, after a good backup | `restic forget --prune --tag keelhaven --keep-…` |
 | Verification, weekly by default | `restic check` |
-| Restore | `restic restore <snapshot> --target <new folder>` |
+| Opening a snapshot to choose files | `restic ls <snapshot> --json` |
+| Restore | `restic restore <snapshot> --target <new folder>`, plus `--include <path>` for each file or folder you picked |
 | A stale lock, when you ask | `restic unlock` — never `--remove-all` |
 
-One restic process runs at a time, app-wide. The `--tag` on `forget` is new
-after 0.9.1 — *Use a repository you already have*, below, says why it matters.
+One restic process runs at a time, app-wide. The `--tag` on `forget` arrived
+in 0.9.2 — *Use a repository you already have*, below, says why it matters.
+
+A snapshot is listed once, whole, and browsed from memory: opening the
+repository is the slow part of `ls`, so a call per folder would pay for it on
+every click. The paths handed to `--include` are escaped, so a file called
+`photo[1].jpg` is restored as itself and not as whatever the pattern matches.
 
 The retention choices are presets over the keep flags:
 
@@ -53,10 +59,10 @@ against it and creates nothing.
 Snapshots made by other machines stay where they are, and the restore window
 lists them alongside Keelhaven's own.
 
-Retention leaves them alone as well, in versions after 0.9.1. There `forget`
-runs with `--tag keelhaven`, so it only ever considers snapshots Keelhaven
-made; anything the restic command line or another tool wrote stays until you
-prune it yourself.
+Retention leaves them alone as well, from 0.9.2 on. There `forget` runs with
+`--tag keelhaven`, so it only ever considers snapshots Keelhaven made;
+anything the restic command line or another tool wrote stays until you prune
+it yourself.
 
 **0.9.1 and earlier applied the policy to every snapshot in the repository.**
 Update before you turn retention on for a repository that something else
@@ -111,7 +117,7 @@ Missing one you rely on? [Say which, and why](https://github.com/shenxianpeng/ke
 - **rclone backends.** Google Drive, OneDrive and Dropbox are not supported;
   an rclone remote keeps its credentials outside the Keychain. The
   [reasoning is here](https://github.com/shenxianpeng/keelhaven/issues/53).
-- **`restic mount`** and browsing inside a snapshot. A restore takes the whole
-  snapshot into a new folder.
+- **`restic mount`.** The Restore window opens a snapshot, searches it and
+  restores files out of it; it does not mount one in Finder.
 - **rest-server beyond its defaults** — `--private-repos`, `--append-only` or
   a self-signed certificate.
