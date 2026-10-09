@@ -113,11 +113,11 @@ public actor ResticRunner {
                     return
                 }
 
-                async let stderrData = ResticRunner.collect(stderrPipe.fileHandleForReading)
+                // Both pipes are drained while the process runs, each on its
+                // own thread — see `PipeReader` for what happens otherwise.
+                async let stderrData = PipeReader.collect(stderrPipe.fileHandleForReading)
 
-                // A stdout read failure just ends the loop; the exit code decides.
-                var lines = stdoutPipe.fileHandleForReading.bytes.lines.makeAsyncIterator()
-                while let line = (try? await lines.next()) ?? nil {
+                for await line in PipeReader.lines(of: stdoutPipe.fileHandleForReading) {
                     if let event = decodeLine(line) {
                         continuation.yield(event)
                     }
@@ -183,9 +183,11 @@ public actor ResticRunner {
         }
 
         // Read both pipes concurrently with the running process so a large
-        // output can never fill the pipe buffer and deadlock the child.
-        async let stdoutData = ResticRunner.collect(stdoutPipe.fileHandleForReading)
-        async let stderrData = ResticRunner.collect(stderrPipe.fileHandleForReading)
+        // output can never fill the pipe buffer and deadlock the child. That
+        // only holds if the two reads do not queue behind one another, which
+        // is what `PipeReader` is for.
+        async let stdoutData = PipeReader.collect(stdoutPipe.fileHandleForReading)
+        async let stderrData = PipeReader.collect(stderrPipe.fileHandleForReading)
 
         var exitCode: Int32 = -1
         for await code in exitCodes {
@@ -205,16 +207,5 @@ public actor ResticRunner {
                 continuation.finish()
             }
         }
-    }
-
-    private static func collect(_ handle: FileHandle) async -> Data {
-        var data = Data()
-        // A read failure just ends collection early — partial output is
-        // still useful for error reporting.
-        var bytes = handle.bytes.makeAsyncIterator()
-        while let byte = (try? await bytes.next()) ?? nil {
-            data.append(byte)
-        }
-        return data
     }
 }
