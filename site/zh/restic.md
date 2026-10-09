@@ -17,11 +17,17 @@ Keelhaven 是前端，不是分支。它内置原版 restic（0.19.1），以子
 | 每次定时运行 | `restic backup --json --tag keelhaven <文件夹>` |
 | 保留策略，备份成功后执行，最多每周一次 | `restic forget --prune --tag keelhaven --keep-…` |
 | 验证，默认每周 | `restic check` |
-| 恢复 | `restic restore <快照> --target <新文件夹>` |
+| 打开快照挑选文件 | `restic ls <快照> --json` |
+| 恢复 | `restic restore <快照> --target <新文件夹>`，你选了哪些文件或文件夹，就各加一个 `--include <路径>` |
 | 你要求清理残留的锁时 | `restic unlock`，从不带 `--remove-all` |
 
-整个应用同一时间只跑一个 restic 进程。`forget` 上的 `--tag` 是 0.9.1 之后
-才加的，为什么要紧，见下面「接入已有的仓库」。
+整个应用同一时间只跑一个 restic 进程。`forget` 上的 `--tag` 是 0.9.2 加的，
+为什么要紧，见下面「接入已有的仓库」。
+
+一个快照只完整列出一次，之后都在内存里浏览：`ls` 慢在打开仓库，按文件夹
+逐个去列，每点一下都要再付一次这个代价。交给 `--include` 的路径会先转义，
+所以名叫 `photo[1].jpg` 的文件恢复出来的就是它自己，而不是这个通配符碰巧
+匹配到的别的文件。
 
 保留策略的几个选项，对应的是这些 keep 参数：
 
@@ -48,7 +54,7 @@ Keelhaven 会拿你的密码去验证，不会新建任何东西。
 
 其他机器留下的快照原样保留，恢复窗口里会和 Keelhaven 自己的快照列在一起。
 
-保留策略也不会动它们，前提是版本在 0.9.1 之后。新版本的 `forget` 带着
+保留策略也不会动它们，从 0.9.2 起是这样。这之后的 `forget` 带着
 `--tag keelhaven` 执行，只会处理 Keelhaven 自己创建的快照；restic 命令行或
 别的工具写进去的，会一直留着，要清理得你自己动手。
 
@@ -102,6 +108,7 @@ restic -r sftp:backup@nas.local:/backups/mac restore latest --target ~/Restored
 
 - **rclone 后端。** 不支持 Google Drive、OneDrive、Dropbox：rclone 的凭据
   存在钥匙串之外。[原因写在这里](https://github.com/shenxianpeng/keelhaven/issues/53)。
-- **`restic mount`**，以及在快照里浏览文件。恢复是把整个快照放进一个新文件夹。
+- **`restic mount`。** 恢复窗口可以打开快照、在里面搜索、只恢复其中的文件，
+  但不能把快照挂载到访达里。
 - **默认配置之外的 rest-server**：`--private-repos`、`--append-only`，
   或自签名证书。

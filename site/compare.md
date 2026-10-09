@@ -28,9 +28,8 @@ encrypted, somewhere that is not your desk.
 ## Arq
 
 The closest in idea: your files, your storage, your key. Arq has been doing it
-longer, runs on Windows too, backs up to Google Drive, OneDrive and Dropbox,
-and lets you open a backup to pull out one file — Keelhaven restores a whole
-snapshot.
+longer, runs on Windows too, and backs up to Google Drive, OneDrive and
+Dropbox.
 
 Choose Keelhaven if you want it free and open source, with backups in a format
 other tools can read.

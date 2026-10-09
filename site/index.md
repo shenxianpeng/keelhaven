@@ -214,7 +214,7 @@ The backup is unrecoverable, by design — repositories are encrypted end to end
 
 The plan's **⋯** menu has **Restore…** — it lists every snapshot that plan has taken (date, number of files, size, newest first), and you pick the point in time you want and where to put it. It restores into a new folder named for the plan and the moment, so nothing you have now is overwritten and a restore can never cost you the version you're standing on.
 
-It restores a whole snapshot rather than letting you open one up and pull a single file out — take what you need from the restored folder afterwards. Browsing inside a snapshot is on the list, not in the app yet.
+You don't have to take the whole snapshot. **Choose Files…** opens the one you picked — unfold its folders or search by name — and **Restore Selected…** brings back only what you select. (Version 0.9.2 and later.)
 
 None of it depends on Keelhaven being there: the repository is standard restic, so `restic restore` from any Mac or Linux box does the same job.
 
