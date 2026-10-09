@@ -167,7 +167,7 @@ const releases = computed(
 
 <ol class="kh-steps">
   <li>
-    <div class="kh-step-shot"><img src="/screenshots/wizard.webp" alt="「新建备份计划」窗口，停在询问加密备份存到哪里的那一步。" width="720" height="758" loading="lazy"></div>
+    <div class="kh-step-shot"><img src="/screenshots/wizard-zh.webp" alt="「新建备份计划」窗口，停在询问加密备份存到哪里的那一步。" width="720" height="761" loading="lazy"></div>
     <h3>1 · 建一个计划</h3>
     <p>文件夹、目的地、时间表。</p>
   </li>
@@ -177,7 +177,7 @@ const releases = computed(
     <p>绿点亮着，说明上次备份成功了。</p>
   </li>
   <li>
-    <div class="kh-step-shot"><img src="/screenshots/restore.webp" alt="「恢复备份」窗口，按日期、文件数和大小列出快照。" width="720" height="591" loading="lazy"></div>
+    <div class="kh-step-shot"><img src="/screenshots/restore-zh.webp" alt="「恢复备份」窗口，按日期、文件数和大小列出快照。" width="720" height="557" loading="lazy"></div>
     <h3>3 · 恢复任意时间点</h3>
     <p>恢复到新文件夹，不覆盖任何文件。</p>
   </li>

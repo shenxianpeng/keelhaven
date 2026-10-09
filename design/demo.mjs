@@ -72,7 +72,9 @@ const COPY = {
     steps: [
       ['1 · 建一个计划', '文件夹、目的地、时间表。'],
       ['2 · 让它自己跑', '绿点亮着，说明上次备份成功了。'],
-      ['3 · 恢复任意时间点', '恢复到新文件夹，不覆盖任何文件。'],
+      // Chinese has no spaces to break at, so a long caption says where it
+      // may: the browser would otherwise cut 任意 in two to even the lines.
+      ['<span class="nb">3 · 恢复任意</span><span class="nb">时间点</span>', '恢复到新文件夹，不覆盖任何文件。'],
     ],
     promises: [
       ['在 Mac 上加密', '钥匙只在你手里。'],
@@ -111,12 +113,9 @@ const H = 1080
 
 const b64 = (p) => readFileSync(p).toString('base64')
 
-// The same boxes design/site.mjs cuts for the website's step cards: just
-// inside the window, so the frame drawn here covers the window's own corners.
-const CROP = {
-  wizard: { left: 18, top: 18, width: 1106, height: 1164 },
-  restore: { left: 17, top: 17, width: 1028, height: 844 },
-}
+// The window shots are the window and nothing else, so they go in whole and
+// the frame drawn here rounds their corners — as design/site.mjs does for the
+// website's step cards.
 async function shot(name) {
   const file = join(SHOTS, `${name}${suffix}.png`)
   if (!existsSync(file)) {
@@ -125,7 +124,7 @@ async function shot(name) {
         'the demo will not show a window in one language under a caption in another.'
     )
   }
-  const png = await sharp(file).extract(CROP[name]).png().toBuffer()
+  const png = await sharp(file).png().toBuffer()
   return `data:image/png;base64,${png.toString('base64')}`
 }
 
@@ -197,6 +196,7 @@ html, body { margin: 0; }
 }
 .serif { font-family: var(--kh-serif); font-weight: 400; letter-spacing: -.02em; }
 .soft { color: rgba(234,242,251,.74); }
+.nb { white-space: nowrap; }
 
 /* --a is how far a scene has faded in, --p how far through it the clock is.
    Both are set from outside, once per frame. */
@@ -214,8 +214,11 @@ html, body { margin: 0; }
 
 .step { gap: 110px; padding: 0 130px; justify-content: flex-start; }
 .caption { width: 600px; flex: none; }
-.caption h2 { margin: 0 0 22px; font-size: 76px; line-height: 1.08; }
-.caption p { margin: 0; font-size: 36px; line-height: 1.4; color: rgba(234,242,251,.78); }
+/* Balanced, so a caption that needs two lines gets two of similar length
+   rather than one full line and a single word — or, in Chinese, a single
+   character — left over on the next. */
+.caption h2 { margin: 0 0 22px; font-size: 76px; line-height: 1.08; text-wrap: balance; }
+.caption p { margin: 0; font-size: 36px; line-height: 1.4; color: rgba(234,242,251,.78); text-wrap: balance; }
 .visual { flex: 1; display: flex; justify-content: center; }
 .visual img {
   height: 800px; border-radius: 22px;

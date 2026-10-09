@@ -125,9 +125,10 @@ npm run demo        # the README's demo.gif, and build/demo.mp4 for posts  (need
 
 `build.mjs` writes into `Keelhaven/Assets.xcassets/`, `docs/assets/` and
 `site/public/`; `materials.mjs` writes into `docs/assets/` and `site/public/`;
-`site.mjs` copies the Newsreader files and crops the screenshots in
-`docs/assets/screenshots/` into `site/public/` (re-measure its crop boxes when a
-screenshot is re-taken).
+`site.mjs` copies the Newsreader files and the screenshots in
+`docs/assets/screenshots/` into `site/public/`, scaled to the width the page
+shows them at. The window shots go across whole; only the menu bar panel is
+cropped, out of the desktop around it (re-measure that box when it is re-taken).
 Those PNGs are committed on purpose: CI's macOS runner has no image toolchain,
 so the build must not depend on this script having run.
 
@@ -137,8 +138,15 @@ Chromium and hands the frames to ffmpeg. Steps 1 and 3 are the screenshots in
 `docs/assets/screenshots/`; step 2 is the website's own `MenuBarDemo`, taken
 from a fresh site build. So it is re-run, not re-shot: after a screenshot is
 re-taken or the popover changes, `npm run demo` brings the GIF and the film
-back in step. `npm run demo -- --lang=zh` makes the Chinese cut, once
-`wizard-zh.png` and `restore-zh.png` exist beside the English ones.
+back in step. `npm run demo -- --lang=zh` makes the Chinese cut from the
+`-zh` screenshots, into `build/` only: the README shows the English one.
+
+The screenshots come in pairs, English and `-zh`, and in two kinds. The windows
+(`wizard`, `restore`, `restore-files`, `edit-plan`) are drawn by the app itself:
+a scratch copy renders each one off screen at 2x, on sample data, so they come
+out the same whatever display is attached. The menu bar panel (`menu-bar`) is a
+capture of a real screen, because its glass is drawn by the system; take it on
+a Retina display or it comes out at half the size of the rest.
 
 `site/public/` holds a small duplicate of `docs/assets/` — the favicons, nav
 logo, `og.png`, fonts and screenshots — because VitePress serves static files only from there. It is

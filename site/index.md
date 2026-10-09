@@ -145,7 +145,7 @@ const releases = computed(
 
 <ol class="kh-steps">
   <li>
-    <div class="kh-step-shot"><img src="/screenshots/wizard.webp" alt="The New Backup Plan window, on the step that asks where the encrypted backup should go." width="720" height="758" loading="lazy"></div>
+    <div class="kh-step-shot"><img src="/screenshots/wizard.webp" alt="The New Backup Plan window, on the step that asks where the encrypted backup should go." width="720" height="761" loading="lazy"></div>
     <h3>1 · Make a plan</h3>
     <p>Folders, destination, schedule.</p>
   </li>
@@ -155,7 +155,7 @@ const releases = computed(
     <p>A green dot means the last backup worked.</p>
   </li>
   <li>
-    <div class="kh-step-shot"><img src="/screenshots/restore.webp" alt="The Restore Backup window listing snapshots by date, file count and size." width="720" height="591" loading="lazy"></div>
+    <div class="kh-step-shot"><img src="/screenshots/restore.webp" alt="The Restore Backup window listing snapshots by date, file count and size." width="720" height="557" loading="lazy"></div>
     <h3>3 · Restore any point in time</h3>
     <p>Into a new folder. Nothing is overwritten.</p>
   </li>
