@@ -35,8 +35,8 @@ PEOPLE="$SINCE AND blob4 != 'bot'"
 # Runs one query and prints its rows, tab-separated. The token reaches curl on
 # stdin rather than in its arguments, so it never shows up in `ps`.
 query() {
-    local out
-    if ! out=$(curl -sS --fail-with-body "$API" -H @- --data-binary "$1 FORMAT TabSeparated" \
+    local sql=$1 out
+    if ! out=$(curl -sS --fail-with-body "$API" -H @- --data-binary "$sql FORMAT TabSeparated" \
             <<<"Authorization: Bearer $CLOUDFLARE_ANALYTICS_TOKEN" 2>&1); then
         echo "Error: the Analytics Engine query failed — $out" >&2
         exit 1
@@ -45,11 +45,12 @@ query() {
 }
 
 # One "By …" section: downloads by one field, bots left out, most first.
-breakdown() { # title blob [filter] [limit]
+breakdown() {
+    local title=$1 blob=$2 filter=${3:-} limit=${4:-}
     echo
-    echo "$1"
-    query "SELECT $2 AS value, SUM(_sample_interval) AS downloads FROM keelhaven_downloads
-           WHERE $PEOPLE ${3:+AND $3} GROUP BY value ORDER BY downloads DESC ${4:+LIMIT $4}" \
+    echo "$title"
+    query "SELECT $blob AS value, SUM(_sample_interval) AS downloads FROM keelhaven_downloads
+           WHERE $PEOPLE ${filter:+AND $filter} GROUP BY value ORDER BY downloads DESC ${limit:+LIMIT $limit}" \
         | awk -F'\t' '{ printf "  %-26s %5d\n", ($1 == "" ? "(none)" : $1), $2 }'
 }
 

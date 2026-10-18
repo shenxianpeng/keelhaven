@@ -36,7 +36,7 @@ const BOT = /bot|crawl|spider|slurp|preview|headless|facebookexternalhit/i
 export default {
   async fetch(request, env) {
     const url = new URL(request.url)
-    const match = url.pathname.match(FILE)
+    const match = FILE.exec(url.pathname)
     if (!match) return new Response('Not found\n', { status: 404 })
     if (request.method !== 'GET' && request.method !== 'HEAD') {
       return new Response('Method not allowed\n', { status: 405, headers: { allow: 'GET, HEAD' } })
@@ -61,11 +61,7 @@ export default {
 }
 
 function count(request, url, env, version) {
-  const ua = request.headers.get('user-agent') || ''
-  const client = /^curl\//i.test(ua) ? 'curl'
-    : BOT.test(ua) ? 'bot'
-    : /^Mozilla\//.test(ua) ? 'browser'
-    : 'other'
+  const client = clientOf(request.headers.get('user-agent') || '')
 
   let referrer = ''
   let referrerPath = ''
@@ -77,11 +73,7 @@ function count(request, url, env, version) {
     // No referrer, or not a URL — both count as none.
   }
 
-  const src = url.searchParams.get('src') || ''
-  const source = SLUG.test(src) ? src
-    : referrer === 'keelhaven.app' || referrer.endsWith('.keelhaven.app') ? 'site'
-    : referrer ? 'referral'
-    : 'direct'
+  const source = sourceOf(url.searchParams.get('src') || '', referrer)
   const page = url.searchParams.get('page') || ''
 
   try {
@@ -92,6 +84,23 @@ function count(request, url, env, version) {
   } catch {
     // Counting must never cost anyone the download.
   }
+}
+
+// The user agent, reduced to the one thing a count needs: what kind of client.
+function clientOf(ua) {
+  if (ua.startsWith('curl/')) return 'curl'
+  if (BOT.test(ua)) return 'bot'
+  if (ua.startsWith('Mozilla/')) return 'browser'
+  return 'other'
+}
+
+// A ?src= slug wins: the site's own buttons and tagged links set one. Without
+// it, the referrer's host is all there is to go on.
+function sourceOf(src, referrer) {
+  if (SLUG.test(src)) return src
+  if (referrer === 'keelhaven.app' || referrer.endsWith('.keelhaven.app')) return 'site'
+  if (referrer) return 'referral'
+  return 'direct'
 }
 
 // The version latest.json names, or null when it cannot be read — which
