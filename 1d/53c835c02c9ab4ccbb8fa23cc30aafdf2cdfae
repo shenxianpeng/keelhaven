@@ -1,0 +1,51 @@
+Makefile
+  s_847db75944b79c::t_56c2c69b079a75 6,9,50-51
+  s_847db75944b79c::t_91eb8ee1db0737 52
+.gitignore
+  s_847db75944b79c::t_3c19a52df05ef5 24-26
+site/zh/privacy.md
+  s_847db75944b79c::t_c84b08597494dd 10,12
+  s_847db75944b79c::t_74c628f14bcee7 13
+workers/dl/src/index.js
+  s_847db75944b79c::t_b8a5e9edba3763 1-108
+site/privacy.md
+  s_847db75944b79c::t_c84b08597494dd 16,21-24
+  s_847db75944b79c::t_74c628f14bcee7 25-27
+Scripts/download-stats.sh
+  s_847db75944b79c::t_18ea3b8b05ca35 1-65
+docs/WEBSITE.md
+  s_847db75944b79c::t_af5e76055ec6db 64-68,102-104,134-144,147-178,181-209,264-275
+  s_847db75944b79c::t_74c628f14bcee7 145-146,179-180
+  s_847db75944b79c::t_9ab6f100b2842d 276
+.github/workflows/ci.yml
+  s_847db75944b79c::t_7d31c57d3da43d 5-7
+  s_847db75944b79c::t_0225712c10827c 21,29
+workers/dl/test/index.test.js
+  s_847db75944b79c::t_359a5d9e28eaae 1-134
+workers/dl/wrangler.jsonc
+  s_847db75944b79c::t_5a6ad584c75f35 1-20
+site/.vitepress/theme/latest.ts
+  s_847db75944b79c::t_ec097fdf7aea8e 8-21,23,28,36,44-49,59-60,62,66-67
+CONTRIBUTING.md
+  s_847db75944b79c::t_0225712c10827c 151
+workers/dl/package.json
+  s_847db75944b79c::t_c2c54bb28a8a95 1-9
+CLAUDE.md
+  s_847db75944b79c::t_0225712c10827c 45
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1d53c835c02c9ab4ccbb8fa23cc30aafdf2cdfae",
+  "prompts": {},
+  "sessions": {
+    "s_847db75944b79c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5ed56d88-4308-4d96-bee9-6b540f505c6a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
