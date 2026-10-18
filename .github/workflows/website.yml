@@ -81,7 +81,23 @@ jobs:
             exit 0
           fi
           VERSION="${TAG#v}"
-          gh release download "$TAG" --repo shenxianpeng/keelhaven --pattern '*.dmg' --dir site/public/downloads --clobber
+          # Every fetch from the release adds one to its download count, and
+          # this step runs on every deploy — so every docs push read as a
+          # download (about 50 of the 140 up to v0.9.2). gh-pages
+          # already carries the DMG the last deploy mirrored: reuse it when it
+          # is the same file, byte for byte by the release's own SHA-256, and
+          # fetch from the release only for a new release or a mismatch.
+          DIGEST=$(jq -r --arg name "$ASSET" '.assets[] | select(.name == $name) | .digest // empty' /tmp/release.json)
+          DMG="site/public/downloads/$ASSET"
+          if [ -n "$DIGEST" ] \
+            && git fetch --quiet --depth=1 origin gh-pages \
+            && git cat-file blob "FETCH_HEAD:downloads/$ASSET" > "$DMG" 2>/dev/null \
+            && [ "sha256:$(sha256sum "$DMG" | cut -d' ' -f1)" = "$DIGEST" ]; then
+            echo "Reusing $ASSET from gh-pages ($DIGEST) — not counted as a download"
+          else
+            rm -f "$DMG"
+            gh release download "$TAG" --repo shenxianpeng/keelhaven --pattern '*.dmg' --dir site/public/downloads --clobber
+          fi
           printf '{"version": "%s", "dmgURL": "https://keelhaven.app/downloads/%s"}\n' "$VERSION" "$ASSET" > site/public/latest.json
       - name: Build site
         run: |

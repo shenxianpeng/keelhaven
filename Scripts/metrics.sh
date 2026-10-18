@@ -7,9 +7,12 @@
 #
 # - Release downloads are mostly `brew install` (the cask points at the release
 #   asset). The website's Download button serves its own mirror of the DMG, so
-#   it is not in this count — Google Analytics has that one. The deploy that
-#   makes the mirror fetches the DMG from the release too, so a site deploy
-#   may show up here as a download.
+#   it is not in this count — Google Analytics has that one. The first site
+#   deploy after a release fetches the DMG from it to make that mirror, so
+#   each release's count includes one download that is ours; later deploys
+#   reuse the copy already on gh-pages. Releases up to v0.9.2 predate that
+#   and carry one for every site deploy made while they were the latest —
+#   by the Actions history, about 50 of their 140.
 # - GitHub keeps traffic for 14 days and then drops it. Around a launch, run
 #   this at least that often and keep what it prints:
 #

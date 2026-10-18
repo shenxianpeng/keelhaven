@@ -26,12 +26,23 @@ command -v gh >/dev/null || {
 rm -rf site/public/downloads site/public/latest.json
 mkdir -p site/public/downloads
 if info=$(gh release view --repo shenxianpeng/keelhaven --json tagName,assets \
-    --jq '"\(.tagName)\t\([.assets[] | select(.name | endswith(".dmg"))][0].name // "")"' 2>/dev/null); then
-  tag=${info%%$'\t'*}
-  asset=${info#*$'\t'}
+    --jq '([.assets[] | select(.name | endswith(".dmg"))][0] // {}) as $dmg
+          | "\(.tagName)\t\($dmg.name // "")\t\($dmg.digest // "")"' 2>/dev/null); then
+  IFS=$'\t' read -r tag asset digest <<< "$info"
   if [[ -n "$asset" ]]; then
-    echo "Mirroring $asset ($tag) into the deploy."
-    gh release download "$tag" --repo shenxianpeng/keelhaven --pattern '*.dmg' --dir site/public/downloads --clobber
+    # Same as website.yml: a fetch from the release counts as a download, so
+    # reuse the copy already on gh-pages when its SHA-256 matches the release.
+    dmg="site/public/downloads/$asset"
+    if [[ -n "$digest" ]] \
+        && git fetch --quiet https://github.com/shenxianpeng/keelhaven.git gh-pages \
+        && git cat-file blob "FETCH_HEAD:downloads/$asset" > "$dmg" 2>/dev/null \
+        && [[ "sha256:$(shasum -a 256 "$dmg" | cut -d' ' -f1)" == "$digest" ]]; then
+      echo "Reusing $asset ($tag) from gh-pages — not counted as a download."
+    else
+      rm -f "$dmg"
+      echo "Mirroring $asset ($tag) into the deploy."
+      gh release download "$tag" --repo shenxianpeng/keelhaven --pattern '*.dmg' --dir site/public/downloads --clobber
+    fi
     printf '{"version": "%s", "dmgURL": "https://keelhaven.app/downloads/%s"}\n' \
       "${tag#v}" "$asset" > site/public/latest.json
   else
