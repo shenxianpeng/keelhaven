@@ -1,4 +1,4 @@
-import { defineConfig } from 'vitepress'
+import { defineConfig, type HeadConfig } from 'vitepress'
 import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 
@@ -31,6 +31,50 @@ const siteUrl = origin + base
 // the footer tagline and the social card carry.
 const description =
   'Privacy-first backups for your Mac, to storage you own.'
+
+const repo = 'https://github.com/shenxianpeng/keelhaven'
+
+// The release this build serves, if it has one: website.yml writes
+// site/public/latest.json from the newest GitHub release just before it
+// builds. A local build has none, and the structured data below then points
+// at the releases page and leaves the version out.
+const latestRelease: { version?: unknown; dmgURL?: unknown } = (() => {
+  try {
+    return JSON.parse(
+      readFileSync(
+        fileURLToPath(new URL('../public/latest.json', import.meta.url)),
+        'utf8'
+      )
+    )
+  } catch {
+    return {}
+  }
+})()
+
+// schema.org SoftwareApplication for the two landing pages, so a search
+// engine reads the platform, the price and the licence off the page instead
+// of guessing them from the copy.
+function softwareApplication(url: string, lang: string, about: string) {
+  const { version, dmgURL } = latestRelease
+  return {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Keelhaven',
+    url,
+    description: about,
+    inLanguage: lang,
+    operatingSystem: 'macOS 14+',
+    applicationCategory: 'UtilitiesApplication',
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+    downloadUrl:
+      typeof dmgURL === 'string' && dmgURL ? dmgURL : `${repo}/releases/latest`,
+    ...(typeof version === 'string' && version
+      ? { softwareVersion: version }
+      : {}),
+    license: 'https://spdx.org/licenses/GPL-3.0-or-later.html',
+    sameAs: [repo],
+  }
+}
 
 // The guides and the two pages that sit beside them share one sidebar, so a
 // reader on any of them can reach the rest. Each page exists in both
@@ -148,13 +192,26 @@ export default defineConfig({
       .replace(/\.md$/, '')
     const enPath = path.replace(/^zh\//, '')
     const url = (p: string) => siteUrl + p
-    return [
+    const head: HeadConfig[] = [
       ['link', { rel: 'canonical', href: url(path) }],
       ['link', { rel: 'alternate', hreflang: 'en', href: url(enPath) }],
       ['link', { rel: 'alternate', hreflang: 'zh-Hans', href: url('zh/' + enPath) }],
       ['link', { rel: 'alternate', hreflang: 'x-default', href: url(enPath) }],
       ['meta', { property: 'og:url', content: url(path) }],
     ]
+    if (enPath === '') {
+      const zh = path === 'zh/'
+      const json = JSON.stringify(
+        softwareApplication(url(path), zh ? 'zh-Hans' : 'en', pageData.description)
+      )
+      // `<` escaped so no string in it can close the script element early.
+      head.push([
+        'script',
+        { type: 'application/ld+json' },
+        json.replace(/</g, '\\u003c'),
+      ])
+    }
+    return head
   },
 
   themeConfig: {
@@ -174,7 +231,7 @@ export default defineConfig({
     // GitHub icon in that default-theme navbar. The landing page's own nav
     // and footer carry the same link, driven by index.md frontmatter.
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/shenxianpeng/keelhaven' },
+      { icon: 'github', link: repo },
       { icon: 'x', link: 'https://x.com/xianpengshen' },
     ],
     footer: {

@@ -1,0 +1,50 @@
+# Keelhaven
+
+> Keelhaven is a free, open-source menu bar app for macOS. It encrypts the folders you pick on your Mac, then backs them up on a schedule to storage you own: an external or network drive, a NAS, an S3-compatible bucket or an SFTP server. Its backup engine is restic, and every plan is a standard restic repository.
+
+- Runs on macOS 14 or later, on Apple silicon and Intel. It is in public beta.
+- Free and open source under GPL-3.0-or-later. No account, no subscription, no telemetry, and no Keelhaven server in the path: backups go straight from the Mac to the user's own storage.
+- Everything is encrypted on the Mac before it is uploaded. The repository password is kept in the macOS Keychain; only the user holds the key.
+- No lock-in: the backups can be listed, verified and restored with the open-source restic command line on any Mac or Linux machine, with or without Keelhaven.
+- Source code: https://github.com/shenxianpeng/keelhaven
+
+## Install
+
+- DMG: the "Download for Mac" button on https://keelhaven.app/, or the latest release at https://github.com/shenxianpeng/keelhaven/releases/latest
+- Homebrew: `brew install --cask shenxianpeng/tap/keelhaven` — no security prompt, and `brew upgrade` picks up new releases.
+- Without Homebrew: `curl -fsSL https://keelhaven.app/install.sh | bash` downloads the latest release and copies it into Applications.
+- Beta builds are not yet notarised by Apple, so the first launch from the DMG shows macOS's standard warning, once per version. On macOS 15, dismiss it, then click Open Anyway in System Settings › Privacy & Security. On macOS 14, right-click Keelhaven in Applications and choose Open.
+
+## Pages
+
+- [Keelhaven](https://keelhaven.app/): What the app does, how it works, and the FAQ.
+- [Guides](https://keelhaven.app/guides/): Step-by-step guides for backing up a Mac with Keelhaven.
+- [Back up a Mac to Backblaze B2](https://keelhaven.app/guides/backblaze-b2): The bucket, the application key, the five fields to fill in, and the one lifecycle rule B2 needs.
+- [Back up a Mac to a NAS](https://keelhaven.app/guides/nas): A Synology, QNAP or any other NAS, as a share mounted in Finder or over SFTP with an SSH key.
+- [Keelhaven for restic users](https://keelhaven.app/restic): Exactly which restic commands it runs, how to connect a repository you already have, and what it deliberately leaves to the command line.
+- [Keelhaven and the alternatives](https://keelhaven.app/compare): How it compares with Time Machine, Arq, Backblaze Computer Backup, the restic command line, Backrest and Vorta, and when each of them is the better choice.
+- [Privacy](https://keelhaven.app/privacy): The app has no account, no telemetry and no server; the website uses Google Analytics.
+- [Licenses](https://keelhaven.app/licenses): Keelhaven's GPL-3.0-or-later and the bundled restic's BSD 2-Clause License.
+
+## 页面（简体中文）
+
+- [Keelhaven](https://keelhaven.app/zh/)：应用做什么、怎么用，以及常见问题。
+- [使用指南](https://keelhaven.app/zh/guides/)：用 Keelhaven 备份 Mac 的分步指南。
+- [把 Mac 备份到 Backblaze B2](https://keelhaven.app/zh/guides/backblaze-b2)：建桶、建应用密钥、要填的五个字段，以及 B2 必须设的那条生命周期规则。
+- [把 Mac 备份到 NAS](https://keelhaven.app/zh/guides/nas)：群晖、威联通或任何一台 NAS，在访达里挂载共享文件夹，或者用 SSH 密钥走 SFTP。
+- [写给 restic 用户](https://keelhaven.app/zh/restic)：它到底执行了哪些 restic 命令，怎么接入你已有的仓库，哪些事它有意留给命令行。
+- [Keelhaven 和同类工具](https://keelhaven.app/zh/compare)：与时间机器、Arq、Backblaze 电脑备份、restic 命令行、Backrest、Vorta 的对比，以及它们各自什么时候更合适。
+- [隐私](https://keelhaven.app/zh/privacy)：应用没有账号、没有遥测、没有服务器；网站使用 Google Analytics。
+- [许可](https://keelhaven.app/zh/licenses)：Keelhaven 的 GPL-3.0-or-later 与内置 restic 的 BSD 2-Clause 许可。
+
+## FAQ
+
+- Does it replace Time Machine? No — run both. Time Machine puts a whole Mac back the way it was, from a drive on your desk. Keelhaven is for the second copy: the folders you can't lose, encrypted, somewhere that isn't your desk.
+- Which destinations are supported? An external or network drive mounted on the Mac, any S3-compatible bucket (AWS, Backblaze B2, Wasabi, Cloudflare R2, MinIO), SFTP to your own server or NAS, and a restic REST server you host yourself.
+- What if I forget the repository password? The backup is unrecoverable, by design: nobody holds a spare key. Keelhaven keeps the password in the macOS Keychain and can copy it back out after a Touch ID check; keep it in a password manager too.
+- How do I get my files back? The plan's ⋯ menu has Restore…, which lists every snapshot the plan has taken. Keelhaven restores into a new folder, so nothing you have now is overwritten. From version 0.9.2, Choose Files… opens a snapshot so you can restore only the files you pick out of it.
+- Do backups grow forever? Only with retention off, which is the default. Edit Plan → Retention can keep a year of history, a month of history, or a set number of backups; the space is reclaimed after a backup, at most once a week.
+- How do I know the backups are good? A failed run shows in the menu bar and as a notification, and Keelhaven runs restic's integrity check on each repository on a schedule, weekly by default.
+- A backup says some files could not be read. That is macOS protecting Desktop, Documents, Downloads and similar folders. Turn Keelhaven on in System Settings › Privacy & Security › Full Disk Access, then quit and reopen it. Beta builds aren't Developer ID-signed yet, so an update can need the permission granted again.
+- Do I need to install restic? No. Everything Keelhaven needs, including its backup engine, ships inside the app bundle.
+- Why isn't it on the Mac App Store? App Store apps must run in the sandbox, and the backup engine needs to read the folders you pick, open network and SSH connections, and be granted Full Disk Access.
