@@ -21,5 +21,6 @@ design/package-lock.json
 site/node_modules/
 site/.vitepress/dist/
 site/.vitepress/cache/
-# Wrangler's local state for the Cloudflare preview deploys
-site/.wrangler/
+# Wrangler's local state — site previews and the dl worker, at whichever
+# level wrangler ran from
+.wrangler/

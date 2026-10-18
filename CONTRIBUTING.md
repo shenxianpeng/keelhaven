@@ -148,6 +148,7 @@ site FAQ walk through it.
 | `project.yml` | XcodeGen spec — the `.xcodeproj` is generated, never committed. |
 | `design/` | Icon and brand kit. `icon.mjs` holds the geometry; `build.mjs` renders the asset catalog, `.icns` and favicons. See `design/README.md`. |
 | `site/` | Public website + docs (VitePress). Built and published to this repo's `gh-pages` branch by `.github/workflows/website.yml`, served at [keelhaven.app](https://keelhaven.app). See `docs/WEBSITE.md`. |
+| `workers/dl/` | The Cloudflare Worker behind `dl.keelhaven.app`, which counts the website's DMG downloads and redirects to the file. Deployed by hand. See `docs/WEBSITE.md` § Download counter. |
 | `docs/ARCHITECTURE.md` | Module boundaries, data flow, and upgrade paths. |
 | `docs/WEBSITE.md` | How the site is built, deployed, and how the keelhaven.app domain is wired. |
 

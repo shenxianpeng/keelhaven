@@ -61,6 +61,11 @@ Pages: no CDN in the path, nothing of ours in the middle, and `privacy.md`'s
 true. Turning on the orange cloud would put Cloudflare in front of every
 visitor and that sentence would need rewriting.
 
+The one proxied name in the zone is `dl.keelhaven.app`, the
+[download counter](#download-counter): a Worker's custom domain, which
+Cloudflare serves by its nature, and which a visitor reaches only by clicking
+the Download button. The apex and `www` stay grey.
+
 ### The CNAME file is the domain
 
 GitHub Pages attaches a custom domain by way of a `CNAME` file at the root of
@@ -94,6 +99,9 @@ organization's Pages host. All **DNS only / grey cloud**.
 Check these against GitHub's "Managing a custom domain for your GitHub Pages
 site" before re-entering them; the apex IPs have changed before.
 
+`dl` is missing on purpose: the first `wrangler deploy` of `workers/dl`
+creates its record, pointing at the Worker. Don't add or edit it by hand.
+
 `www` → apex is handled by GitHub Pages itself: with `keelhaven.app` set as
 the custom domain, a request to `www.keelhaven.app` that resolves to Pages is
 redirected to the apex. A Cloudflare redirect rule would be the alternative,
@@ -122,6 +130,82 @@ is a Cloudflare Email Routing alias that forwards to a real inbox; `hi@` is a
 second alias to the same place. Enabling Email Routing writes its own MX and
 SPF records into the zone. The site reads the address from one field,
 `landing.contact` in `site/index.md`, so re-pointing it is a one-line change.
+
+## Download counter
+
+The website's Download button does not link to the mirror. It links to
+`https://dl.keelhaven.app/Keelhaven-x.y.z.dmg?src=site&page=/zh/`
+(`site/.vitepress/theme/latest.ts`), where a Worker, `keelhaven-dl` in
+`workers/dl/`, writes one data point to the Analytics Engine dataset
+`keelhaven_downloads` and answers with a 302: the newest version back to
+`keelhaven.app/downloads/`, the same file the button served before, and any
+older one to its GitHub release. Anything else on that host is a 404. It
+counts on the server, with no script in the page, so an ad blocker has nothing
+to block. The fields it keeps are listed at the top of `src/index.js`, and
+`site/privacy.md` (with its `zh/` mirror) says the same in plain words —
+change one, change them all.
+
+What it does not see: `latest.json`'s `dmgURL` still names the mirror, so the
+in-app update prompt and `install.sh` go straight there, and Homebrew goes to
+GitHub. Pointing `dmgURL` at the counter, in `website.yml` and
+`Scripts/deploy-site.sh`, would count those too. The Worker builds the
+mirror's path itself, so that cannot loop, and nothing would break: the
+shipped app opens the URL in a browser and `install.sh` follows redirects.
+They would arrive without `src`, though — the app's as a `direct` browser
+download, `install.sh`'s as `direct` from `curl`.
+
+The button now depends on the Worker. If `dl.keelhaven.app` stops answering,
+downloads from the site stop with it; reverting `latest.ts` puts the button
+back on the mirror.
+
+**Nothing deploys it automatically.** `website.yml` publishes `site/` only.
+Run the tests and deploy by hand after changing `workers/dl/`:
+
+```bash
+npm --prefix workers/dl test       # node:test, no dependencies, no network
+./site/node_modules/.bin/wrangler dev --config workers/dl/wrangler.jsonc
+./site/node_modules/.bin/wrangler deploy --config workers/dl/wrangler.jsonc
+```
+
+`wrangler dev` serves the real redirects on localhost; its data points go
+nowhere.
+
+### First-time setup at Cloudflare
+
+Deploy the Worker before the `latest.ts` change reaches `main`; until
+`dl.keelhaven.app` answers, a button pointing at it is a broken button.
+
+1. Workers & Pages › Analytics Engine: if the account has not used it yet,
+   enable it. There is no dataset to create: `keelhaven_downloads` appears
+   with the first data point, and keeps three months.
+2. From the repository root, with `site/`'s dependencies installed
+   (`npm --prefix site ci`; wrangler is pinned there):
+
+   ```bash
+   ./site/node_modules/.bin/wrangler login
+   ./site/node_modules/.bin/wrangler deploy --config workers/dl/wrangler.jsonc
+   ```
+
+   The deploy attaches `dl.keelhaven.app` as the Worker's custom domain,
+   which creates its DNS record and certificate. `workers_dev` and
+   `preview_urls` are off, so the custom domain is the only way in.
+3. Check it, with the version `latest.json` names:
+
+   ```bash
+   curl -sI https://dl.keelhaven.app/Keelhaven-0.9.2.dmg   # 302 to keelhaven.app/downloads/
+   curl -sI https://dl.keelhaven.app/Keelhaven-0.9.1.dmg   # 302 to the v0.9.1 release
+   curl -sI https://dl.keelhaven.app/                      # 404
+   ```
+
+   A HEAD is not counted; a `curl -sL -o /dev/null` of the newest version is
+   one `direct` download from `curl`, which `make download-stats` should
+   show within a minute or two.
+4. For `make download-stats`: My Profile › API Tokens › Create Custom Token,
+   permission **Account › Account Analytics › Read**, for this account only.
+   Export it as `CLOUDFLARE_ANALYTICS_TOKEN`, next to `CLOUDFLARE_ACCOUNT_ID`
+   (the ID is on the account's Workers & Pages overview). Not as
+   `CLOUDFLARE_API_TOKEN`: wrangler reads that name, and would then try to
+   deploy with a read-only token.
 
 ## Verifying a deploy
 
@@ -175,6 +259,19 @@ launch run it at least that often and keep the output:
 
 ```bash
 make metrics >> ~/keelhaven-metrics.log
+```
+
+**Cloudflare** has the website's DMG downloads that Google Analytics misses.
+The [download counter](#download-counter) sees every click on the Download
+button, ad blocker or not, and `make download-stats` prints the last 30 days
+(`DAYS=90` for all of it; Analytics Engine keeps three months) by source,
+version, page, linking site and country, bots left out. GA's `file_download`
+fires on the same clicks, so the gap between the two is roughly the share of
+visitors who block GA. A link posted straight to the DMG can carry its own
+tag, which shows up as its source:
+
+```
+https://dl.keelhaven.app/Keelhaven-0.9.2.dmg?src=v2ex
 ```
 
 **Nothing** counts installs that are already running: the app has no telemetry
