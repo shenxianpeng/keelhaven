@@ -1,0 +1,38 @@
+site/zh/index.md
+  s_035a7874c7c90a::t_b70afb8ffb4393 37-38
+  s_035a7874c7c90a::t_bec29f6ce35bd7 28-32,34-35,39
+site/.vitepress/config.mts
+  s_035a7874c7c90a::t_30054551440c84 35-78
+  s_035a7874c7c90a::t_c839090913ba59 1
+  s_035a7874c7c90a::t_559d712bcb7731 195,202-214
+  s_035a7874c7c90a::t_4e173e10b57bf1 234
+site/.vitepress/theme/components/LandingNav.vue
+  s_035a7874c7c90a::t_10df266c1e32b0 4-5
+  s_035a7874c7c90a::t_30e92ee198733c 6
+  s_035a7874c7c90a::t_ddb5ef55df6078 102-105
+site/.vitepress/theme/landing.css
+  s_035a7874c7c90a::t_d5e8105cc4581d 1106-1111
+  s_035a7874c7c90a::t_9e8adbf641c7eb 1091-1099,1101-1105
+site/index.md
+  s_035a7874c7c90a::t_939c989feb61da 30-33,35-36,40
+  s_035a7874c7c90a::t_ec8cfd1a56d056 38-39
+site/public/llms.txt
+  s_035a7874c7c90a::t_d1fa9254691061 45
+  s_035a7874c7c90a::t_e0b6819a2eead6 1-44,46-50
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "b948cea7fb144e3f4d5a6f844cb681cd5b0af1fd",
+  "prompts": {},
+  "sessions": {
+    "s_035a7874c7c90a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "fdb621c8-73d2-4e0c-8bb8-0bbb55159c09",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
