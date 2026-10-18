@@ -105,6 +105,13 @@ export default defineConfig({
 
     // Google Analytics (gtag.js). The one third-party loaded by the site —
     // site/privacy.md discloses it and must change in step with this block.
+    //
+    // A browser that has opened any page with ?internal=1 is tagged
+    // traffic_type=internal from then on (?internal=0 clears it), which the
+    // property's "Internal Traffic" data filter matches — so our own visits
+    // can be left out of the reports. The tag goes on the config call itself,
+    // because that call sends the page_view. localStorage throws when site
+    // data is blocked; the visit is then simply counted, untagged.
     [
       'script',
       { async: '', src: 'https://www.googletagmanager.com/gtag/js?id=G-WWCP7VVJPM' },
@@ -116,7 +123,16 @@ export default defineConfig({
         'window.dataLayer = window.dataLayer || [];',
         'function gtag(){dataLayer.push(arguments);}',
         "gtag('js', new Date());",
-        "gtag('config', 'G-WWCP7VVJPM');",
+        '(function () {',
+        '  var internal = false;',
+        '  try {',
+        "    var mark = new URLSearchParams(location.search).get('internal');",
+        "    if (mark === '1') localStorage.setItem('kh-internal', '1');",
+        "    else if (mark === '0') localStorage.removeItem('kh-internal');",
+        "    internal = localStorage.getItem('kh-internal') === '1';",
+        '  } catch (e) {}',
+        "  gtag('config', 'G-WWCP7VVJPM', internal ? { traffic_type: 'internal' } : {});",
+        '})();',
       ].join('\n'),
     ],
   ],

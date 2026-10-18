@@ -362,6 +362,7 @@ body:has(.kh-landing) .VPLocalNav {
 .kh-landing .kh-nav-cta {
   padding: 8px 18px;
   font-size: 14px;
+  white-space: nowrap;
   opacity: 0;
   visibility: hidden;
   transition: opacity 0.25s ease;

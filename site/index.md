@@ -25,6 +25,8 @@ landing:
   # themeConfig.socialLinks in config.mts.
   github: https://github.com/shenxianpeng/keelhaven
   cta: Download
+  # The nav CTA on anything but a Mac, where a DMG is no use.
+  ctaNotMac: ★ Star
   nav:
     - { text: How it works, anchor: how }
     - { text: No lock-in, anchor: open }
@@ -104,7 +106,7 @@ const releases = computed(
     <h1 class="kh-hero-title">Back up your Mac to storage <em>you&nbsp;own.</em></h1>
     <p class="kh-hero-tagline">A free menu bar app that encrypts your folders on your Mac, then backs them up on a schedule to your own drive, bucket or server.</p>
     <div class="kh-hero-actions">
-      <DownloadButton label="Download for Mac" :fallback-href="releases" />
+      <DownloadButton label="Download for Mac" source="hero" :fallback-href="releases" />
       <CommandBlock
         command="brew install --cask shenxianpeng/tap/keelhaven"
         lead="Or with Homebrew — no security prompt:"
@@ -309,7 +311,7 @@ App Store apps must run in the sandbox, and the backup engine needs to read the 
 <section class="kh-cta-inner">
   <img src="/favicon-180.png" alt="" width="88" height="88">
   <h2 class="kh-h2">Set it up once. Then forget it.</h2>
-  <DownloadButton label="Download for Mac" :fallback-href="releases" />
+  <DownloadButton label="Download for Mac" source="footer" :fallback-href="releases" />
   <p class="kh-cta-note">macOS 14 or later · Apple silicon and Intel</p>
 </section>
 </div>
