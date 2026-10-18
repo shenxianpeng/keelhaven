@@ -23,6 +23,8 @@ landing:
   # 另行携带。
   github: https://github.com/shenxianpeng/keelhaven
   cta: 下载
+  # 非 Mac 设备上的导航按钮：DMG 在那里没用。
+  ctaNotMac: ★ 点个 Star
   # 导航用短标签（FAQ 而非「常见问题」），配合语言切换按钮才放得进
   # 375px 的手机导航胶囊；页内区块标题和页脚仍用中文全称。
   nav:
@@ -125,7 +127,7 @@ const releases = computed(
     <h1 class="kh-hero-title"><span style="white-space: nowrap">把 Mac 备份到</span><span style="white-space: nowrap">你自己的存储</span></h1>
     <p class="kh-hero-tagline">免费的菜单栏应用：先在 Mac 上加密你的文件夹，再按时间表备份到你自己的硬盘、存储桶或服务器。</p>
     <div class="kh-hero-actions">
-      <DownloadButton label="下载 Mac 版" :fallback-href="releases" />
+      <DownloadButton label="下载 Mac 版" source="hero" :fallback-href="releases" />
       <CommandBlock
         command="brew install --cask shenxianpeng/tap/keelhaven"
         lead="或用 Homebrew 安装，不弹安全提示："
@@ -331,7 +333,7 @@ App Store 要求应用跑在沙盒里，而备份引擎得读你指定的任意�
 <section class="kh-cta-inner">
   <img src="/favicon-180.png" alt="" width="88" height="88">
   <h2 class="kh-h2">设置一次，然后就可以忘了它。</h2>
-  <DownloadButton label="下载 Mac 版" :fallback-href="releases" />
+  <DownloadButton label="下载 Mac 版" source="footer" :fallback-href="releases" />
   <p class="kh-cta-note">macOS 14 及以上 · Apple 芯片和 Intel</p>
 </section>
 </div>

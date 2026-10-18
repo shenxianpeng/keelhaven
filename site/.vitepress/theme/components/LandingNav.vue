@@ -4,7 +4,7 @@
 // them without touching this component.
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useData, withBase } from 'vitepress'
-import { useLatestRelease } from '../latest'
+import { trackDownload, useLatestRelease } from '../latest'
 
 const { frontmatter, localeIndex } = useData()
 const landing = computed(() => frontmatter.value.landing ?? {})
@@ -35,12 +35,23 @@ const closeLangOnEscape = (event: KeyboardEvent) => {
 const active = ref('')
 const scrolled = ref(false)
 
+// The CTA downloads a DMG, which is no use on an iPad, a phone in landscape
+// or anything else that isn't a Mac, so there it points at the repository
+// instead. VitePress's own `mac` class can't decide this: it matches iPhone
+// and iPad too. An iPad asking for the desktop site says "Macintosh" like a
+// Mac does; touch support is what tells the two apart. Set after mount so the
+// server-rendered download link hydrates unchanged — the CTA is hidden until
+// the reader scrolls, so the swap never shows.
+const onMac = ref(true)
+
 let observer: IntersectionObserver | undefined
 const onScroll = () => {
   scrolled.value = window.scrollY > 420
 }
 
 onMounted(() => {
+  onMac.value =
+    /Macintosh/.test(navigator.userAgent) && navigator.maxTouchPoints < 2
   onScroll()
   window.addEventListener('scroll', onScroll, { passive: true })
   document.addEventListener('click', closeLang)
@@ -138,11 +149,22 @@ const ctaHref = computed(
            Empty keeps the filename from the URL and still stops VitePress's
            SPA router from intercepting the click. -->
       <a
+        v-if="onMac"
         class="kh-btn kh-btn-primary kh-nav-cta"
         :href="ctaHref"
         :download="dmgURL ? '' : undefined"
+        @click="trackDownload('nav')"
       >
         {{ landing.cta }}
+      </a>
+      <a
+        v-else
+        class="kh-btn kh-btn-primary kh-nav-cta"
+        :href="landing.github"
+        target="_blank"
+        rel="noopener"
+      >
+        {{ landing.ctaNotMac }}
       </a>
     </nav>
   </header>
