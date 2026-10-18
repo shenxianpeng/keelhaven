@@ -27,10 +27,17 @@ landing:
   cta: Download
   # The nav CTA on anything but a Mac, where a DMG is no use.
   ctaNotMac: ★ Star
+  # The pages after FAQ were once only in the footer, where hardly anyone
+  # found them. There isn't room for every item on every screen: `fold: 1`
+  # goes first as the pill narrows, then `fold: 2`, so a phone keeps FAQ and
+  # the two pages — the sections are a scroll away anyway.
   nav:
-    - { text: How it works, anchor: how }
-    - { text: No lock-in, anchor: open }
+    - { text: How it works, anchor: how, fold: 2 }
+    - { text: No lock-in, anchor: open, fold: 2 }
     - { text: FAQ, anchor: faq }
+    - { text: Guides, link: /guides/ }
+    - { text: Compare, link: /compare }
+    - { text: For restic users, link: /restic, fold: 1 }
   footer:
     tagline: Privacy-first backups for your Mac, to storage you own.
     versionNote: public beta

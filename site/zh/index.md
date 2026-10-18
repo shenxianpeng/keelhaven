@@ -25,12 +25,18 @@ landing:
   cta: 下载
   # 非 Mac 设备上的导航按钮：DMG 在那里没用。
   ctaNotMac: ★ 点个 Star
-  # 导航用短标签（FAQ 而非「常见问题」），配合语言切换按钮才放得进
-  # 375px 的手机导航胶囊；页内区块标题和页脚仍用中文全称。
+  # 导航用短标签（FAQ 而非「常见问题」、「指南」而非「使用指南」），配合
+  # 语言切换按钮才放得进 375px 的手机导航胶囊；页内区块标题和页脚仍用
+  # 中文全称。FAQ 之后的几个页面以前只在页脚有入口。屏幕变窄时 `fold: 1`
+  # 先收起，再轮到 `fold: 2`，手机上留下 FAQ 和两个页面——页内区块往下
+  # 滚就到。
   nav:
-    - { text: 怎么用, anchor: how }
-    - { text: 不锁定, anchor: open }
+    - { text: 怎么用, anchor: how, fold: 2 }
+    - { text: 不锁定, anchor: open, fold: 2 }
     - { text: FAQ, anchor: faq }
+    - { text: 指南, link: /zh/guides/ }
+    - { text: 对比, link: /zh/compare }
+    - { text: restic 用户, link: /zh/restic, fold: 1 }
   footer:
     tagline: 隐私优先的 Mac 备份，存到你自己的地方。
     versionNote: 公开测试版

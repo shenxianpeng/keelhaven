@@ -1088,7 +1088,27 @@ body:has(.kh-landing) .VPLocalNav {
 
 /* ---------- responsive ---------- */
 
+/* Nav items marked `fold` in the landing frontmatter give way as the pill
+ * narrows: fold 1 from 1100px, fold 2 from 960px. Those widths are what the
+ * English labels need with the CTA showing; the Chinese ones are shorter. */
+@media (max-width: 1100px) {
+  .kh-landing .kh-nav-links .kh-nav-fold-1 {
+    display: none;
+  }
+}
+
 @media (max-width: 960px) {
+  .kh-landing .kh-nav-links .kh-nav-fold-2 {
+    display: none;
+  }
+  /* Globe + chevron alone from here down, to leave the links room; the menu
+     still names each language. */
+  .kh-landing .kh-nav-lang-label {
+    display: none;
+  }
+  .kh-landing .kh-nav-lang button {
+    padding: 7px 8px;
+  }
   .kh-landing .kh-hero {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1132,13 +1152,6 @@ body:has(.kh-landing) .VPLocalNav {
   }
   .kh-landing .kh-nav-cta {
     display: none;
-  }
-  /* Globe + chevron alone on phones; the menu still names each language. */
-  .kh-landing .kh-nav-lang-label {
-    display: none;
-  }
-  .kh-landing .kh-nav-lang button {
-    padding: 7px 8px;
   }
   .kh-landing .kh-hero-band {
     margin-top: -58px;

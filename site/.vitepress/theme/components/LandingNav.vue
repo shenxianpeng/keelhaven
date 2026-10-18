@@ -1,7 +1,9 @@
 <script setup lang="ts">
 // Sticky pill nav for the landing page only. Items and CTA copy come from
 // the page's frontmatter (fm.landing) so index.md and zh/index.md localize
-// them without touching this component.
+// them without touching this component. An item is an in-page `anchor` or a
+// `link` to another page; `fold: 1` or `fold: 2` lets it give way as the pill
+// narrows (landing.css § responsive has the widths).
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useData, withBase } from 'vitepress'
 import { trackDownload, useLatestRelease } from '../latest'
@@ -97,7 +99,10 @@ const ctaHref = computed(
           v-for="item in landing.nav"
           :key="item.text"
           :href="item.anchor ? `#${item.anchor}` : withBase(item.link)"
-          :class="{ active: item.anchor && active === item.anchor }"
+          :class="[
+            { active: item.anchor && active === item.anchor },
+            item.fold && `kh-nav-fold-${item.fold}`,
+          ]"
         >{{ item.text }}</a>
       </div>
       <div class="kh-nav-lang">
