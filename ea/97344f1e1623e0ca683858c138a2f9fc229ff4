@@ -1,0 +1,28 @@
+docs/WEBSITE.md
+  s_5668fd532e08bf::t_e6143451f73354 173-176
+Scripts/metrics.sh
+  s_5668fd532e08bf::t_8e5cd5a06f14be 10-14
+  s_5668fd532e08bf::t_2e8fd329c47b46 15
+Scripts/deploy-site.sh
+  s_5668fd532e08bf::t_f3d11c9692685d 29-31,33-45
+.github/workflows/website.yml
+  s_5668fd532e08bf::t_3a887e73e56869 85
+  s_5668fd532e08bf::t_68a4d79062a24c 86
+  s_5668fd532e08bf::t_54b774b175365e 84,87-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "ea97344f1e1623e0ca683858c138a2f9fc229ff4",
+  "prompts": {},
+  "sessions": {
+    "s_5668fd532e08bf": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4636b4d1-e02e-46de-a813-15f7870eb471",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
