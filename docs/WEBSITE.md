@@ -170,7 +170,10 @@ sources.
 which matters here, because the people who install a privacy-first backup tool
 block analytics more than most. `make metrics` prints stars, release downloads
 (every `brew install` is one) and the last 14 days of repository traffic with
-its referrers. GitHub keeps traffic for 14 days and then drops it, so around a
+its referrers. The site deploy fetches each new DMG from its release once, to
+mirror it, and reuses the copy on `gh-pages` after that — so every release's
+count includes exactly one download of our own. Releases up to v0.9.2 were
+fetched on every deploy and are inflated by about 50 in total. GitHub keeps traffic for 14 days and then drops it, so around a
 launch run it at least that often and keep the output:
 
 ```bash
