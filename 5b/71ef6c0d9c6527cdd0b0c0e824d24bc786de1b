@@ -1,0 +1,22 @@
+workers/dl/src/index.js
+  s_847db75944b79c::t_3fe36b5567f888 39,64,76,89-104
+  s_847db75944b79c::t_25b90a7c93f9f5 105
+Scripts/download-stats.sh
+  s_847db75944b79c::t_3fe36b5567f888 38-39,48-49,51-53
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "5b71ef6c0d9c6527cdd0b0c0e824d24bc786de1b",
+  "prompts": {},
+  "sessions": {
+    "s_847db75944b79c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "5ed56d88-4308-4d96-bee9-6b540f505c6a",
+        "model": "claude-opus-5-5"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
