@@ -40,8 +40,8 @@ jobs:
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
-          cache: npm
-          cache-dependency-path: site/package-lock.json
+          # No npm cache: this job publishes gh-pages, so a poisoned cache must never feed it.
+          package-manager-cache: false
       # Runs on every deploy, not just the release trigger above — force_orphan
       # below replaces gh-pages wholesale each time, so a docs-only push would
       # otherwise wipe out whatever DMG a prior release run had mirrored here.

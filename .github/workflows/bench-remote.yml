@@ -35,6 +35,10 @@ on:
         default: false
         required: false
 
+# Read-only token: the job only checks out and writes the run summary.
+permissions:
+  contents: read
+
 concurrency:
   group: bench-remote-${{ github.ref }}
   cancel-in-progress: true
@@ -47,7 +51,7 @@ jobs:
     # 10× runner is 3600 billed minutes.
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Install restic
         # untap: the runner image ships an untrusted aws/tap that makes every
         # brew command print tap-trust warnings; we don't use it.
