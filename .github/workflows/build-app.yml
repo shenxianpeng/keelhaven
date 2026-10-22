@@ -25,6 +25,10 @@ on:
         options: [apple-silicon, intel, both]
         default: apple-silicon
 
+# Read-only token: the job only checks out and uploads a workflow artifact.
+permissions:
+  contents: read
+
 concurrency:
   group: build-app-${{ github.ref }}
   cancel-in-progress: true
@@ -42,17 +46,21 @@ jobs:
       matrix:
         label: ${{ fromJSON(inputs.variant == 'both' && '["apple-silicon","intel"]' || format('["{0}"]', inputs.variant)) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       # One artifact per architecture: bundling only the matching restic slice
       # halves the download compared to a universal build.
       - name: Resolve architecture names
         id: arch
+        # matrix.label comes from the workflow input, so it arrives as an env
+        # value rather than inlined into the script (same rule as release.yml).
+        env:
+          MATRIX_LABEL: ${{ matrix.label }}
         run: |
-          case "${{ matrix.label }}" in
+          case "$MATRIX_LABEL" in
             apple-silicon) echo "restic=arm64" >> "$GITHUB_OUTPUT"; echo "xcode=arm64"  >> "$GITHUB_OUTPUT" ;;
             intel)         echo "restic=amd64" >> "$GITHUB_OUTPUT"; echo "xcode=x86_64" >> "$GITHUB_OUTPUT" ;;
-            *) echo "::error::Unknown variant '${{ matrix.label }}'"; exit 1 ;;
+            *) echo "::error::Unknown variant '$MATRIX_LABEL'"; exit 1 ;;
           esac
 
       - name: Install XcodeGen
@@ -89,7 +97,7 @@ jobs:
         run: ditto -c -k --keepParent build/Build/Products/Release/Keelhaven.app Keelhaven.app.zip
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Keelhaven-${{ github.run_number }}-${{ matrix.label }}
           path: Keelhaven.app.zip

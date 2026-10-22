@@ -29,6 +29,10 @@ on:
   # paths-ignore'd change that turned out to matter after all.
   workflow_dispatch:
 
+# Read-only token: the job only checks out and runs the tests.
+permissions:
+  contents: read
+
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -52,7 +56,7 @@ jobs:
       github.event_name != 'push'
       || !contains(github.event.head_commit.message, '(#')
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # The integration test suites exercise the real restic binary end-to-end
       # against all four backends: local disk, S3 (MinIO below), SFTP (sshd
       # below), and a REST server (rest-server below). They self-skip when

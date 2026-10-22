@@ -30,6 +30,10 @@ on:
         type: boolean
         default: false
 
+# Default for the token; the release job below scopes up to what it needs.
+permissions:
+  contents: read
+
 concurrency:
   group: release-${{ github.ref }}
   cancel-in-progress: false
@@ -57,7 +61,7 @@ jobs:
       # step that touches the outside world keys off this one flag.
       PUBLISHING: ${{ github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.publish) }}
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Resolve version
         id: version
@@ -284,7 +288,7 @@ jobs:
 
       - name: Upload DMG artifact
         if: env.PUBLISHING != 'true'
-        uses: actions/upload-artifact@v7
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: Keelhaven-${{ steps.version.outputs.version }}
           path: Keelhaven-${{ steps.version.outputs.version }}.dmg
