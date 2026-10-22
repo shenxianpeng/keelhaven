@@ -1,0 +1,35 @@
+.github/workflows/bench-remote.yml
+  s_808bcb54b94641::t_1654b1fb2d2447 38-41,54
+.github/workflows/build-app.yml
+  s_808bcb54b94641::t_2340c5ec9d7d31 28-31,49,55-58,60,63,100
+.github/workflows/ci.yml
+  s_808bcb54b94641::t_451f62315407e1 32-35,59
+.github/workflows/release.yml
+  s_808bcb54b94641::t_52636764a4bd73 33-36,64,291
+.github/workflows/website.yml
+  s_6535937731a8c8::t_e9eb857875cc08 43-44
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "584b5ef77ee12f964e3de2c792b791006e29ca7a",
+  "prompts": {},
+  "sessions": {
+    "s_6535937731a8c8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7be933fd-3555-4179-bf89-3d88091b3193",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    },
+    "s_808bcb54b94641": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8f452822-7f74-42c5-8597-23c2eec5567e",
+        "model": "claude-fable-5-1"
+      },
+      "human_author": "Xianpeng Shen <xianpeng.shen@gmail.com>"
+    }
+  }
+}
