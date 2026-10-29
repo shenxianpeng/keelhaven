@@ -3,10 +3,10 @@
 
 .DEFAULT_GOAL := help
 
-.PHONY: help bootstrap test bench-remote restic build dmg release install update dev-site deploy-site metrics clean
+.PHONY: help bootstrap test bench-remote restic build dmg release install update dev-site deploy-site metrics download-stats clean
 
 help: ## List available targets
-	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-12s %s\n", $$1, $$2}'
+	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*## "}; {printf "  make %-14s %s\n", $$1, $$2}'
 
 bootstrap: ## Install development dependencies via Homebrew
 	brew install restic xcodegen gh
@@ -46,6 +46,9 @@ deploy-site: ## Build site/ and push it to keelhaven-site's gh-pages (manual dep
 
 metrics: ## Print stars, release downloads and 14-day repository traffic
 	./Scripts/metrics.sh
+
+download-stats: ## Print the website's DMG downloads counted at dl.keelhaven.app (make download-stats DAYS=90)
+	./Scripts/download-stats.sh $(DAYS)
 
 clean: ## Remove generated project and build products
 	rm -rf Keelhaven.xcodeproj build .build KeelhavenCore/.build

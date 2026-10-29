@@ -1,0 +1,20 @@
+// keelhaven-dl: the download counter behind the website's DMG button
+// (src/index.js). A Worker of its own — not the keelhaven-site preview
+// worker in site/wrangler.jsonc — and nothing deploys it automatically:
+// after changing it, deploy by hand from the repository root
+// (docs/WEBSITE.md § "Download counter"):
+//
+//   ./site/node_modules/.bin/wrangler deploy --config workers/dl/wrangler.jsonc
+{
+  "$schema": "../../site/node_modules/wrangler/config-schema.json",
+  "name": "keelhaven-dl",
+  "main": "src/index.js",
+  "compatibility_date": "2026-09-01",
+  // The custom domain is the only way in. The first deploy creates its DNS
+  // record and certificate; there is no *.workers.dev URL to count outside it.
+  "routes": [{ "pattern": "dl.keelhaven.app", "custom_domain": true }],
+  "workers_dev": false,
+  "preview_urls": false,
+  // Created on the first write; kept three months.
+  "analytics_engine_datasets": [{ "binding": "DOWNLOADS", "dataset": "keelhaven_downloads" }]
+}

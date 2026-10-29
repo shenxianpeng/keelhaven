@@ -1,0 +1,9 @@
+{
+  "name": "keelhaven-dl",
+  "private": true,
+  "description": "The download counter at dl.keelhaven.app — see wrangler.jsonc and docs/WEBSITE.md. No dependencies: wrangler comes from site/.",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  }
+}

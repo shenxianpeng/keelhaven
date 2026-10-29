@@ -13,13 +13,18 @@ Keelhaven is built so that there is nothing to have a policy about.
   single byte is uploaded. The repository password stays in your macOS Keychain
   and is never sent anywhere.
 
-That covers the app, which is the part that touches your files. Two things
+That covers the app, which is the part that touches your files. Three things
 around it are worth stating plainly:
 
 - **This website** is a static site served by GitHub Pages; GitHub sees the
   requests it serves, as any web host does. It uses Google Analytics for basic
-  visit statistics — the only third party involved, and it applies to the
-  website only, never the app.
+  visit statistics — the only third party the pages load, and it applies to
+  the website only, never the app.
+- **The Download button** goes through `dl.keelhaven.app`, a small Cloudflare
+  Worker of ours that counts the download and sends you on to the same file.
+  Cloudflare sees that one request, as any host would; what we keep from it
+  is the version, your country, the page or site the link was on, and whether
+  a browser, `curl` or a bot asked — never your IP address.
 - **Support email** sent to our address is routed through Cloudflare Email
   Routing to a mailbox we read. We see your address and whatever you write, and
   use it only to answer you.
