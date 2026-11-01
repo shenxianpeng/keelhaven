@@ -42,6 +42,8 @@ final class PlanOptionsDraft {
     var oneFileSystem = false
     var noScan = false
     var skipIfUnchanged = false
+    /// Run backups as root through the privileged helper. Off by default.
+    var readsAsAdministrator = false
     /// Scratch field for the exclude-pattern TextField.
     var newExcludePattern = ""
     /// The Advanced knobs are held as text so an empty field can mean
@@ -96,6 +98,7 @@ final class PlanOptionsDraft {
         oneFileSystem = plan.backupOptions.oneFileSystem
         noScan = plan.backupOptions.noScan
         skipIfUnchanged = plan.backupOptions.skipIfUnchanged
+        readsAsAdministrator = plan.backupOptions.readsAsAdministrator
         newExcludePattern = ""
         uploadLimitText = Self.text(plan.performance.uploadLimitKiBPerSecond)
         readConcurrencyText = Self.text(plan.performance.readConcurrency)
@@ -121,7 +124,8 @@ final class PlanOptionsDraft {
             excludeCaches: excludeCaches,
             oneFileSystem: oneFileSystem,
             noScan: noScan,
-            skipIfUnchanged: skipIfUnchanged
+            skipIfUnchanged: skipIfUnchanged,
+            readsAsAdministrator: readsAsAdministrator
         )
     }
 

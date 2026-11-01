@@ -326,7 +326,13 @@ final class AppState {
             // so a folder the user has not granted access to may well pass
             // this check and only fail inside restic. Exit code 3 stays the
             // authoritative report; this is a head start, not the answer.
-            let unreadableSources = SourceAccess.unreadableExistingPaths(plan.sourcePaths)
+            //
+            // Skipped for a plan that reads as administrator: this process is
+            // not the one that will read, so its answer would be about the
+            // wrong user.
+            let unreadableSources = plan.backupOptions.readsAsAdministrator
+                ? []
+                : SourceAccess.unreadableExistingPaths(plan.sourcePaths)
             guard unreadableSources.isEmpty else {
                 throw ResticError.someSourcesUnreadable(
                     paths: Array(unreadableSources.prefix(ResticError.maxReportedUnreadablePaths)),
@@ -336,19 +342,7 @@ final class AppState {
                 )
             }
 
-            let credentials = try credentials(for: plan)
-            let runner = ResticRunner(binaryURL: binaryURL)
-            let stream = runner.backupStream(
-                .backup(
-                    sources: plan.sourcePaths,
-                    excludes: plan.excludePatterns,
-                    tag: ResticCommand.snapshotTag,
-                    performance: plan.performance,
-                    options: plan.backupOptions
-                ),
-                destination: plan.destination,
-                credentials: credentials
-            )
+            let stream = backupEvents(plan, credentials: try credentials(for: plan), binaryURL: binaryURL, isPreview: false)
 
             for try await event in stream {
                 switch event {
@@ -449,6 +443,33 @@ final class AppState {
         }
     }
 
+    /// A backup's (or preview's) progress events, from whoever runs restic
+    /// for this plan: this process, or — for a plan that reads files as
+    /// administrator — the privileged helper as root. Both run the command
+    /// `PrivilegedBackupRequest` builds and both streams behave alike, so
+    /// nothing downstream asks which one it got.
+    private func backupEvents(
+        _ plan: BackupPlan,
+        credentials: RepoCredentials,
+        binaryURL: URL,
+        isPreview: Bool
+    ) -> AsyncThrowingStream<BackupProgressEvent, Error> {
+        let request = PrivilegedBackupRequest(
+            plan: plan,
+            credentials: credentials,
+            isPreview: isPreview,
+            sshAuthSocket: ProcessInfo.processInfo.environment["SSH_AUTH_SOCK"]
+        )
+        if plan.backupOptions.readsAsAdministrator {
+            return PrivilegedHelperService.backupStream(request)
+        }
+        return ResticRunner(binaryURL: binaryURL).backupStream(
+            request.command,
+            destination: plan.destination,
+            credentials: credentials
+        )
+    }
+
     private func finishRun(_ plan: BackupPlan, record: BackupRunRecord) async {
         if let index = plans.firstIndex(where: { $0.id == plan.id }) {
             plans[index].lastRun = record
@@ -545,19 +566,7 @@ final class AppState {
         defer { runStates[plan.id] = stateBefore }
 
         do {
-            let credentials = try credentials(for: plan)
-            let runner = ResticRunner(binaryURL: binaryURL)
-            let stream = runner.backupStream(
-                .previewBackup(
-                    sources: plan.sourcePaths,
-                    excludes: plan.excludePatterns,
-                    tag: ResticCommand.snapshotTag,
-                    performance: plan.performance,
-                    options: plan.backupOptions
-                ),
-                destination: plan.destination,
-                credentials: credentials
-            )
+            let stream = backupEvents(plan, credentials: try credentials(for: plan), binaryURL: binaryURL, isPreview: true)
             var summary: BackupSummary?
             for try await event in stream {
                 switch event {

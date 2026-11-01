@@ -65,6 +65,7 @@ the only exit, and the catch-up at launch then re-entered the same run.
 | Bundled universal restic (`Contents/MacOS/restic`, vendored + checksum-verified by `Scripts/fetch-restic.sh`, ad-hoc/app-signed at build) | End users must not need Homebrew | User path override and Homebrew locations remain as fallbacks |
 | In-app 60s timer + login item | No launchd plist lifecycle to manage | `SMAppService.agent(plistName:)` launchd agent reusing `SchedulePolicy` |
 | App Sandbox OFF (hardened runtime ON) | restic child needs arbitrary folder read, network, ssh | Security-scoped bookmarks + XPC — known App Store blocker, revisit post-v1 |
+| Root-only files are read by a launchd daemon (`KeelhavenHelper`, `SMAppService.daemon`) that runs `restic backup` as root, per plan and opt-in | A user process cannot read root-owned files at all, and Full Disk Access does not change that — it lifts TCC, not POSIX permissions | — |
 | JSON files in Application Support | Human-readable, atomic writes, Codable round-trip tested | — |
 | A snapshot is opened with one `restic ls` and held as a tree in memory (`SnapshotTree`) | Opening the repository is the cost, and it is constant: ~2.7 s over SFTP at 60 ms, against under a second more for four times the files (`Scripts/bench-remote-ls.sh`). Listing a folder per click would pay it every time; one listing also makes search local and instant | Per-folder listing, if snapshots ever outgrow memory — hundreds of thousands of entries is still tens of megabytes |
 | The restore browser gives the table rows only for folders that are open | SwiftUI's `Table` walks every row it is handed on every change, shown or not: with a 40 000-file snapshot built out in full, opening one folder froze the window for 0.4 s. A closed folder contributes one stand-in child, enough to draw its triangle | A hand-flattened row list, if a single folder with tens of thousands of direct children needs to open smoothly |
@@ -135,6 +136,68 @@ prerequisite for the grant itself.
 When bumping the supported restic version, re-capture fixtures and re-run
 `swift test`; the integration test (`ResticRunnerIntegrationTests`) also
 exercises the real binary end-to-end when it's installed.
+
+## Reading as administrator (privileged helper)
+
+A plan can be set to **read files as administrator** (Edit Plan ›
+Administrator access, stored as `BackupOptions.readsAsAdministrator`). Its
+backups and previews then run as root, through `KeelhavenHelper` — a launchd
+daemon inside the app bundle. Everything else about the plan — restore,
+check, retention, unlock — stays with the user, exactly as before.
+
+```
+Keelhaven.app (user)                         KeelhavenHelper (root, launchd)
+  AppState.backupEvents ── XPC ──────────────▶ HelperService.runBackup
+    PrivilegedBackupRequest (JSON)               decode + validate
+    ◀── stdout lines ─────────────────────────   verified private copy of restic
+    ◀── exit code + stderr / failure ─────────   PrivilegedInvocation → restic backup
+  ResticJSON / ResticError.classify              RepositoryOwnership (local disks)
+```
+
+**Lifecycle.** `Contents/Library/LaunchDaemons/com.keelhaven.helper.plist`
+points launchd at `Contents/MacOS/KeelhavenHelper`. Turning the setting on
+calls `SMAppService.daemon(plistName:).register()`; macOS then asks the user
+to allow it once in System Settings › General › Login Items, and the
+setting's row says so and links there. The daemon is on demand: launchd
+starts it when the app connects, and it exits after 30 idle seconds, so an
+app update reaches the new helper on the next backup.
+
+**Who may connect.** The helper reads any file on request, so both of these
+are required:
+
+- The caller must be Keelhaven signed by the helper's *own* team
+  (`setCodeSigningRequirement` on the connection, checked against the
+  running code). The app checks the helper the same way. An ad-hoc build has
+  no team, so the helper accepts nothing and the setting is shown as
+  unavailable — public builds without Developer ID secrets ship the helper
+  but can never use it.
+- The connecting user must be an administrator. An admin could already
+  `sudo`; a standard account must not gain every other account's files.
+
+**What it will run.** Never an argv from the app. `PrivilegedBackupRequest`
+carries the plan's settings and secrets as data (secrets over XPC, then into
+restic's environment — never argv or disk); the helper builds the command
+from the same `ResticCommand` cases a user-level run uses, always with
+Keelhaven's snapshot tag. restic itself is *copied* from the bundle into a
+root-only folder and the copy's signature is checked before it runs: the
+bundled file usually belongs to whoever installed the app, and checking that
+file directly would leave a window to swap it between the check and the
+exec.
+
+**Destinations.** restic has to run as root to read, and the same process
+writes the repository, so each backend needs a different answer
+(`PrivilegedInvocation`):
+
+| Destination | What changes |
+|---|---|
+| S3, REST | Nothing but a root-only restic cache (`RESTIC_CACHE_DIR`). |
+| SFTP | Only the ssh transport runs as the user: `-o sftp.command=` starts `launchctl asuser … sudo -n -u <user> ssh …`, so the user's keys, agent, config and known_hosts apply. restic reads `-o` values as CSV and splits the command on double quotes; neither has an escape for a quote inside a word, so a value containing one is refused. A test runs the quoting through the real binary. |
+| Local folder, SMB share | restic writes as root. An SMB server keeps every file the mounting user's (verified: a file root creates on the share shows as the user's uid). On a local disk the helper hands what root created back to the user afterwards — `RepositoryOwnership`, written against a user trying to trick root into giving away a file outside the repository (no symlinks in any path component, `fchown` on the opened descriptor, single-link files born during the run only). |
+
+**Not covered.** A root daemon is still subject to TCC: folders guarded by
+Full Disk Access consent need it granted to the helper as well. Restore runs
+as the user, so restoring root-only files gets them back owned by the user,
+in the fresh subfolder every restore uses.
 
 ## Not yet built (deliberately)
 

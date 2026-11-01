@@ -9,7 +9,9 @@ import Foundation
 /// written* — different question, different type (issue #46).
 ///
 /// Every field here must be a flag the `--json` event stream survives, since
-/// the progress UI and every run record are parsed from it. The rule is not
+/// the progress UI and every run record are parsed from it — except
+/// `readsAsAdministrator`, which adds no flag at all and instead changes who
+/// runs restic. The rule is not
 /// "changes nothing" but "breaks nothing the app reads": `--no-scan` drops
 /// `total_bytes` and pins `percent_done` at 0, which the row already has to
 /// tolerate and now handles explicitly (issue #51), while `--quiet` and
@@ -43,6 +45,14 @@ public struct BackupOptions: Codable, Hashable, Sendable {
     /// from its summary, and reporting that run as an ordinary success would
     /// tell someone a backup was stored when none was.
     public var skipIfUnchanged: Bool
+    /// Run the backup as root through Keelhaven's privileged helper, so files
+    /// only root can read are included.
+    ///
+    /// Not a restic flag — `arguments` never changes for it. It decides who
+    /// runs `restic backup` (and its preview): the app as the signed-in user,
+    /// or the helper daemon as root. Restore, check and retention always stay
+    /// with the user. See docs/ARCHITECTURE.md § "Reading as administrator".
+    public var readsAsAdministrator: Bool
 
     /// Every switch off — restic's own behaviour.
     public static let off = BackupOptions()
@@ -51,12 +61,14 @@ public struct BackupOptions: Codable, Hashable, Sendable {
         excludeCaches: Bool = false,
         oneFileSystem: Bool = false,
         noScan: Bool = false,
-        skipIfUnchanged: Bool = false
+        skipIfUnchanged: Bool = false,
+        readsAsAdministrator: Bool = false
     ) {
         self.excludeCaches = excludeCaches
         self.oneFileSystem = oneFileSystem
         self.noScan = noScan
         self.skipIfUnchanged = skipIfUnchanged
+        self.readsAsAdministrator = readsAsAdministrator
     }
 
     /// Each field decoded independently with a `false` fallback, so a
@@ -70,13 +82,14 @@ public struct BackupOptions: Codable, Hashable, Sendable {
             excludeCaches: try container.decodeIfPresent(Bool.self, forKey: .excludeCaches) ?? false,
             oneFileSystem: try container.decodeIfPresent(Bool.self, forKey: .oneFileSystem) ?? false,
             noScan: try container.decodeIfPresent(Bool.self, forKey: .noScan) ?? false,
-            skipIfUnchanged: try container.decodeIfPresent(Bool.self, forKey: .skipIfUnchanged) ?? false
+            skipIfUnchanged: try container.decodeIfPresent(Bool.self, forKey: .skipIfUnchanged) ?? false,
+            readsAsAdministrator: try container.decodeIfPresent(Bool.self, forKey: .readsAsAdministrator) ?? false
         )
     }
 
     /// True when restic is left entirely to its own behaviour.
     public var isDefault: Bool {
-        !excludeCaches && !oneFileSystem && !noScan && !skipIfUnchanged
+        !excludeCaches && !oneFileSystem && !noScan && !skipIfUnchanged && !readsAsAdministrator
     }
 
     /// The flags for this configuration, empty when nothing is set.

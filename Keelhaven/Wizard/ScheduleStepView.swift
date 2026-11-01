@@ -99,6 +99,7 @@ struct ScheduleStepView: View {
                     VerificationSection(cadence: $model.options.checkCadence)
                     RetentionSection(options: model.options)
                     ExcludePatternsSection(options: model.options)
+                    AdministratorAccessSection(options: model.options)
                     AdvancedPerformanceSection(options: model.options)
                 }
                 .padding(.top, 12)

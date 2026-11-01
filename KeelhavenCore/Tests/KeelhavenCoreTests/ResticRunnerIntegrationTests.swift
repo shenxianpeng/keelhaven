@@ -224,8 +224,16 @@ final class ResticRunnerIntegrationTests: XCTestCase {
         }
 
         let locksURL = repoURL.appendingPathComponent("locks", isDirectory: true)
+        // Finished locks only. restic's local backend writes each one as
+        // `<id>-tmp-<n>` and renames it once complete (seen on every run
+        // against 0.19.1), so counting every entry let the SIGKILL below land
+        // on the temporary file: restic then saw no lock at all — `forget`
+        // went through and `unlock` had nothing to clear — and the test
+        // failed on slower CI runners.
         func lockCount() -> Int {
-            ((try? FileManager.default.contentsOfDirectory(atPath: locksURL.path)) ?? []).count
+            ((try? FileManager.default.contentsOfDirectory(atPath: locksURL.path)) ?? [])
+                .filter { $0.count == 64 && $0.allSatisfy(\.isHexDigit) }
+                .count
         }
         var lockAppeared = false
         for _ in 0..<100 where !lockAppeared {

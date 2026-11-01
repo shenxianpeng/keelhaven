@@ -13,6 +13,15 @@ targets:
     platform: macOS
     sources:
       - Keelhaven
+      # Code-signing checks shared with the privileged helper.
+      - Shared
+      # The privileged helper's launchd plist, where SMAppService.daemon
+      # looks for it (docs/ARCHITECTURE.md § "Reading as administrator").
+      - path: LaunchDaemons/com.keelhaven.helper.plist
+        buildPhase:
+          copyFiles:
+            destination: wrapper
+            subpath: Contents/Library/LaunchDaemons
       # Universal restic binary produced by Scripts/fetch-restic.sh, copied
       # into Contents/MacOS/ next to the app executable.
       - path: Vendor/restic/restic
@@ -29,6 +38,13 @@ targets:
             destination: resources
     dependencies:
       - package: KeelhavenCore
+      # The privileged helper, next to restic in Contents/MacOS/ — the
+      # launchd plist's BundleProgram points there.
+      - target: KeelhavenHelper
+        embed: true
+        codeSign: true
+        copy:
+          destination: executables
     info:
       path: Keelhaven/Info.plist
       properties:
@@ -86,3 +102,28 @@ targets:
           fi
           /usr/libexec/PlistBuddy -c "Delete :GitCommit" "$INFO" 2>/dev/null || true
           /usr/libexec/PlistBuddy -c "Add :GitCommit string $COMMIT" "$INFO"
+
+  # Runs `restic backup` as root for plans set to read files as
+  # administrator. A launchd daemon the app registers with SMAppService; it
+  # only accepts connections from Keelhaven signed by the same team, so an
+  # ad-hoc build ships it but can never use it.
+  KeelhavenHelper:
+    type: tool
+    platform: macOS
+    sources:
+      - KeelhavenHelper
+      - Shared
+    dependencies:
+      - package: KeelhavenCore
+    settings:
+      base:
+        PRODUCT_NAME: KeelhavenHelper
+        # Becomes the code-signing identifier through the embedded
+        # Info.plist; the app checks the helper against it.
+        PRODUCT_BUNDLE_IDENTIFIER: com.keelhaven.helper
+        GENERATE_INFOPLIST_FILE: YES
+        CREATE_INFOPLIST_SECTION_IN_BINARY: YES
+        SKIP_INSTALL: YES
+        SWIFT_VERSION: "5.0"
+        ENABLE_HARDENED_RUNTIME: YES
+        CODE_SIGN_STYLE: Automatic

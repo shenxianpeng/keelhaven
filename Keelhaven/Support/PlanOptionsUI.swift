@@ -294,3 +294,94 @@ struct AdvancedPerformanceSection: View {
         }
     }
 }
+
+/// Collapsed like the two above it: most plans never need it. Backs up files
+/// only root can read by running restic through the privileged helper, which
+/// macOS makes the user approve once in Login Items. The row underneath says
+/// where that stands and offers the one next step, so turning the setting on
+/// never silently leaves a plan that cannot run.
+struct AdministratorAccessSection: View {
+    @Bindable var options: PlanOptionsDraft
+    @State private var availability = PrivilegedHelperService.availability
+    @State private var registrationError: String?
+
+    var body: some View {
+        DisclosureGroup("Administrator access") {
+            VStack(alignment: .leading, spacing: 8) {
+                Toggle("Read files as administrator", isOn: $options.readsAsAdministrator)
+                    .toggleStyle(.checkbox)
+                    // Left enabled when already on, so a plan carried over
+                    // to an unsigned build can still be switched back.
+                    .disabled(availability == .unavailableInThisBuild && !options.readsAsAdministrator)
+                    .onChange(of: options.readsAsAdministrator) { _, isOn in
+                        if isOn && availability == .notRegistered {
+                            register()
+                        }
+                    }
+                Text("Includes files only an administrator can open, such as system settings or folders owned by other accounts. Backups for this plan run through a Keelhaven helper that macOS asks you to allow once. Restoring still happens as you.")
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                if options.readsAsAdministrator || availability == .unavailableInThisBuild {
+                    status
+                }
+            }
+            .padding(.top, 6)
+        }
+        // Approval happens in System Settings, so look again whenever the
+        // user comes back from there.
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            availability = PrivilegedHelperService.availability
+        }
+    }
+
+    @ViewBuilder
+    private var status: some View {
+        switch availability {
+        case .unavailableInThisBuild:
+            Label("This copy of Keelhaven isn't signed with a Developer ID, so it can't use the helper.", systemImage: "exclamationmark.triangle")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        case .notRegistered:
+            HStack {
+                Label("The helper isn't installed yet.", systemImage: "exclamationmark.circle")
+                    .font(.callout)
+                Button("Install Helper…") { register() }
+                    .controlSize(.small)
+            }
+            if let registrationError {
+                Text(registrationError)
+                    .font(.callout)
+                    .foregroundStyle(.red)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        case .requiresApproval:
+            HStack {
+                Label("Allow Keelhaven in System Settings › General › Login Items.", systemImage: "exclamationmark.circle")
+                    .font(.callout)
+                Button("Open Login Items…") {
+                    PrivilegedHelperService.openLoginItemsSettings()
+                }
+                .controlSize(.small)
+            }
+        case .enabled:
+            Label("The helper is allowed to run.", systemImage: "checkmark.circle")
+                .font(.callout)
+                .foregroundStyle(.secondary)
+        }
+    }
+
+    private func register() {
+        do {
+            try PrivilegedHelperService.register()
+            registrationError = nil
+        } catch {
+            registrationError = error.localizedDescription
+        }
+        availability = PrivilegedHelperService.availability
+        if availability == .requiresApproval {
+            PrivilegedHelperService.openLoginItemsSettings()
+        }
+    }
+}
