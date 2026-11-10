@@ -2,8 +2,9 @@ name: CI
 
 # macOS runners bill at 10× against the private-repo minutes quota, so this
 # workflow is deliberately stingy (the quota ran dry once — 2026-08-15):
-#   - docs/site/design-script changes skip CI entirely (the generated assets
-#     under Keelhaven/ still trigger it, so app-affecting changes are covered)
+#   - docs/site/design-script/worker changes skip CI entirely (the generated
+#     assets under Keelhaven/ still trigger it, so app-affecting changes are
+#     covered)
 #   - the app build lives in build-app.yml now and runs only when asked for;
 #     it used to run twice on every main push at ~20 billed minutes a time
 #   - a main push that is a squash-merge of an already-green PR skips the
@@ -17,6 +18,7 @@ on:
       - docs/**
       - site/**
       - design/**
+      - workers/**
       - .gitignore
   pull_request:
     paths-ignore:
@@ -24,6 +26,7 @@ on:
       - docs/**
       - site/**
       - design/**
+      - workers/**
       - .gitignore
   # Escape hatch for the squash-merge skip below, and for re-running after a
   # paths-ignore'd change that turned out to matter after all.
