@@ -60,9 +60,9 @@ public actor ResticRunner {
         credentials: RepoCredentials
     ) -> AsyncThrowingStream<BackupProgressEvent, Error> {
         eventStream(
-            command,
-            destination: destination,
-            credentials: credentials,
+            arguments: command.arguments,
+            environment: credentials.environment(for: destination),
+            failure: ResticError.classify(exitCode:stderr:),
             decodeLine: ResticJSON.decodeProgressEvent(fromLine:)
         )
     }
@@ -74,9 +74,9 @@ public actor ResticRunner {
         credentials: RepoCredentials
     ) -> AsyncThrowingStream<RestoreProgressEvent, Error> {
         eventStream(
-            command,
-            destination: destination,
-            credentials: credentials,
+            arguments: command.arguments,
+            environment: credentials.environment(for: destination),
+            failure: ResticError.classify(exitCode:stderr:),
             decodeLine: ResticJSON.decodeRestoreEvent(fromLine:)
         )
     }
@@ -95,26 +95,56 @@ public actor ResticRunner {
         credentials: RepoCredentials
     ) -> AsyncThrowingStream<ResticLsEvent, Error> {
         eventStream(
-            command,
-            destination: destination,
-            credentials: credentials,
+            arguments: command.arguments,
+            environment: credentials.environment(for: destination),
+            failure: ResticError.classify(exitCode:stderr:),
             decodeLine: ResticJSON.decodeLsEvent(fromLine:)
         )
     }
 
-    /// Shared subprocess JSON-lines pipeline behind both streams.
+    /// Runs restic with exactly these arguments and environment, yielding
+    /// stdout a line at a time, undecoded. A non-zero exit throws
+    /// `ResticProcessExit` carrying the code and stderr as they came.
+    ///
+    /// For the privileged helper, which runs restic as root on the app's
+    /// behalf and hands the raw output back over XPC: the app decodes and
+    /// classifies it there, with the same code every other stream uses, so
+    /// a root backup can never report itself differently from a user one.
+    /// Same lifecycle as the other streams — cancelling sends SIGINT.
+    ///
+    /// `interrupt` is the other way to stop it, for a caller that has to
+    /// know when restic is really gone: SIGINT without ending the stream,
+    /// which then runs on to restic's own exit. The helper needs that,
+    /// because it hands a local repository's files back to the user only
+    /// after restic has written its last one.
+    public nonisolated func lineStream(
+        arguments: [String],
+        environment: [String: String],
+        interrupt: ResticInterrupt? = nil
+    ) -> AsyncThrowingStream<String, Error> {
+        eventStream(
+            arguments: arguments,
+            environment: environment,
+            interrupt: interrupt,
+            failure: { ResticProcessExit(exitCode: $0, stderr: $1) },
+            decodeLine: { $0 }
+        )
+    }
+
+    /// Shared subprocess JSON-lines pipeline behind every stream.
     private nonisolated func eventStream<Event: Sendable>(
-        _ command: ResticCommand,
-        destination: Destination,
-        credentials: RepoCredentials,
+        arguments: [String],
+        environment: [String: String],
+        interrupt: ResticInterrupt? = nil,
+        failure: @escaping @Sendable (Int32, String) -> Error,
         decodeLine: @escaping @Sendable (String) -> Event?
     ) -> AsyncThrowingStream<Event, Error> {
         let binaryURL = self.binaryURL
         return AsyncThrowingStream { continuation in
             let process = Process()
             process.executableURL = binaryURL
-            process.arguments = command.arguments
-            process.environment = credentials.environment(for: destination)
+            process.arguments = arguments
+            process.environment = environment
             process.standardInput = FileHandle.nullDevice
 
             let stdoutPipe = Pipe()
@@ -133,6 +163,7 @@ public actor ResticRunner {
                     continuation.finish(throwing: ResticError.binaryNotFound)
                     return
                 }
+                interrupt?.attach(process)
 
                 // Both pipes are drained while the process runs, each on its
                 // own thread — see `PipeReader` for what happens otherwise.
@@ -153,7 +184,7 @@ public actor ResticRunner {
                     continuation.finish()
                 } else {
                     let stderrText = String(decoding: await stderrData, as: UTF8.self)
-                    continuation.finish(throwing: ResticError.classify(exitCode: exitCode, stderr: stderrText))
+                    continuation.finish(throwing: failure(exitCode, stderrText))
                 }
             }
 
@@ -228,5 +259,47 @@ public actor ResticRunner {
                 continuation.finish()
             }
         }
+    }
+}
+
+/// A stop button for one `lineStream` run that leaves the stream running
+/// until restic has exited. Safe to press before restic has started (it is
+/// sent the moment it does) and more than once.
+public final class ResticInterrupt: @unchecked Sendable {
+    private let lock = NSLock()
+    private var process: Process?
+    private var requested = false
+
+    public init() {}
+
+    public func interrupt() {
+        lock.withLock {
+            requested = true
+            if let process, process.isRunning {
+                process.interrupt()
+            }
+        }
+    }
+
+    func attach(_ process: Process) {
+        lock.withLock {
+            self.process = process
+            if requested {
+                process.interrupt()
+            }
+        }
+    }
+}
+
+/// How a `lineStream` run ended when restic exited non-zero: the code and
+/// stderr exactly as restic left them, for the receiving side to classify
+/// with `ResticError.classify`.
+public struct ResticProcessExit: Error, Equatable, Sendable {
+    public let exitCode: Int32
+    public let stderr: String
+
+    public init(exitCode: Int32, stderr: String) {
+        self.exitCode = exitCode
+        self.stderr = stderr
     }
 }

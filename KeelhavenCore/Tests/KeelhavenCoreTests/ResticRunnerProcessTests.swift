@@ -284,4 +284,32 @@ final class ResticRunnerProcessTests: XCTestCase {
         )
         reaper.waitUntilExit()
     }
+    // MARK: - Restore and list failures
+
+    /// A restore or listing that restic refuses is classified exactly like a
+    /// failed backup — the window shows the same "wrong password" sentence.
+    func testRestoreAndListStreamsClassifyAFailedExit() async throws {
+        let binary = try fakeBinary(script: """
+        echo '{"message_type":"exit_error","code":12,"message":"wrong password or no key found"}' >&2
+        exit 12
+        """)
+        let runner = ResticRunner(binaryURL: binary)
+
+        do {
+            for try await _ in runner.restoreStream(
+                .restore(snapshotID: "abc", target: workDirectory.path, includes: []),
+                destination: destination, credentials: credentials
+            ) {}
+            XCTFail("Expected wrongPassword")
+        } catch let error as ResticError {
+            guard case .wrongPassword = error else { return XCTFail("Expected wrongPassword, got \(error)") }
+        }
+
+        do {
+            for try await _ in runner.listStream(.ls(snapshotID: "abc"), destination: destination, credentials: credentials) {}
+            XCTFail("Expected wrongPassword")
+        } catch let error as ResticError {
+            guard case .wrongPassword = error else { return XCTFail("Expected wrongPassword, got \(error)") }
+        }
+    }
 }

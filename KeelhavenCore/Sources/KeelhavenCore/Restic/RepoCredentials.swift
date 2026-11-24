@@ -21,14 +21,24 @@ public struct RepoCredentials: Sendable {
     /// space) plus repository location and secrets. The app's own environment
     /// is deliberately not inherited.
     public func environment(for destination: Destination) -> [String: String] {
-        var env: [String: String] = [:]
+        var base: [String: String] = [:]
         let inherited = ProcessInfo.processInfo.environment
         for key in ["PATH", "HOME", "TMPDIR", "SSH_AUTH_SOCK"] {
             if let value = inherited[key] {
-                env[key] = value
+                base[key] = value
             }
         }
+        return environment(for: destination, base: base)
+    }
 
+    /// Repository location and secrets on top of a base the caller chose.
+    ///
+    /// For a restic that does not run as this process's user: the privileged
+    /// helper is a root daemon, and its own environment is neither the
+    /// user's nor one restic should inherit, so it builds the base itself
+    /// (`PrivilegedInvocation`).
+    public func environment(for destination: Destination, base: [String: String]) -> [String: String] {
+        var env = base
         env["RESTIC_REPOSITORY"] = destination.repositoryLocation
         env["RESTIC_PASSWORD"] = repositoryPassword
 

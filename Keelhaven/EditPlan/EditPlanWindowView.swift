@@ -69,6 +69,8 @@ struct EditPlanWindowView: View {
 
                     ExcludePatternsSection(options: model.options)
 
+                    AdministratorAccessSection(options: model.options)
+
                     AdvancedPerformanceSection(options: model.options)
                 }
                 .padding(20)
