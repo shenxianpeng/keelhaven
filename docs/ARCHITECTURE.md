@@ -142,9 +142,29 @@ Snapshot diff, deleting a single snapshot, searching across snapshots and
 mounting one (restore is shipped: plan actions → Restore… lists snapshots, and
 either restores one whole or opens it to pick files out — always into a fresh
 subfolder), custom retention keep counts (preset retention shipped: Edit Plan →
-Retention), additional backends (rclone family), rest-server beyond its
-default mode (`--private-repos`, `--append-only`, self-signed/custom-CA
-TLS — public CA-signed HTTPS works), launchd scheduling, sandboxing.
+Retention), restic's other native backends (Azure, Google Cloud Storage,
+Swift, B2 — B2 and most S3-compatible providers already work through the S3
+destination), rest-server beyond its default mode (`--private-repos`,
+`--append-only`, self-signed/custom-CA TLS — public CA-signed HTTPS works),
+launchd scheduling, sandboxing.
+
+Agreed but not built yet — both proposed in #99, each waiting on its own PR;
+move them out of this section once they land:
+
+- **An rclone destination** (`rclone:remote:path`), for providers nothing
+  else reaches, such as Google Drive. It uses an rclone the person installed
+  and a remote they already configured: no bundled rclone, no in-app OAuth.
+  The storage credentials therefore stay in rclone's own config rather than
+  the Keychain, and the wizard has to say so; the backups themselves are
+  still encrypted by restic on the Mac. #53 has the trade-off. Needs its own
+  rclone discovery (the restic child's environment has no useful `PATH`) and
+  a real-backend integration test that needs no cloud credentials.
+- **Skipping a plan whose source drive is not mounted**, before restic is
+  spawned. Today restic exits 1 when every source is missing, and exits 3
+  with a partial snapshot when only some are. restic reports a missing path
+  as plain text, not a JSON `error` line, so the plan row then says "Some
+  files could not be read", names no file, and offers the Full Disk Access
+  button — the wrong fix (see § macOS permissions).
 
 A free-form "extra restic arguments" field is not on the list either — it is
 ruled out rather than pending. `--quiet` or `--verbose` would break the
